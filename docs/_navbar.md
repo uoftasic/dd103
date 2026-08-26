@@ -1,3 +1,3 @@
 - [Guide](guide/getting-started.md)
-- [Labs](labs/lab-01-one-adder-two-targets.md)
+- [Labs](labs/lab-01-one-adder-two-targets-overview.md)
 - [GitHub](https://github.com/uoftasic/dd103)

@@ -1,6 +1,6 @@
 # Lab 01 — One adder, two targets
 
-Writeup: [`docs/labs/lab-01-one-adder-two-targets.md`](../../docs/labs/lab-01-one-adder-two-targets.md)
+Writeup: [`docs/labs/lab-01-one-adder-two-targets-overview.md`](../../docs/labs/lab-01-one-adder-two-targets-overview.md)
 
 One `ripple4.sv`. Two synthesizers. Two answers that do not look like each other.
 

@@ -17,11 +17,11 @@
     - [A state machine is a table with a memory](guide/state-machine-is-a-table.md)
     - [From gates to geometry](guide/from-gates-to-geometry.md)
 - **Labs**
-  - [Lab 01 — One adder, two targets](labs/lab-01-one-adder-two-targets.md)
-  - [Lab 02 — RTL becomes gates](labs/lab-02-rtl-becomes-gates.md)
-  - [Lab 03 — Three ways to lose a latch](labs/lab-03-three-ways-to-lose-a-latch.md)
-  - [Lab 04 — Reading the receipt](labs/lab-04-reading-the-receipt.md)
-  - [Lab 05 — Elevator to GDSII](labs/lab-05-elevator.md)
+  - [Lab 01 — One adder, two targets](labs/lab-01-one-adder-two-targets-overview.md)
+  - [Lab 02 — RTL becomes gates](labs/lab-02-rtl-becomes-gates-overview.md)
+  - [Lab 03 — Three ways to lose a latch](labs/lab-03-three-ways-to-lose-a-latch-overview.md)
+  - [Lab 04 — Reading the receipt](labs/lab-04-reading-the-receipt-overview.md)
+  - [Lab 05 — Elevator to GDSII](labs/lab-05-elevator-overview.md)
 - **Reference**
   - [The synthesizable subset](reference/synthesizable-subset.md)
   - [When Yosys says syntax error](reference/yosys-syntax-errors.md)

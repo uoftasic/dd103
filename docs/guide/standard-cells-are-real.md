@@ -2,7 +2,7 @@
 
 **Question this page answers:** *What actually IS a standard cell?*
 
-You have been pasting this path since [Lab 01](labs/lab-01-one-adder-two-targets.md):
+You have been pasting this path since [Lab 01](labs/lab-01-one-adder-two-targets-overview.md):
 
 ```
 /foss/pdks/sky130A/libs.ref/sky130_fd_sc_hd/lib/sky130_fd_sc_hd__tt_025C_1v80.lib
@@ -17,7 +17,7 @@ It does not. It is a **catalogue of physical objects**, and you can count them.
 ## Watch this first
 
 **3 minutes**, silent, captioned — the captions are the narration, so read rather than
-listen. It takes the full adder from [Lab 01](labs/lab-01-one-adder-two-targets.md) all the
+listen. It takes the full adder from [Lab 01](labs/lab-01-one-adder-two-targets-overview.md) all the
 way from seven lines of SystemVerilog to two rectangles out of this catalogue, and prices
 them.
 
@@ -81,7 +81,7 @@ yosys -p "read_verilog -sv counter.sv; synth -top counter;
 ```
 
 **Seven distinct types out of 428.** The `ripple4.sv` from
-[Lab 01](labs/lab-01-one-adder-two-targets.md) used **two**: `maj3_1` and `xnor2_1`.
+[Lab 01](labs/lab-01-one-adder-two-targets-overview.md) used **two**: `maj3_1` and `xnor2_1`.
 
 Synthesis is not open-ended invention. It is ordering from a menu, and the menu is short.
 
@@ -191,9 +191,9 @@ The alternative — every gate a different shape — is what people did before 1
 with tape.
 
 Here is a piece of a real chip built from this library — the counter from
-[Lab 02](labs/lab-02-rtl-becomes-gates.md), hardened by LibreLane and opened in KLayout:
+[Lab 02](labs/lab-02-rtl-becomes-gates-overview.md), hardened by LibreLane and opened in KLayout:
 
-![Three standard-cell rows in KLayout: each row bounded top and bottom by a horizontal metal1 power rail, poly gates as vertical red stripes, diffusion and local interconnect between them, cells abutting edge to edge with no gaps](../assets/img/dd103-klayout-cell-rows.png)
+![Three standard-cell rows in KLayout: each row bounded top and bottom by a horizontal metal1 power rail, poly gates as vertical red stripes, diffusion and local interconnect between them, cells abutting edge to edge with no gaps](assets/img/dd103-klayout-cell-rows.png)
 
 Three rows of it, each **2.720 µm** tall, each bounded top and bottom by the horizontal `met1`
 rails that carry `VPWR` and `VGND` — and the rails of one row are the rails of the next, which
@@ -267,7 +267,7 @@ magic -d X11 -T sky130A sky130_fd_sc_hd__maj3_1.mag
 when it opens — type `view` in its console to put the whole cell in the window, which is what
 the picture below shows.
 
-![sky130_fd_sc_hd__maj3_1 open in Magic: the VPWR rail across the top, VGND across the bottom, seven p-channel and seven n-channel devices as poly stripes crossing diffusion, and the pins A, B, C and X labelled on local interconnect](../assets/img/dd103-magic-maj3-cell.png)
+![sky130_fd_sc_hd__maj3_1 open in Magic: the VPWR rail across the top, VGND across the bottom, seven p-channel and seven n-channel devices as poly stripes crossing diffusion, and the pins A, B, C and X labelled on local interconnect](assets/img/dd103-magic-maj3-cell.png)
 
 Those 267 rectangles, drawn. The vertical stripes crossing the diffusion are the fourteen
 transistor gates the `.cdl` listed; `A`, `B`, `C` and `X` are the four pins the liberty entry

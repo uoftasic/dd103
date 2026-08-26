@@ -394,7 +394,7 @@ ceiling — which is exactly why DD104 exists.
 | And still | lint clean ≠ correct |
 
 Now go do it yourself:
-[Lab 03 — Three ways to lose a latch](labs/lab-03-three-ways-to-lose-a-latch.md).
+[Lab 03 — Three ways to lose a latch](labs/lab-03-three-ways-to-lose-a-latch-overview.md).
 
 Then [Blocking vs non-blocking](guide/blocking-vs-nonblocking.md), where the other operator
 everyone shouts about turns out to be settleable the same way this one was — by counting what

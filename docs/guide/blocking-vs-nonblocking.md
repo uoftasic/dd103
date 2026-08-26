@@ -315,7 +315,7 @@ not a style preference.
 
 ---
 
-Next: [Lab 03 — Three ways to lose a latch](labs/lab-03-three-ways-to-lose-a-latch.md), which
+Next: [Lab 03 — Three ways to lose a latch](labs/lab-03-three-ways-to-lose-a-latch-overview.md), which
 drills both traps on the same afternoon and hands you a table to fill in.
 
 After that, [The warehouse and the empty lot](guide/warehouse-and-empty-lot.md) takes the

@@ -10,7 +10,7 @@ outcomes, only one of which involves the tool telling you.
 
 - [IC101](https://uoftasic.com/ic101/) complete — you are working inside
   `hpretl/iic-osic-tools:2026.04`. Check with `yosys -V` → `0.64`.
-- [Lab 02 — RTL becomes gates](labs/lab-02-rtl-becomes-gates.md) done, so `stat` output is
+- [Lab 02 — RTL becomes gates](labs/lab-02-rtl-becomes-gates-overview.md) done, so `stat` output is
   not new to you.
 - Read Part III: [The latch you didn't ask for](guide/the-latch-you-didnt-ask-for.md) →
   [Blocking vs non-blocking](guide/blocking-vs-nonblocking.md).
@@ -209,4 +209,4 @@ Checks that your run matched ours:
 - Guide: [The latch you didn't ask for](guide/the-latch-you-didnt-ask-for.md) ·
   [Blocking vs non-blocking](guide/blocking-vs-nonblocking.md)
 - Reference: [The synthesizable subset](reference/synthesizable-subset.md)
-- Next lab: [Lab 04 — Reading the receipt](labs/lab-04-reading-the-receipt.md)
+- Next lab: [Lab 04 — Reading the receipt](labs/lab-04-reading-the-receipt-overview.md)

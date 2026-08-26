@@ -1,6 +1,6 @@
 # Lab 04 — Reading the receipt
 
-Writeup: [`docs/labs/lab-04-reading-the-receipt.md`](../../docs/labs/lab-04-reading-the-receipt.md)
+Writeup: [`docs/labs/lab-04-reading-the-receipt-overview.md`](../../docs/labs/lab-04-reading-the-receipt-overview.md)
 
 Four experiments on two designs. Run them in order — each one is a prediction you make
 before you look.

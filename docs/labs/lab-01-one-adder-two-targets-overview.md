@@ -245,5 +245,5 @@ best answer" are different sentences.
 - [Lab package](https://github.com/uoftasic/dd103/tree/main/labs/lab-01-one-adder-two-targets)
 - Read next: [The warehouse and the empty lot](guide/warehouse-and-empty-lot.md) — the
   analogy behind everything you just measured, with the same numbers you now own
-- Next lab: [Lab 02 — RTL becomes gates](labs/lab-02-rtl-becomes-gates.md), where the
+- Next lab: [Lab 02 — RTL becomes gates](labs/lab-02-rtl-becomes-gates-overview.md), where the
   `maj3_1` and `xnor2_1` you just counted stop being a list and become a picture

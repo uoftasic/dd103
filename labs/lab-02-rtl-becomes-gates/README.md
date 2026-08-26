@@ -1,6 +1,6 @@
 # Lab 02 — RTL becomes gates
 
-Writeup: [`docs/labs/lab-02-rtl-becomes-gates.md`](../../docs/labs/lab-02-rtl-becomes-gates.md)
+Writeup: [`docs/labs/lab-02-rtl-becomes-gates-overview.md`](../../docs/labs/lab-02-rtl-becomes-gates-overview.md)
 
 Two pictures of the same module, taken at two moments in one Yosys session.
 The left one carries your signal names. The right one carries SKY130 cell names.
