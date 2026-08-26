@@ -15,7 +15,9 @@ Nothing is wrong with your code. You wrote a sentence in the wrong half of the l
 
 ## SystemVerilog is two languages sharing a keyboard
 
-Here are two files. Both end in `.sv`. Both are legal SystemVerilog.
+Here are two files. Both end in `.sv`. Both are legal SystemVerilog. They ship at
+[`labs/lab-03-three-ways-to-lose-a-latch/examples/`](https://github.com/uoftasic/dd103/tree/main/labs/lab-03-three-ways-to-lose-a-latch/examples)
+— the lines below are the interesting part of each, not the whole file.
 
 `dut.sv` — a register:
 
@@ -39,6 +41,7 @@ end
 Icarus runs both, together, happily:
 
 ```bash
+cd labs/lab-03-three-ways-to-lose-a-latch/examples
 iverilog -g2012 -o sim.vvp tb.sv dut.sv && ./sim.vvp
 ```
 
@@ -48,7 +51,7 @@ iverilog -g2012 -o sim.vvp tb.sv dut.sv && ./sim.vvp
 [25] captured d = 6
 [35] captured d = 9
 final q = 9
-tb.sv:13: $finish called at 40 (1s)
+tb.sv:22: $finish called at 36 (1ns)
 ```
 
 Now look at what the testbench asks for. `#5` — wait five time units. `$display` — print a
@@ -302,27 +305,29 @@ Knowing which of the two you have hit is the entire triage skill, and
 
 ## Try this
 
-You do not need a lab package for this one — the three modules are on this page. Save them as
-`bad1.sv`, `bad2.sv` and `bad3.sv`, then watch all three reactions in a row:
+The snippets above are fragments, not modules — they are printed that way so the construct is
+the only thing on screen. The complete, runnable versions ship in the Lab 03 package:
 
 ```bash
+cd labs/lab-03-three-ways-to-lose-a-latch/src
+
 # reaction one — it stops, loudly
-yosys -p 'read_verilog -sv bad1.sv; synth -top bad1'      ; echo "exit=$?"
+yosys -p 'read_verilog -sv u_return_id.sv; synth -top u_return_id'   ; echo "exit=$?"
 
 # reaction two — it says nothing and drops the line
-yosys -p 'read_verilog -sv bad2.sv; synth -top bad2;
-          write_verilog -noattr /dev/stdout'              ; echo "exit=$?"
+yosys -p 'read_verilog -sv u_delay.sv; synth -top u_delay;
+          write_verilog -noattr /dev/stdout'                          ; echo "exit=$?"
 
 # reaction three — it says nothing and builds a different circuit
-yosys -p 'read_verilog -sv bad3.sv; synth -top bad3;
-          write_verilog -noattr /dev/stdout'              ; echo "exit=$?"
+yosys -p 'read_verilog -sv u_unique_nodefault.sv; synth -top u_unique_nodefault;
+          write_verilog -noattr /dev/stdout'                          ; echo "exit=$?"
 ```
 
 **What you should see:** `exit=1`, then `exit=0`, then `exit=0`.
 
-The first prints `ERROR: syntax error, unexpected TOK_ID` and stops. The second prints a
-module whose body is `assign q = d;` — your `#5` is nowhere. The third prints two `assign`
-lines of logic you never wrote.
+The first stops at `u_return_id.sv:5: ERROR: syntax error, unexpected TOK_ID`. The second
+prints a module whose whole body is `assign q = d;` — your `#5` is nowhere. The third prints
+two `assign` lines of logic you never wrote.
 
 **Why an engineer cares:** two of those three exit codes are zero. A green exit code means
 Yosys did not crash, and nothing more than that. The only thing that catches reactions two and

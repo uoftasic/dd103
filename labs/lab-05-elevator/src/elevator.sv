@@ -14,7 +14,17 @@
 // from a divider so a step is ~0.5 s; here it is whatever your testbench says.
 // -----------------------------------------------------------------------------
 
-module elevator (
+module elevator #(
+    // How many ticks the doors stay open. TODO(4) is where you use it.
+    //
+    // The lint_off is here only because nothing references DWELL_TICKS yet, and
+    // `verilator --lint-only -Wall` treats an unused parameter as an error. Once
+    // your dwell timer uses it, delete these two pragma lines -- if lint still
+    // passes afterwards, that is evidence your timer really is wired in.
+    /* verilator lint_off UNUSEDPARAM */
+    parameter int DWELL_TICKS = 4
+    /* verilator lint_on UNUSEDPARAM */
+) (
     input  logic       clk,
     input  logic       rst_n,      // asynchronous, active low
     input  logic [3:0] call,       // call[i] = someone wants floor i (0..3)
