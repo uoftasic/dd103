@@ -1,0 +1,14 @@
+# Experiment 1 — the receipt, done right.
+#
+#   yosys scripts/baseline.ys
+#
+# Every line matters. Delete the dfflibmap line and you get experiment 2.
+
+read_verilog -sv src/blinker.sv
+synth -top blinker
+dfflibmap -liberty /foss/pdks/sky130A/libs.ref/sky130_fd_sc_hd/lib/sky130_fd_sc_hd__tt_025C_1v80.lib
+abc -liberty /foss/pdks/sky130A/libs.ref/sky130_fd_sc_hd/lib/sky130_fd_sc_hd__tt_025C_1v80.lib
+opt_clean
+write_verilog -noattr results/blinker_sky130.v
+tee -o results/blinker.json stat -json -liberty /foss/pdks/sky130A/libs.ref/sky130_fd_sc_hd/lib/sky130_fd_sc_hd__tt_025C_1v80.lib
+stat -liberty /foss/pdks/sky130A/libs.ref/sky130_fd_sc_hd/lib/sky130_fd_sc_hd__tt_025C_1v80.lib

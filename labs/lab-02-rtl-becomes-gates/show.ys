@@ -1,0 +1,42 @@
+# Lab 02 — RTL becomes gates.
+#
+#   Run this with:  yosys show.ys      (or just: make)
+#
+# Two pictures of the SAME module, taken at two moments in one Yosys session:
+#
+#   results/rtl.svg     after `proc; opt`      — YOUR names, generic operators
+#   results/gates.svg   after `abc -liberty`   — SKY130 cell names, real area
+#
+# The subject is fulladder, not ripple4, and that is deliberate: graphviz gate
+# diagrams do not scale. Run `make bigger` to watch that happen on purpose.
+
+# read_liberty -lib loads the cell CATALOGUE (names + pin directions, no logic).
+# Without this line `show` has no idea which pins are outputs and draws every
+# arrow pointing into the cell. With it, sum and cout come out the right side.
+read_liberty -lib /foss/pdks/sky130A/libs.ref/sky130_fd_sc_hd/lib/sky130_fd_sc_hd__tt_025C_1v80.lib
+
+read_verilog -sv src/fulladder.sv
+hierarchy -top fulladder
+
+# --- picture 1: the RTL view -------------------------------------------
+# `proc` turns always-blocks into logic; `opt` tidies up. Nothing has been
+# mapped to any technology yet, so the boxes are generic ($xor, $and, $or)
+# and the wires still carry the names you typed.
+proc
+opt
+show -format svg -prefix results/rtl -notitle fulladder
+
+# --- lower it ----------------------------------------------------------
+# `synth` is the standard script. `dfflibmap` maps flip-flops to library
+# flops (this design has none — it is here because it belongs in the habit).
+# `abc` maps everything combinational onto real cells, using area numbers
+# read out of the liberty file. Expect a wall of warnings; see the README.
+synth -top fulladder
+dfflibmap -liberty /foss/pdks/sky130A/libs.ref/sky130_fd_sc_hd/lib/sky130_fd_sc_hd__tt_025C_1v80.lib
+abc -liberty /foss/pdks/sky130A/libs.ref/sky130_fd_sc_hd/lib/sky130_fd_sc_hd__tt_025C_1v80.lib
+opt_clean
+
+# --- picture 2: the gate view ------------------------------------------
+show -format svg -prefix results/gates -notitle fulladder
+write_verilog -noattr results/fulladder_sky130.v
+stat -liberty /foss/pdks/sky130A/libs.ref/sky130_fd_sc_hd/lib/sky130_fd_sc_hd__tt_025C_1v80.lib

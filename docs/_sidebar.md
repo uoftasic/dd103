@@ -1,0 +1,31 @@
+- [Home](README.md)
+- **Guide**
+  - [Getting started](guide/getting-started.md)
+  - **I. What synthesis is**
+    - [Synthesis is translation with an accent](guide/synthesis-is-translation.md)
+    - [The hardware dialect](guide/the-hardware-dialect.md)
+  - **II. Reading what it did**
+    - [A standard cell is a real thing](guide/standard-cells-are-real.md)
+    - [Reading `stat` like a receipt](guide/reading-stat.md)
+  - **III. The traps**
+    - [The latch you didn't ask for](guide/the-latch-you-didnt-ask-for.md)
+    - [Blocking vs non-blocking](guide/blocking-vs-nonblocking.md)
+  - **IV. Two targets**
+    - [The warehouse and the empty lot](guide/warehouse-and-empty-lot.md)
+    - [The carry has to walk](guide/the-carry-has-to-walk.md)
+  - **Capstone**
+    - [A state machine is a table with a memory](guide/state-machine-is-a-table.md)
+    - [From gates to geometry](guide/from-gates-to-geometry.md)
+- **Labs**
+  - [Lab 01 — One adder, two targets](labs/lab-01-one-adder-two-targets.md)
+  - [Lab 02 — RTL becomes gates](labs/lab-02-rtl-becomes-gates.md)
+  - [Lab 03 — Three ways to lose a latch](labs/lab-03-three-ways-to-lose-a-latch.md)
+  - [Lab 04 — Reading the receipt](labs/lab-04-reading-the-receipt.md)
+  - [Lab 05 — Elevator to GDSII](labs/lab-05-elevator.md)
+- **Reference**
+  - [The synthesizable subset](reference/synthesizable-subset.md)
+  - [When Yosys says syntax error](reference/yosys-syntax-errors.md)
+  - [OpenLane, OpenLane 2, LibreLane](reference/the-name-history.md)
+- **Repo**
+  - [Lab packages](https://github.com/uoftasic/dd103/tree/main/labs)
+  - [Scripts](https://github.com/uoftasic/dd103/tree/main/scripts)

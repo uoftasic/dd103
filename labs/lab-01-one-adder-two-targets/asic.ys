@@ -1,0 +1,19 @@
+# Lab 01 — the ASIC target: SKY130, high-density standard cells.
+#
+#   Run this with:  yosys asic.ys
+#
+# Unlike the FPGA script, this one needs a *liberty* file: the catalogue of
+# every cell the foundry will actually let you pour, with its area and timing.
+# `flatten` dissolves the four fulladder instances so ABC can optimize across
+# them. `abc -liberty` picks real cells. `stat -liberty` prices the result.
+#
+# Expect 94 lines of "Scl_LibertyReadGenlib() skipped ..." from abc, 63 of them
+# about flip-flops. That is normal — see the README.
+
+read_verilog -sv src/ripple4.sv src/fulladder.sv
+synth -top ripple4
+flatten
+abc -liberty /foss/pdks/sky130A/libs.ref/sky130_fd_sc_hd/lib/sky130_fd_sc_hd__tt_025C_1v80.lib
+opt_clean
+write_verilog -noattr results/ripple4_sky130.v
+stat -liberty /foss/pdks/sky130A/libs.ref/sky130_fd_sc_hd/lib/sky130_fd_sc_hd__tt_025C_1v80.lib

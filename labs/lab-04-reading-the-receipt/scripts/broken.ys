@@ -1,0 +1,14 @@
+# Experiment 2 — one line deleted on purpose.
+#
+#   yosys scripts/broken.ys
+#
+# This is scripts/baseline.ys with the dfflibmap line removed. It does not
+# error. Exit status is 0. The area it prints is wrong, and the only clue is
+# a cell type whose name starts with a dollar sign.
+
+read_verilog -sv src/blinker.sv
+synth -top blinker
+abc -liberty /foss/pdks/sky130A/libs.ref/sky130_fd_sc_hd/lib/sky130_fd_sc_hd__tt_025C_1v80.lib
+opt_clean
+tee -o results/blinker_broken.json stat -json -liberty /foss/pdks/sky130A/libs.ref/sky130_fd_sc_hd/lib/sky130_fd_sc_hd__tt_025C_1v80.lib
+stat -liberty /foss/pdks/sky130A/libs.ref/sky130_fd_sc_hd/lib/sky130_fd_sc_hd__tt_025C_1v80.lib

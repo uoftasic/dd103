@@ -1,0 +1,13 @@
+# Experiment 1b — the same design with FSM re-encoding switched off.
+#
+#   yosys scripts/nofsm.ys
+#
+# This is the run where your flip-flop prediction comes true.
+
+read_verilog -sv src/blinker.sv
+synth -top blinker -nofsm
+dfflibmap -liberty /foss/pdks/sky130A/libs.ref/sky130_fd_sc_hd/lib/sky130_fd_sc_hd__tt_025C_1v80.lib
+abc -liberty /foss/pdks/sky130A/libs.ref/sky130_fd_sc_hd/lib/sky130_fd_sc_hd__tt_025C_1v80.lib
+opt_clean
+tee -o results/blinker_nofsm.json stat -json -liberty /foss/pdks/sky130A/libs.ref/sky130_fd_sc_hd/lib/sky130_fd_sc_hd__tt_025C_1v80.lib
+stat -liberty /foss/pdks/sky130A/libs.ref/sky130_fd_sc_hd/lib/sky130_fd_sc_hd__tt_025C_1v80.lib

@@ -1,0 +1,11 @@
+# Lab 01 — the FPGA target: Lattice iCE40 UP5K.
+#
+#   yosys -c ... no. Run this with:  yosys fpga.ys
+#
+# synth_ice40 maps your logic onto the cells that already exist on the FPGA:
+# SB_LUT4 (a 4-input lookup table), SB_CARRY, SB_DFF, SB_RAM40_4K.
+# Nothing here mentions a technology library, because the "library" is the chip.
+
+read_verilog -sv src/ripple4.sv src/fulladder.sv
+synth_ice40 -top ripple4 -json results/ripple4.json
+stat
