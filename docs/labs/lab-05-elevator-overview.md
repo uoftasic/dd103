@@ -469,6 +469,6 @@ If you are within about 20 % on cells and area, you built the same kind of thing
 
 ---
 
-**That is DD103.** Keep two files: `elevator.sv`, and `runs/<tag>/final/metrics.json`. DD104
-opens by putting your numbers next to an 8-bit CPU's — a few thousand cells against your 76 —
+**That is DD103.** Keep two files: `elevator.sv`, and `runs/<tag>/final/metrics.json`.
+[**DD104 — Pre-Silicon Verification**](https://uoftasic.com/dd104/) opens by putting your numbers next to an 8-bit CPU's — a few thousand cells against your 76 —
 and asking you to find the bugs in it.
