@@ -64,7 +64,7 @@ Under two seconds, start to finish. Then open both SVGs side by side.
 - **Try this:** `make`, then open `results/rtl.svg`.
 - **What you should see:** five boxes, and every wire label is something you typed.
 
-  ![The full adder after proc; opt — five generic operator boxes](assets/img/lab02-fulladder-rtl.svg)
+  ![The full adder after proc; opt — five generic operator boxes](../assets/img/lab02-fulladder-rtl.svg)
 
   The octagons `a`, `b`, `cin`, `sum`, `cout` are your ports. The boxes are
   `$2 $xor`, `$3 $and`, `$4 $xor`, `$5 $and`, `$6 $or` — one for each operator in
@@ -89,7 +89,7 @@ Under two seconds, start to finish. Then open both SVGs side by side.
 - **Try this:** open `results/gates.svg` next to the first one.
 - **What you should see:** two boxes.
 
-  ![The same full adder after abc -liberty — two SKY130 standard cells](assets/img/lab02-fulladder-gates.svg)
+  ![The same full adder after abc -liberty — two SKY130 standard cells](../assets/img/lab02-fulladder-gates.svg)
 
   ```
   $95   sky130_fd_sc_hd__maj3_1     A B C -> X
@@ -167,13 +167,13 @@ during the capstone.
   chained through `c`. It is the picture of a ripple adder you would have drawn on
   paper.
 
-  ![ripple4 after proc; opt — four fulladder boxes chained through the carry](assets/img/lab02-ripple4-rtl.svg)
+  ![ripple4 after proc; opt — four fulladder boxes chained through the carry](../assets/img/lab02-ripple4-rtl.svg)
 
   Now open `results/gates_ripple4.svg`. It is **44 inches wide**: twelve cells,
   a scatter of bit-slice splitters, and no visual centre. Squashed to the width of
   this page it looks like this, and blowing it up does not help —
 
-  ![ripple4 after abc -liberty — a 3189 pt wide mat of cells](assets/img/lab02-ripple4-gates.svg)
+  ![ripple4 after abc -liberty — a 3189 pt wide mat of cells](../assets/img/lab02-ripple4-gates.svg)
 
   Nothing is wrong with it. It is simply not a diagram any more.
 
