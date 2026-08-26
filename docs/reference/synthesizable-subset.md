@@ -107,9 +107,13 @@ Yosys tells you what it did, if you read the log:
 
 ```
 2.2.4. Executing PROC_INIT pass (extract init attributes).
-Found init rule in `\t_initial.$proc$t_initial.sv:2$3'.
+Found init rule in `\t_initial.$proc$t_initial.sv:18$3'.
   Set init value: \count = 4'0000
 ```
+
+(That module ships as
+[`labs/lab-03-three-ways-to-lose-a-latch/examples/t_initial.sv`](https://github.com/uoftasic/dd103/blob/main/labs/lab-03-three-ways-to-lose-a-latch/examples/t_initial.sv);
+the `18` is the line the `initial` sits on in that file.)
 
 and the SKY130 netlist ends up holding this:
 

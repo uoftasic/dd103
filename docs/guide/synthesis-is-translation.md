@@ -12,7 +12,7 @@ It is not seven hundred things. It is **six**, and one of them is doing most of 
 ## Count them yourself
 
 Here is a 4-bit counter with an enable and an async reset. Eleven lines, nothing clever — it is
-`src/counter.sv` in the [Lab 02](labs/lab-02-rtl-becomes-gates.md) package
+`src/counter.sv` in the [Lab 02](labs/lab-02-rtl-becomes-gates-overview.md) package
 ([on GitHub](https://github.com/uoftasic/dd103/tree/main/labs/lab-02-rtl-becomes-gates/src/counter.sv)).
 Copy it next to you and every command below runs as written.
 
@@ -115,7 +115,7 @@ yosys -p "read_verilog -sv counter.sv; synth -top counter" 2>&1 | grep -E '^2\.[
 
 Twenty-six passes. `synth` is a **shorthand for a script somebody else wrote**, and you can
 type its contents yourself — which is exactly what
-[Lab 04](labs/lab-04-reading-the-receipt.md) makes you do.
+[Lab 04](labs/lab-04-reading-the-receipt-overview.md) makes you do.
 
 Eleven of those twenty-six are some flavour of `opt`. Optimization is not a step at the end;
 it runs after every structural change, because every structural change creates new garbage

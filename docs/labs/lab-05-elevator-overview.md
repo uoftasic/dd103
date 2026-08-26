@@ -15,7 +15,7 @@ the lab.
 - [IC101](https://uoftasic.com/ic101/) complete — you are inside
   `hpretl/iic-osic-tools:2026.04`. Check with `yosys -V` → `0.64` and
   `librelane --version` → `LibreLane v3.0.2`.
-- [Lab 04 — Reading the receipt](labs/lab-04-reading-the-receipt.md) done. `stat -liberty`
+- [Lab 04 — Reading the receipt](labs/lab-04-reading-the-receipt-overview.md) done. `stat -liberty`
   should not be new.
 - Read the capstone guide pages first:
   [A state machine is a table with a memory](guide/state-machine-is-a-table.md) →
@@ -217,7 +217,7 @@ ALL CHECKS PASSED
 - **Do not** run `show` on the gate netlist. Measured on this design, the gate-level diagram
   comes out **883 × 9018 pt** — a vertical ribbon ten times taller than it is wide, with 76
   unlabelled boxes in it. It is not a diagram, it is a wall. The readable gate view in
-  [Lab 02](labs/lab-02-rtl-becomes-gates.md) was a **two-cell** full adder, and that is about
+  [Lab 02](labs/lab-02-rtl-becomes-gates-overview.md) was a **two-cell** full adder, and that is about
   the size where `show` stops helping.
 - **Why an engineer cares:** the RTL view is the one that still has your vocabulary in it. Once
   the design is mapped to cells, the picture belongs to the layout tools, and the way you look
@@ -465,7 +465,7 @@ If you are within about 20 % on cells and area, you built the same kind of thing
   [From gates to geometry](guide/from-gates-to-geometry.md)
 - Reference: [The synthesizable subset](reference/synthesizable-subset.md) ·
   [OpenLane, OpenLane 2, LibreLane](reference/the-name-history.md)
-- Previous lab: [Lab 04 — Reading the receipt](labs/lab-04-reading-the-receipt.md)
+- Previous lab: [Lab 04 — Reading the receipt](labs/lab-04-reading-the-receipt-overview.md)
 
 ---
 

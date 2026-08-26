@@ -294,7 +294,10 @@ Two things in there matter. The default is **`False`**, so you get Yosys's built
 unless you ask. And `USE_SYNLIG` — the name older documentation tells you to set — is a
 **deprecated alias** for it. Synlig is not installed in this image; slang is.
 
-Take the same ALU, register its output, and run the real flow. Without the flag:
+Take the same ALU, register its output, and run the real flow. (`alu_reg.sv` is a one-off
+wrapper made for this page — `src/alu.sv` with its outputs flopped — so it is not in the lab
+packages. The part you should reproduce is the flag, on any SystemVerilog design of your own;
+the exact areas below belong to that wrapper.) Without the flag:
 
 ```json
 {

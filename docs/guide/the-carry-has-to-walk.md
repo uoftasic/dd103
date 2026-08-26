@@ -389,7 +389,7 @@ they have told you almost nothing.
 
 ---
 
-Take this to your own design: [Lab 04 — Reading the receipt](labs/lab-04-reading-the-receipt.md)
+Take this to your own design: [Lab 04 — Reading the receipt](labs/lab-04-reading-the-receipt-overview.md)
 makes you produce five different area numbers for one unchanged source file and defend all of
 them. `src/ripple.sv` and `scripts/timing.tcl` are in that package, so every command on this
 page runs from it too.

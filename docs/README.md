@@ -42,20 +42,20 @@ refuses to let it stay abstract.
 
 ![The Lab 02 counter hardened to GDSII and opened in KLayout: the die outline, the standard-cell rows filling the core, the routing on top, and the sky130A layer list on the right](assets/img/dd103-klayout-counter-gds.png)
 
-*That is the four-bit counter from Lab 02, after LibreLane. 35.5 µm by 46.3 µm, 97 cell
-instances, opened in KLayout with the SKY130 layer palette. The cell list on the left is
-every standard cell it is made of.*
+*That is the four-bit counter from Lab 02, after LibreLane at `FP_CORE_UTIL: 30`.
+35.5 µm by 46.3 µm, 98 cell instances, opened in KLayout with the SKY130 layer palette. The
+cell list on the left is every standard cell it is made of.*
 
 ## Path
 
 | Part | Guide | Lab |
 |------|-------|-----|
 | 0 | [Getting started](guide/getting-started.md) | — |
-| I — What synthesis is | [Synthesis is translation with an accent](guide/synthesis-is-translation.md) · [The hardware dialect](guide/the-hardware-dialect.md) | [Lab 01](labs/lab-01-one-adder-two-targets.md) |
-| II — Reading what it did | [A standard cell is a real thing](guide/standard-cells-are-real.md) · [Reading `stat` like a receipt](guide/reading-stat.md) | [Lab 02](labs/lab-02-rtl-becomes-gates.md) |
-| III — The traps | [The latch you didn't ask for](guide/the-latch-you-didnt-ask-for.md) · [Blocking vs non-blocking](guide/blocking-vs-nonblocking.md) | [Lab 03](labs/lab-03-three-ways-to-lose-a-latch.md) |
-| IV — Two targets | **[The warehouse and the empty lot](guide/warehouse-and-empty-lot.md)** · [The carry has to walk](guide/the-carry-has-to-walk.md) | [Lab 04](labs/lab-04-reading-the-receipt.md) |
-| Capstone | [A state machine is a table with a memory](guide/state-machine-is-a-table.md) · [From gates to geometry](guide/from-gates-to-geometry.md) | [Lab 05](labs/lab-05-elevator.md) |
+| I — What synthesis is | [Synthesis is translation with an accent](guide/synthesis-is-translation.md) · [The hardware dialect](guide/the-hardware-dialect.md) | [Lab 01](labs/lab-01-one-adder-two-targets-overview.md) |
+| II — Reading what it did | [A standard cell is a real thing](guide/standard-cells-are-real.md) · [Reading `stat` like a receipt](guide/reading-stat.md) | [Lab 02](labs/lab-02-rtl-becomes-gates-overview.md) |
+| III — The traps | [The latch you didn't ask for](guide/the-latch-you-didnt-ask-for.md) · [Blocking vs non-blocking](guide/blocking-vs-nonblocking.md) | [Lab 03](labs/lab-03-three-ways-to-lose-a-latch-overview.md) |
+| IV — Two targets | **[The warehouse and the empty lot](guide/warehouse-and-empty-lot.md)** · [The carry has to walk](guide/the-carry-has-to-walk.md) | [Lab 04](labs/lab-04-reading-the-receipt-overview.md) |
+| Capstone | [A state machine is a table with a memory](guide/state-machine-is-a-table.md) · [From gates to geometry](guide/from-gates-to-geometry.md) | [Lab 05](labs/lab-05-elevator-overview.md) |
 
 **Stuck?** Ask in the [team Discord](https://discord.gg/hrJnP5UsGz). Nobody expects you to work this out alone at
 2 a.m. — see [Getting help](guide/getting-started.md#getting-help).

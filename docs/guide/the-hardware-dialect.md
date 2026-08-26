@@ -200,7 +200,11 @@ always_ff @(posedge clk) begin
 end
 ```
 
+That fragment ships complete as
+[`labs/lab-03-three-ways-to-lose-a-latch/examples/t_display.sv`](https://github.com/uoftasic/dd103/blob/main/labs/lab-03-three-ways-to-lose-a-latch/examples/t_display.sv):
+
 ```bash
+cd labs/lab-03-three-ways-to-lose-a-latch/examples
 LIB=/foss/pdks/sky130A/libs.ref/sky130_fd_sc_hd/lib/sky130_fd_sc_hd__tt_025C_1v80.lib
 yosys -p "read_verilog -sv t_display.sv; synth -top t_display;
           dfflibmap -liberty $LIB; abc -liberty $LIB; opt_clean; stat -liberty $LIB"
@@ -265,9 +269,13 @@ Things that never become hardware, because none of them names one:
 initial count = 4'd0;
 ```
 
+Complete in the same directory, as
+[`examples/t_initial.sv`](https://github.com/uoftasic/dd103/blob/main/labs/lab-03-three-ways-to-lose-a-latch/examples/t_initial.sv) —
+`yosys -p "read_verilog -sv t_initial.sv; synth -top t_initial"` prints:
+
 ```
 2.2.4. Executing PROC_INIT pass (extract init attributes).
-Found init rule in `\t_initial.$proc$t_initial.sv:2$3'.
+Found init rule in `\t_initial.$proc$t_initial.sv:18$3'.
   Set init value: \count = 4'0000
 ```
 

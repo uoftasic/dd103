@@ -18,7 +18,7 @@ lesson.
 
 - [IC101](https://uoftasic.com/ic101/) complete — the workbench desktop launches
 - DD103 cloned under `workspace/modules/dd103`
-- [Lab 02](labs/lab-02-rtl-becomes-gates.md) done: you have watched RTL become SKY130 cells
+- [Lab 02](labs/lab-02-rtl-becomes-gates-overview.md) done: you have watched RTL become SKY130 cells
 - Read [A standard cell is a real thing](guide/standard-cells-are-real.md) →
   [Reading `stat` like a receipt](guide/reading-stat.md)
 - `yosys -V` says **`0.64`**. If it says anything else, you are not in the workbench.
@@ -248,7 +248,7 @@ fast:     strash / dretime / map
 ### 4 — Four adders are cheaper than four adders
 
 Back to the DD102 adder, which is in this package as `src/fulladder.sv` and `src/ripple4.sv`.
-You made this prediction once already, in [Lab 01](labs/lab-01-one-adder-two-targets.md) step 4,
+You made this prediction once already, in [Lab 01](labs/lab-01-one-adder-two-targets-overview.md) step 4,
 and it was 18.5% too high. This is where you find out the gap is one cell swap and prove it by
 taking it away.
 
@@ -391,12 +391,12 @@ You are done when you can answer these in one sentence each, using your own numb
 > filler, and the empty space the router needs. Same 8 sequential cells, though. Use
 > `stat -liberty` for what it is good at: comparing two versions of *your own* design.
 > [From gates to geometry](guide/from-gates-to-geometry.md) is where the die number comes
-> from, and [Lab 05](labs/lab-05-elevator.md) is where you produce one.
+> from, and [Lab 05](labs/lab-05-elevator-overview.md) is where you produce one.
 
 ## Links
 
 - [Lab package](https://github.com/uoftasic/dd103/tree/main/labs/lab-04-reading-the-receipt)
 - Guide: [Reading `stat` like a receipt](guide/reading-stat.md) ·
   [The warehouse and the empty lot](guide/warehouse-and-empty-lot.md)
-- Next lab: [Lab 05 — Elevator to GDSII](labs/lab-05-elevator.md), where the receipt you just
+- Next lab: [Lab 05 — Elevator to GDSII](labs/lab-05-elevator-overview.md), where the receipt you just
   learned to read becomes a chip you can look at.

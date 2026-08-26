@@ -10,7 +10,7 @@ This lab draws the picture. Twice: once in your words, once in the foundry's.
 
 ## Prerequisites
 
-- [Lab 01](labs/lab-01-one-adder-two-targets.md) complete — you have run `abc -liberty` at least once
+- [Lab 01](labs/lab-01-one-adder-two-targets-overview.md) complete — you have run `abc -liberty` at least once
 - `yosys -V` says **`Yosys 0.64`**
 - Read [Synthesis is translation with an accent](guide/synthesis-is-translation.md)
   and [A standard cell is a real thing](guide/standard-cells-are-real.md)
@@ -41,7 +41,7 @@ Between them sit two mapping passes that split the work by kind:
 - **`dfflibmap -liberty LIB`** replaces generic flip-flops with library flops. Your
   full adder has none, so this does nothing here. It is in the script because
   leaving it out of a design that *does* have flops produces a broken area number,
-  which is [Lab 04](labs/lab-04-reading-the-receipt.md)'s second experiment.
+  which is [Lab 04](labs/lab-04-reading-the-receipt-overview.md)'s second experiment.
 - **`abc -liberty LIB`** takes everything combinational and finds a covering of it
   using cells from the liberty file, optimizing for area.
 
@@ -182,7 +182,7 @@ during the capstone.
   gentle curve.
 
 > **The rule for the rest of this course: gate view of one small block, RTL view of
-> anything bigger.** The elevator FSM in [Lab 05](labs/lab-05-elevator.md) is 76 cells,
+> anything bigger.** The elevator FSM in [Lab 05](labs/lab-05-elevator-overview.md) is 76 cells,
 > and its gate view comes out 883 × 9018 pt — do not try to draw it. Draw its RTL, or
 > pick one sub-module.
 > This is not a limitation you will grow out of — it is why professional flows show
@@ -250,5 +250,5 @@ image) at 1200 px wide. Prefer the SVG for anything you will zoom into.
 - [Lab package](https://github.com/uoftasic/dd103/tree/main/labs/lab-02-rtl-becomes-gates)
 - Read next: [Reading `stat` like a receipt](guide/reading-stat.md) — you have seen two
   cells; now learn to read a hundred of them without opening a picture
-- Next lab: [Lab 03 — Three ways to lose a latch](labs/lab-03-three-ways-to-lose-a-latch.md),
+- Next lab: [Lab 03 — Three ways to lose a latch](labs/lab-03-three-ways-to-lose-a-latch-overview.md),
   where the tool builds something you did not ask for and does not always tell you

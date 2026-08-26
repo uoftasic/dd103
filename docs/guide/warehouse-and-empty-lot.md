@@ -3,7 +3,7 @@
 **Question this page answers:** *Why does the same SystemVerilog become different hardware
 depending on where I send it?*
 
-You have written exactly one `ripple4.sv`. In [Lab 01](labs/lab-01-one-adder-two-targets.md)
+You have written exactly one `ripple4.sv`. In [Lab 01](labs/lab-01-one-adder-two-targets-overview.md)
 you sent that one file to two synthesizers and got two answers that do not resemble each
 other. Neither tool was wrong. They were solving different problems.
 
@@ -39,7 +39,7 @@ yosys -p "read_verilog -sv ripple4.sv fulladder.sv; synth_ice40 -top ripple4; st
 ```
 
 (The four `$scopeinfo` are bookkeeping, not hardware —
-[Lab 01](labs/lab-01-one-adder-two-targets.md) explains them. Eight `SB_LUT4` is the answer.)
+[Lab 01](labs/lab-01-one-adder-two-targets-overview.md) explains them. Eight `SB_LUT4` is the answer.)
 
 And the same file on the empty lot:
 
@@ -125,7 +125,10 @@ FPGA answer. "It costs this much silicon" is an ASIC answer.
 A design that works beautifully on an FPGA can synthesize badly for an ASIC, and the reverse.
 They are different targets, not different qualities.
 
-The clearest case is memory. Here is a 2 KB array — eleven lines, nothing clever:
+The clearest case is memory. Here is a 2 KB array — eleven lines, nothing clever. It ships
+complete as
+[`labs/lab-01-one-adder-two-targets/examples/mem.sv`](https://github.com/uoftasic/dd103/blob/main/labs/lab-01-one-adder-two-targets/examples/mem.sv),
+so both commands below run as written:
 
 ```systemverilog
 logic [7:0] store [0:2047];
@@ -135,7 +138,7 @@ always_ff @(posedge clk) begin
 end
 ```
 
-Send it to the FPGA:
+Send it to the FPGA — `yosys -p "read_verilog -sv mem.sv; synth_ice40 -top mem; stat"`:
 
 ```
 === mem ===
@@ -148,7 +151,9 @@ Send it to the FPGA:
 Four **block RAMs** — dedicated memory hardware that was already sitting on the die, free,
 whether you used it or not. Fifty-four cells in total.
 
-Send the same file to SKY130:
+Send the same file to SKY130 — the same `synth` / `dfflibmap` / `abc` / `stat -liberty`
+line you have been running all course. It takes about twelve seconds, because there are
+twenty-seven thousand cells to map:
 
 ```
 === mem ===

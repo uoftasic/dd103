@@ -385,5 +385,5 @@ Next: [From gates to geometry](guide/from-gates-to-geometry.md). You now have a 
 turn that receipt into an actual rectangle of silicon, and shows you how to tell a chip that
 passed from a chip that merely exited zero.
 
-Then [Lab 05 — Elevator to GDSII](labs/lab-05-elevator.md) hands you this recipe and a
+Then [Lab 05 — Elevator to GDSII](labs/lab-05-elevator-overview.md) hands you this recipe and a
 four-floor elevator, and does not hand you a blank file.

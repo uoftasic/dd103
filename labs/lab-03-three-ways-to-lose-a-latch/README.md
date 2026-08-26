@@ -1,6 +1,6 @@
 # Lab 03 — Three ways to lose a latch
 
-Writeup: [`docs/labs/lab-03-three-ways-to-lose-a-latch.md`](../../docs/labs/lab-03-three-ways-to-lose-a-latch.md)
+Writeup: [`docs/labs/lab-03-three-ways-to-lose-a-latch-overview.md`](../../docs/labs/lab-03-three-ways-to-lose-a-latch-overview.md)
 
 Everything runs in the workbench (`hpretl/iic-osic-tools:2026.04` — Yosys 0.64,
 Verilator 5.046, Icarus Verilog 14.0). No arguments, no paths to retype.

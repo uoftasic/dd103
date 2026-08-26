@@ -1,12 +1,11 @@
 # From gates to geometry
 
-**Question this page answers:** *I typed one command, eighty stage banners scrolled past, and
+**Question this page answers:** *I typed one command, eighty stage banners scrolled past, and a
+minute later there was a `.gds`. What actually happened?*
 
 > The full `vending.sv` ships at
 > [`labs/lab-05-elevator/examples/vending.sv`](https://github.com/uoftasic/dd103/blob/main/labs/lab-05-elevator/examples/vending.sv)
 > so every command on this page is copy-pasteable.
-
-a minute later there was a `.gds`. What actually happened?*
 
 Everything up to now produced **lists**. `stat` gave you a list of cells. The netlist is a list
 of connections. Nothing in a list has a position, a size, or a wire.
@@ -567,7 +566,7 @@ One line per instance on the die — the same 98 the metrics counted. If that nu
 You have now seen the whole path: RTL → gates → area → placement → metal → polygons → three
 green ticks. Everything in DD103 has been building to one run of one command.
 
-Next: [Lab 05 — Elevator to GDSII](labs/lab-05-elevator.md). You design a four-floor elevator
+Next: [Lab 05 — Elevator to GDSII](labs/lab-05-elevator-overview.md). You design a four-floor elevator
 controller with the recipe from the previous page, harden it with the config from this one, and
 finish the course holding a `.gds` file, a `metrics.json` full of zeros, and a picture of a
 chip you designed.

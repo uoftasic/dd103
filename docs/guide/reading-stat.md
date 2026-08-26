@@ -2,7 +2,7 @@
 
 **Question this page answers:** *How big is my design?*
 
-In [Lab 02](labs/lab-02-rtl-becomes-gates.md) you watched your RTL turn into named SKY130
+In [Lab 02](labs/lab-02-rtl-becomes-gates-overview.md) you watched your RTL turn into named SKY130
 cells. Yosys printed a block of numbers at the end and you probably skipped it.
 
 That block is a receipt. It has line items, quantities, unit prices, and a total. Once you can
@@ -446,7 +446,7 @@ means something did not get mapped, and your area is too small by however much i
 `$scopeinfo` is the one harmless exception; everything else with a `$` is a real hole in the
 total. Chase every `is unknown!` line before you believe a number.
 
-[Lab 04 — Reading the receipt](labs/lab-04-reading-the-receipt.md) breaks it on purpose, three
+[Lab 04 — Reading the receipt](labs/lab-04-reading-the-receipt-overview.md) breaks it on purpose, three
 different ways, and has you fill in the numbers from your own runs.
 
 ## What to write down

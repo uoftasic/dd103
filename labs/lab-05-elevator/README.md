@@ -1,6 +1,6 @@
 # Lab 05 — Elevator to GDSII
 
-Writeup: [`docs/labs/lab-05-elevator.md`](../../docs/labs/lab-05-elevator.md)
+Writeup: [`docs/labs/lab-05-elevator-overview.md`](../../docs/labs/lab-05-elevator-overview.md)
 
 A 4-floor elevator controller, designed from a state table, taken all the way to a `.gds` file
 that passes DRC, LVS and antenna signoff.
