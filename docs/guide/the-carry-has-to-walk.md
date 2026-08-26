@@ -9,6 +9,30 @@ gave you the same file as 8 LUTs on an FPGA.
 Nobody has told you how *fast* it is. This page gets you a number in nanoseconds, and then
 shows you the one line of a timing report that decides whether your design ships.
 
+## Watch this first
+
+**3 min 12 s**, silent, captioned — the captions are the narration, so read rather than listen.
+Every number in it came out of the two commands on this page, run against the files the
+[Lab 04 package](https://github.com/uoftasic/dd103/tree/main/labs/lab-04-reading-the-receipt)
+ships.
+
+<video controls loop muted playsinline preload="none"
+       poster="assets/img/carry-travels.poster.png"
+       style="width:100%;max-width:820px;border-radius:8px">
+  <source src="assets/img/carry-travels.web.mp4" type="video/mp4">
+</video>
+
+**Commit to something before the carry starts moving.** The animation puts `1111 + 0001` into a
+four-bit adder and lets you watch the answer appear. Decide now whether a purely combinational
+circuit can display a value that is simply *wrong*, and for how long. Then count how many
+different wrong answers it shows before it settles on sixteen. (It is four, and one of them
+is zero.)
+
+**One thing to expect so it does not read as a contradiction:** the animation calls 1.481 ns
+"675 MHz", which is the ceiling the carry chain alone imposes. A real registered design is
+slower still — clock-to-Q and setup time eat into the same budget, and
+[the last third of this page](#why-the-clock-cannot-be-arbitrarily-fast) measures both.
+
 ## Bit 3 is waiting on bit 0
 
 Look at what your `ripple4.sv` actually asks for.
