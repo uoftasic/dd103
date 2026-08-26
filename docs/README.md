@@ -40,6 +40,12 @@ refuses to let it stay abstract.
 5. Design a **4-floor elevator controller** from a state table
 6. Take it all the way to a **GDSII file** — a real chip layout, DRC and LVS clean
 
+![The Lab 02 counter hardened to GDSII and opened in KLayout: the die outline, the standard-cell rows filling the core, the routing on top, and the sky130A layer list on the right](assets/img/dd103-klayout-counter-gds.png)
+
+*That is the four-bit counter from Lab 02, after LibreLane. 35.5 µm by 46.3 µm, 97 cell
+instances, opened in KLayout with the SKY130 layer palette. The cell list on the left is
+every standard cell it is made of.*
+
 ## Path
 
 | Part | Guide | Lab |

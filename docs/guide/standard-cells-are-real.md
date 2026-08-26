@@ -14,6 +14,23 @@ placeholder for real hardware.
 
 It does not. It is a **catalogue of physical objects**, and you can count them.
 
+## Watch this first
+
+**3 minutes**, silent, captioned — the captions are the narration, so read rather than
+listen. It takes the full adder from [Lab 01](labs/lab-01-one-adder-two-targets.md) all the
+way from seven lines of SystemVerilog to two rectangles out of this catalogue, and prices
+them.
+
+<video controls loop muted playsinline preload="none"
+       poster="assets/img/rtl-to-cells.poster.png"
+       style="width:100%;max-width:820px;border-radius:8px">
+  <source src="assets/img/rtl-to-cells.web.mp4" type="video/mp4">
+</video>
+
+**Commit to a number before the last third.** The animation chains four of those adders and
+asks what the total area is. Write your answer down first. It is wrong, on purpose, and the
+size of the gap is the most useful thing on this page.
+
 ## Measure it
 
 Open a terminal in the workbench and ask three questions:
@@ -173,6 +190,22 @@ Placement then becomes a problem of arranging tiles, not of drawing transistors.
 The alternative — every gate a different shape — is what people did before 1980, by hand,
 with tape.
 
+Here is a piece of a real chip built from this library — the counter from
+[Lab 02](labs/lab-02-rtl-becomes-gates.md), hardened by LibreLane and opened in KLayout:
+
+![Three standard-cell rows in KLayout: each row bounded top and bottom by a horizontal metal1 power rail, poly gates as vertical red stripes, diffusion and local interconnect between them, cells abutting edge to edge with no gaps](../assets/img/dd103-klayout-cell-rows.png)
+
+Three rows of it, each **2.720 µm** tall, each bounded top and bottom by the horizontal `met1`
+rails that carry `VPWR` and `VGND` — and the rails of one row are the rails of the next, which
+is the whole point of the fixed height. The cells sit shoulder to shoulder with no gaps: where
+the placer ran out of logic it dropped filler in, because a row with a hole in it is not a
+legal shape.
+
+This view has `met2` and everything above it turned off, along with the implant masks, so that
+the transistors underneath are visible at all. Leave them on and the routing covers the cells
+completely — which is what your own KLayout window will look like when you open a `.gds` for
+the first time.
+
 ## Somebody drew this
 
 The liberty entry is a description. Two directories over is the thing being described.
@@ -221,6 +254,25 @@ grep '^<< ' $REF/mag/sky130_fd_sc_hd__maj3_1.mag | tr -d '<>' | tr '\n' ' '
 **267 rectangles**, in a 7.4 KB file, describing a shape 3.68 µm by 2.72 µm. Sixteen sections
 are listed; thirteen of them are real mask layers — `nwell`, `poly`, `metal1` and the rest —
 while `labels`, `properties` and `end` are bookkeeping.
+
+Open the file and look at it. Copy it out of the PDK first — the PDK tree is read-only, and
+Magic dims every layer of a cell it cannot edit:
+
+```bash
+cp /foss/pdks/sky130A/libs.ref/sky130_fd_sc_hd/mag/sky130_fd_sc_hd__maj3_1.mag .
+magic -d X11 -T sky130A sky130_fd_sc_hd__maj3_1.mag
+```
+
+`magic130` is the alias `.designinit` sets up for that second line. Magic does not zoom to fit
+when it opens — type `view` in its console to put the whole cell in the window, which is what
+the picture below shows.
+
+![sky130_fd_sc_hd__maj3_1 open in Magic: the VPWR rail across the top, VGND across the bottom, seven p-channel and seven n-channel devices as poly stripes crossing diffusion, and the pins A, B, C and X labelled on local interconnect](../assets/img/dd103-magic-maj3-cell.png)
+
+Those 267 rectangles, drawn. The vertical stripes crossing the diffusion are the fourteen
+transistor gates the `.cdl` listed; `A`, `B`, `C` and `X` are the four pins the liberty entry
+named; the two wide bands at the top and the bottom are the power rails that let this cell abut
+its neighbours. The palette on the right is every layer the technology has.
 
 That is what a standard cell is. Not an abstraction of a gate — a **specific arrangement of
 267 polygons that a person laid out**, that a real foundry knows how to print, and that has
