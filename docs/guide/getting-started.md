@@ -124,7 +124,7 @@ your work.
 |---|---|
 | `bash: mod: command not found` | You did not run step 2 *in this terminal*. Every new tab starts clean. |
 | `mod: no such module: dd103` | You ran `mod dd103` before `mod add dd103`. |
-| `fatal: could not read Username for 'https://github.com'` | git is being asked to log in, which means it could not read the repo anonymously. Check the spelling first; if it is right, ask on Discord — do not type your password. |
+| `fatal: could not read Username for 'https://github.com'` | git is being asked to log in, which means it could not read the repo anonymously. Check the spelling first; if it is right, ask in [Discord](https://discord.gg/hrJnP5UsGz) — do not type your password. |
 
 ## 4. Check your versions
 
@@ -249,7 +249,7 @@ out to be five steps, each of which you can watch.
 
 This course is self-paced, which is not the same as alone.
 
-- **Ask in the team Discord.** <!-- TODO(maintainer): replace with the real invite link -->
+- **Ask in the [team Discord](https://discord.gg/hrJnP5UsGz).**
   There is no such thing as a question too basic — most of what looks like a mistake here is
   the tool being unhelpful, not you.
 - **Quote the exact error.** The first `ERROR:` line is the real one; everything after it is
