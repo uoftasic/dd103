@@ -261,11 +261,11 @@ This course is self-paced, which is not the same as alone.
 ### Running a lab without tying up your laptop
 
 A LibreLane run is about a minute of full CPU. If you would rather not spend it — or you want a
-second opinion on whether your design really is clean — the team is preparing a GitHub Action
-that hardens a design in CI and hands back the layout, a render of it, and the sign-off
-numbers. It runs the same LibreLane 3.0.2 on the same `config.json` you run locally, so it is
-a convenience, not a replacement for the workbench.
+second opinion on whether your design really is clean — the team ships a GitHub Action that
+hardens a design in CI and hands back the layout, a render of it, and the sign-off numbers:
+[`uoftasic/librelane-action`](https://github.com/uoftasic/librelane-action).
 
-**It is not published yet.** Ask in [Discord](https://discord.gg/hrJnP5UsGz) for the current
-link rather than searching for it — and run the labs on your own workbench in the meantime,
-which is what every number in this course was measured on.
+Copy its `templates/harden.yml` into your own repo as `.github/workflows/harden.yml` and point
+it at your design directory. It runs the same LibreLane 3.0.2 on the same `config.json` you run
+locally — a convenience, not a replacement for the workbench, which is what every number in this
+course was measured on.
