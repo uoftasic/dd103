@@ -83,5 +83,5 @@ fast, and how do I know?"*
 
 ## Next courses
 
-- **DD104** — Pre-Silicon Verification: find the bugs hiding in a real 8-bit core
+- **[DD104](https://uoftasic.com/dd104/)** — Pre-Silicon Verification: find the bugs hiding in a real 8-bit core
 - **DD201** — HLS · **DD202** — Computer Architecture
