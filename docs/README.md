@@ -11,11 +11,10 @@ Labs run inside the shared **workspace** you set up in [IC101](https://uoftasic.
 | | |
 |---|---|
 | **Track** | Digital |
-| **Prerequisites** | [DD102](https://uoftasic.com/dd102/) · **[IC101](https://uoftasic.com/ic101/) — this is where the container becomes mandatory** |
+| **Prerequisites** | [IC101](https://uoftasic.com/ic101/) then [DD102](https://uoftasic.com/dd102/), in that order |
 | **Tools** | Yosys, Verilator, Icarus, nextpnr, OpenSTA, LibreLane, KLayout — all inside the workbench |
 | **Time** | 16–20 hours, self-paced |
-| **You need** | A computer where you can **install Docker** — admin rights required. Chromebooks and locked-down school laptops will not work. |
-| **Machine** | 4 GB RAM to run, 8 GB to be comfortable |
+| **Machine** | 4 GB RAM to run, 8 GB to be comfortable. You already have the workbench from IC101. |
 
 > **This course is pinned to the workbench image `hpretl/iic-osic-tools:2026.04`**, which ships
 > **Yosys 0.64** and **LibreLane 3.0.2**. Official docs online describe newer versions with
@@ -52,8 +51,8 @@ refuses to let it stay abstract.
 | IV — Two targets | **[The warehouse and the empty lot](guide/warehouse-and-empty-lot.md)** · [The carry has to walk](guide/the-carry-has-to-walk.md) | [Lab 04](labs/lab-04-reading-the-receipt.md) |
 | Capstone | [A state machine is a table with a memory](guide/state-machine-is-a-table.md) · [From gates to geometry](guide/from-gates-to-geometry.md) | [Lab 05](labs/lab-05-elevator.md) |
 
-**Stuck?** Ask in the team Discord — see [Getting help](guide/getting-started.md#getting-help).
-Nobody expects you to work this out alone at 2 a.m.
+**Stuck?** Ask in the [team Discord](https://discord.gg/hrJnP5UsGz). Nobody expects you to work this out alone at
+2 a.m. — see [Getting help](guide/getting-started.md#getting-help).
 
 Reference: [The synthesizable subset](reference/synthesizable-subset.md) ·
 [When Yosys says syntax error](reference/yosys-syntax-errors.md) ·
