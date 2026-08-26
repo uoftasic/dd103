@@ -2,21 +2,22 @@
 
 SystemVerilog in depth, and how the same RTL lowers differently to FPGA and ASIC.
 
-Docsify course / lab template for the **UofT ASIC Team** (`uoftasic`). Published docs live under `./docs`; runnable labs, scripts, notebooks, and data stay in the repo root. Zero build for GitHub Pages — Markdown, MathJax, and images work out of the box.
+The third course in the UofT ASIC Team **digital track**. Published docs live under `./docs` and are served by GitHub Pages; the runnable lab packages live in `labs/`.
 
 Org: [github.com/uoftasic](https://github.com/uoftasic)
 
 ## Live docs
 
-**This template:** https://uoftasic.com/course-template/
+**This course:** https://uoftasic.com/dd103/
 
 **Education hub:** https://edu.uoftasic.com/
 
-After Pages is enabled on a course repo created from this template:
+**Prerequisites:** [IC101](https://uoftasic.com/ic101/) then [DD102](https://uoftasic.com/dd102/), in that order.
 
-**https://uoftasic.com/dd103/**
+## Template provenance
 
-## Use this template
+DD103 was created from [uoftasic/course-template](https://github.com/uoftasic/course-template). The rest of this
+section is the template's own bootstrap documentation, kept for maintainers.
 
 1. On [uoftasic/course-template](https://github.com/uoftasic/course-template), click **Use this template** → create a repo named after the course id (e.g. `dd103`, `serdes-lab`).
 2. Clone and bootstrap:
@@ -34,19 +35,21 @@ See [TEMPLATE.md](TEMPLATE.md) for the checklist. Org is always `uoftasic` — o
 
 ## Quick start
 
+Every package under `labs/` runs with `make` alone, in a bare container, with no environment setup — no `.designinit`, no `mod`, no exported PDK variables. Labs 01–04 exit 0; Lab 05 uses LibreLane and needs the workbench proper.
+
 ```bash
 git clone https://github.com/uoftasic/dd103.git
 cd dd103
 
-# Docs (requires Node.js)
-npx docsify-cli serve docs
-# → http://localhost:3000
+docker run --rm --user "$(id -u):$(id -g)" -v "$PWD:/work" -w /work \
+  hpretl/iic-osic-tools:2026.04 --skip \
+  bash -c 'cd /work/labs/lab-01-one-adder-two-targets && make'
+```
 
-# Sample script
-python3 scripts/hello.py
+Docs preview (requires Node.js):
 
-# Sample lab
-python3 labs/lab-01/src/main.py
+```bash
+npx docsify-cli serve docs      # -> http://localhost:3000
 ```
 
 Tool-heavy courses that need IIC-OSIC-TOOLS / SKY130 should document the team workbench setup in-course rather than bundling Docker in every repo.

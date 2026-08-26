@@ -380,7 +380,7 @@ The flow already rendered it. No screenshot choreography, no X server needed:
 ls -l runs/v1/final/render/elevator.png
 ```
 
-![The elevator, hardened](assets/img/lab05-elevator-render.png)
+![The elevator, hardened](../assets/img/lab05-elevator-render.png)
 
 - **What you should see:** a rectangle **62.335 × 73.055 µm**. Rows of standard cells, magenta
   power straps running vertically, a thicket of routing, and pins on the edges. Zoom in far
