@@ -1,0 +1,6 @@
+runs/
+results/*.vvp
+results/*.vcd
+results/*.log
+results/*.json
+results/*.v

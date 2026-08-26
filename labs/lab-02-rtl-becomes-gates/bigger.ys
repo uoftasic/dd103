@@ -1,0 +1,26 @@
+# Lab 02, part 3 — the scaling demo.
+#
+#   Run this with:  yosys bigger.ys   (or: make bigger)
+#
+# Same two pictures, of ripple4 — four full adders instead of one.
+# The RTL view stays readable. The gate view does not — it spreads sideways
+# into a mat of boxes with no visual centre.
+# Both files are meant to be looked at. Only one is meant to be understood.
+
+read_liberty -lib /foss/pdks/sky130A/libs.ref/sky130_fd_sc_hd/lib/sky130_fd_sc_hd__tt_025C_1v80.lib
+read_verilog -sv src/ripple4.sv src/fulladder.sv
+hierarchy -top ripple4
+proc
+opt
+
+# NOTE the trailing `ripple4`. Two modules are loaded, and `show -format svg`
+# refuses to draw more than one:
+#   ERROR: For formats different than 'ps' or 'dot' only one module must be selected.
+show -format svg -prefix results/rtl_ripple4 -notitle ripple4
+
+synth -top ripple4
+flatten
+abc -liberty /foss/pdks/sky130A/libs.ref/sky130_fd_sc_hd/lib/sky130_fd_sc_hd__tt_025C_1v80.lib
+opt_clean
+show -format svg -prefix results/gates_ripple4 -notitle ripple4
+stat -liberty /foss/pdks/sky130A/libs.ref/sky130_fd_sc_hd/lib/sky130_fd_sc_hd__tt_025C_1v80.lib

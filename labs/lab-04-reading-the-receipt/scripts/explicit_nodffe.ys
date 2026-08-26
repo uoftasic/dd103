@@ -1,0 +1,25 @@
+# Experiment 3a' — one flag added to one line of scripts/explicit.ys.
+#
+#   yosys scripts/explicit_nodffe.ys
+#
+# The only difference from explicit.ys is that the `opt` before `fsm` runs as
+# `opt -nodffe -nosdff`, which is what `synth` does. Plain `opt` folds the
+# clock enable into a $dffe cell, and fsm_detect no longer recognises `state`
+# as a state register -- so the FSM is never re-encoded. One flag, two flops,
+# 67 um^2.
+
+read_verilog -sv src/blinker.sv
+hierarchy -check -top blinker
+proc
+opt -nodffe -nosdff
+fsm
+opt
+memory
+opt
+techmap
+opt
+dfflibmap -liberty /foss/pdks/sky130A/libs.ref/sky130_fd_sc_hd/lib/sky130_fd_sc_hd__tt_025C_1v80.lib
+abc -liberty /foss/pdks/sky130A/libs.ref/sky130_fd_sc_hd/lib/sky130_fd_sc_hd__tt_025C_1v80.lib
+opt_clean
+tee -o results/blinker_explicit_nodffe.json stat -json -liberty /foss/pdks/sky130A/libs.ref/sky130_fd_sc_hd/lib/sky130_fd_sc_hd__tt_025C_1v80.lib
+stat -liberty /foss/pdks/sky130A/libs.ref/sky130_fd_sc_hd/lib/sky130_fd_sc_hd__tt_025C_1v80.lib

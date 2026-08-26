@@ -1,0 +1,13 @@
+# Experiment 4a — one full adder, on its own.
+#
+#   yosys scripts/gap_one.ys
+#
+# Read the area. Multiply by four. Write that number down before you run
+# scripts/gap_four.ys.
+
+read_verilog -sv src/fulladder.sv
+synth -top fulladder
+abc -liberty /foss/pdks/sky130A/libs.ref/sky130_fd_sc_hd/lib/sky130_fd_sc_hd__tt_025C_1v80.lib
+opt_clean
+tee -o results/fulladder.json stat -json -liberty /foss/pdks/sky130A/libs.ref/sky130_fd_sc_hd/lib/sky130_fd_sc_hd__tt_025C_1v80.lib
+stat -liberty /foss/pdks/sky130A/libs.ref/sky130_fd_sc_hd/lib/sky130_fd_sc_hd__tt_025C_1v80.lib

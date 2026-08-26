@@ -1,0 +1,19 @@
+# Experiment 4b — four of them, wired into a chain.
+#
+#   yosys scripts/gap_four.ys
+#
+# "flatten" dissolves the four fulladder instances so ABC can optimize across
+# the boundaries you drew. "delete t:$scopeinfo" removes the bookkeeping
+# objects the generate loop left behind, so the cell count is the real one.
+#
+# Note there is no backslash on $scopeinfo here. Inside a .ys file no shell
+# touches this line. You need the backslash only in yosys -p "..." at a prompt.
+
+read_verilog -sv src/ripple4.sv src/fulladder.sv
+synth -top ripple4
+flatten
+abc -liberty /foss/pdks/sky130A/libs.ref/sky130_fd_sc_hd/lib/sky130_fd_sc_hd__tt_025C_1v80.lib
+opt_clean
+delete t:$scopeinfo
+tee -o results/ripple4.json stat -json -liberty /foss/pdks/sky130A/libs.ref/sky130_fd_sc_hd/lib/sky130_fd_sc_hd__tt_025C_1v80.lib
+stat -liberty /foss/pdks/sky130A/libs.ref/sky130_fd_sc_hd/lib/sky130_fd_sc_hd__tt_025C_1v80.lib

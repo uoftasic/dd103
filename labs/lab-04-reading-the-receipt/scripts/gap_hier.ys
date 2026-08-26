@@ -1,0 +1,14 @@
+# Experiment 4c — the same four adders, with the module boundaries left alone.
+#
+#   yosys scripts/gap_hier.ys
+#
+# This is scripts/gap_four.ys with the `flatten` line removed. ABC now sees
+# four separate fulladder modules and optimizes each one on its own, exactly
+# the way you did with a calculator.
+
+read_verilog -sv src/ripple4.sv src/fulladder.sv
+synth -top ripple4
+abc -liberty /foss/pdks/sky130A/libs.ref/sky130_fd_sc_hd/lib/sky130_fd_sc_hd__tt_025C_1v80.lib
+opt_clean
+tee -o results/ripple4_hier.json stat -json -liberty /foss/pdks/sky130A/libs.ref/sky130_fd_sc_hd/lib/sky130_fd_sc_hd__tt_025C_1v80.lib
+stat -liberty /foss/pdks/sky130A/libs.ref/sky130_fd_sc_hd/lib/sky130_fd_sc_hd__tt_025C_1v80.lib
