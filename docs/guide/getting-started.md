@@ -243,3 +243,26 @@ ls labs/                       # the lab packages
 Next: [Synthesis is translation with an accent](guide/synthesis-is-translation.md), where you
 find out what `yosys` is actually doing to the SystemVerilog you wrote in DD102 — and it turns
 out to be five steps, each of which you can watch.
+
+
+## Getting help
+
+This course is self-paced, which is not the same as alone.
+
+- **Ask in the team Discord.** <!-- TODO(maintainer): replace with the real invite link -->
+  There is no such thing as a question too basic — most of what looks like a mistake here is
+  the tool being unhelpful, not you.
+- **Quote the exact error.** The first `ERROR:` line is the real one; everything after it is
+  fallout. Paste that line, the command you ran, and what `yosys -V` says.
+- **If a command in these pages does not do what the page says it does, that is a bug in the
+  course.** Report it. Every command here was run before it was written, so a mismatch means
+  something drifted and we want to know.
+
+### Running a lab without tying up your laptop
+
+A LibreLane run is about a minute of full CPU. If you would rather not spend it — or you want a
+second opinion on whether your design really is clean — the team ships a GitHub Action that
+hardens a design in CI and hands back the layout, a render of it, and the sign-off numbers.
+See [`uoftasic/librelane-action`](https://github.com/uoftasic/librelane-action). It runs the
+same LibreLane on the same `config.json` you run locally; it is a convenience, not a
+replacement for the workbench.

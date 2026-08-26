@@ -14,7 +14,8 @@ Labs run inside the shared **workspace** you set up in [IC101](https://uoftasic.
 | **Prerequisites** | [DD102](https://uoftasic.com/dd102/) · **[IC101](https://uoftasic.com/ic101/) — this is where the container becomes mandatory** |
 | **Tools** | Yosys, Verilator, Icarus, nextpnr, OpenSTA, LibreLane, KLayout — all inside the workbench |
 | **Time** | 16–20 hours, self-paced |
-| **You need** | 4 GB RAM to run, 8 GB to be comfortable |
+| **You need** | A computer where you can **install Docker** — admin rights required. Chromebooks and locked-down school laptops will not work. |
+| **Machine** | 4 GB RAM to run, 8 GB to be comfortable |
 
 > **This course is pinned to the workbench image `hpretl/iic-osic-tools:2026.04`**, which ships
 > **Yosys 0.64** and **LibreLane 3.0.2**. Official docs online describe newer versions with
@@ -22,6 +23,11 @@ Labs run inside the shared **workspace** you set up in [IC101](https://uoftasic.
 > the one that runs on your machine.
 >
 > Check yours: `yosys -V` should say `0.64`.
+
+> **If a setup command fails, try `make` anyway.** Every lab package pins its own PDK and
+> liberty paths, so Labs 01–04 run to completion in a bare container with no environment setup
+> at all. A broken `.designinit` should cost you a confused minute, not the course. (Lab 05
+> uses LibreLane and does need the workbench proper.)
 
 ## What you'll do
 
@@ -45,6 +51,9 @@ refuses to let it stay abstract.
 | III — The traps | [The latch you didn't ask for](guide/the-latch-you-didnt-ask-for.md) · [Blocking vs non-blocking](guide/blocking-vs-nonblocking.md) | [Lab 03](labs/lab-03-three-ways-to-lose-a-latch.md) |
 | IV — Two targets | **[The warehouse and the empty lot](guide/warehouse-and-empty-lot.md)** · [The carry has to walk](guide/the-carry-has-to-walk.md) | [Lab 04](labs/lab-04-reading-the-receipt.md) |
 | Capstone | [A state machine is a table with a memory](guide/state-machine-is-a-table.md) · [From gates to geometry](guide/from-gates-to-geometry.md) | [Lab 05](labs/lab-05-elevator.md) |
+
+**Stuck?** Ask in the team Discord — see [Getting help](guide/getting-started.md#getting-help).
+Nobody expects you to work this out alone at 2 a.m.
 
 Reference: [The synthesizable subset](reference/synthesizable-subset.md) ·
 [When Yosys says syntax error](reference/yosys-syntax-errors.md) ·
