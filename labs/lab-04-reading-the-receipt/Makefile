@@ -1,5 +1,5 @@
 # Lab 04 — Reading the receipt
-# Runs inside hpretl/iic-osic-tools:2026.04 (Yosys 0.64, Python 3.12).
+# Runs inside hpretl/iic-osic-tools:2026.08 (Yosys 0.68, Python 3.12).
 #
 #   make            all four experiments, in order, then the summary table
 #   make predict    experiment 1 — you say 6 flops, the receipt says 8

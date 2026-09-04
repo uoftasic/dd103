@@ -1,5 +1,5 @@
 # Lab 02 — RTL becomes gates
-# Runs inside hpretl/iic-osic-tools:2026.04 (Yosys 0.64, graphviz 2.43, cairosvg 2.9.0).
+# Runs inside hpretl/iic-osic-tools:2026.08 (Yosys 0.68, graphviz 2.43, cairosvg 2.9.0).
 #
 #   make          the two pictures of fulladder, plus their sizes
 #   make bigger   the same two pictures of ripple4 — the second one is the point

@@ -10,7 +10,7 @@ Every row was run. The method, for every entry:
 yosys -p "read_verilog -sv f.sv; synth -top f; stat"
 ```
 
-on **Yosys 0.64** (`git sha1 6d2c445ae`) in `hpretl/iic-osic-tools:2026.04`. The cell counts
+on **Yosys 0.68** (`git sha1 38e001a6f`) in `hpretl/iic-osic-tools:2026.08`. The cell counts
 are generic Yosys gates from `synth`, before any technology mapping — they are there so you
 can check your own run against them, and so you can see when a construct costs more than you
 thought.
@@ -22,7 +22,7 @@ yosys -V
 ```
 
 ```
-Yosys 0.64 (git sha1 6d2c445ae, g++ 13.3.0-6ubuntu2~24.04.1 -fPIC -O3)
+Yosys 0.68 (git sha1 38e001a6f, Release, GNU /usr/bin/c++ 13.3.0)
 ```
 
 ## How to read the verdict column
@@ -143,7 +143,7 @@ end
       |                    ^
 ```
 
-Yosys 0.64 builds it anyway — **74 cells**, versus **12** for the legal `d[sel*4 +: 4]` form
+Yosys 0.68 builds it anyway — **74 cells**, versus **12** for the legal `d[sel*4 +: 4]` form
 doing the same job. You get non-portable code and six times the hardware.
 
 **Rule: use `+:` and `-:`. If Verilator lints clean and Yosys errors, suspect the parser. If

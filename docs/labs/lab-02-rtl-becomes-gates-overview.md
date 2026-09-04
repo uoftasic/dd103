@@ -11,7 +11,7 @@ This lab draws the picture. Twice: once in your words, once in the foundry's.
 ## Prerequisites
 
 - [Lab 01](labs/lab-01-one-adder-two-targets-overview.md) complete — you have run `abc -liberty` at least once
-- `yosys -V` says **`Yosys 0.64`**
+- `yosys -V` says **`Yosys 0.68`**
 - Read [Synthesis is translation with an accent](guide/synthesis-is-translation.md)
   and [A standard cell is a real thing](guide/standard-cells-are-real.md)
 - A way to look at an SVG: the noVNC desktop's file manager, or `firefox results/*.svg &`

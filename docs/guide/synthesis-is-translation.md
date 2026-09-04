@@ -414,7 +414,7 @@ Optimize first without a price list, then again with one. It is not redundant; t
 pass can make choices the first had no basis for.
 
 > **Version note.** Everything above is Yosys **0.64**, as shipped in
-> `hpretl/iic-osic-tools:2026.04`. Check with `yosys -V`. Pass names are stable across
+> `hpretl/iic-osic-tools:2026.08`. Check with `yosys -V`. Pass names are stable across
 > versions but pass *numbering* is not — if your `2.14` is an `OPT` where this page shows a
 > `SHARE`, you are on a different Yosys, and the internet's advice about option names will
 > not apply to you either.

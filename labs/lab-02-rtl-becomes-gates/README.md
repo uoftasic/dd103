@@ -5,7 +5,7 @@ Writeup: [`docs/labs/lab-02-rtl-becomes-gates-overview.md`](../../docs/labs/lab-
 Two pictures of the same module, taken at two moments in one Yosys session.
 The left one carries your signal names. The right one carries SKY130 cell names.
 
-Runs inside the workbench `hpretl/iic-osic-tools:2026.04` — Yosys **0.64**,
+Runs inside the workbench `hpretl/iic-osic-tools:2026.08` — Yosys **0.64**,
 graphviz **2.43.0**, cairosvg **2.9.0**.
 
 ```bash
@@ -79,7 +79,7 @@ names, pins, and directions — no logic). Without it, `show` has no idea which
 pins are outputs, draws every port down the left-hand side, and points the
 arrows on `sum` and `cout` the wrong way. One line, much better picture.
 
-## Reference numbers (Yosys 0.64, sky130A)
+## Reference numbers (Yosys 0.68, sky130A)
 
 ```
 === fulladder ===

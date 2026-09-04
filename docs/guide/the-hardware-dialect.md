@@ -347,7 +347,7 @@ three is reading the netlist that came out, which is what
 Next, two reference pages you will come back to rather than read once:
 
 - [The synthesizable subset](reference/synthesizable-subset.md) — every construct on this
-  page, plus a dozen more, with the exact `stat` output each one produces on Yosys 0.64. Look
+  page, plus a dozen more, with the exact `stat` output each one produces on Yosys 0.68. Look
   up your construct before you write it.
 - [When Yosys says syntax error](reference/yosys-syntax-errors.md) — what to do when the
   problem is the parser and not the physics, including the two escape hatches that are

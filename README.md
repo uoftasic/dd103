@@ -23,7 +23,7 @@ git clone https://github.com/uoftasic/dd103.git
 cd dd103
 
 docker run --rm --user "$(id -u):$(id -g)" -v "$PWD:/work" -w /work \
-  hpretl/iic-osic-tools:2026.04 --skip \
+  hpretl/iic-osic-tools:2026.08 --skip \
   bash -c 'cd /work/labs/lab-01-one-adder-two-targets && make'
 ```
 

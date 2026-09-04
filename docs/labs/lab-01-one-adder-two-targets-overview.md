@@ -11,7 +11,7 @@ synthesizers and makes you write down what each one built.
 - [IC101](https://uoftasic.com/ic101/) complete — the noVNC desktop opens and you can get a shell
 - [DD102](https://uoftasic.com/dd102/) complete — you have a `ripple4.sv` you wrote
 - DD103 cloned: `mod add dd103` then `mod dd103`
-- `yosys -V` says **`Yosys 0.64`**. If it says something else you are not in the workbench.
+- `yosys -V` says **`Yosys 0.68`**. If it says something else you are not in the workbench.
 - Read [Synthesis is translation with an accent](guide/synthesis-is-translation.md)
 
 ## Objectives

@@ -5,7 +5,13 @@
 read_verilog -sv src/blinker.sv
 synth -top blinker
 dfflibmap -liberty /foss/pdks/sky130A/libs.ref/sky130_fd_sc_hd/lib/sky130_fd_sc_hd__tt_025C_1v80.lib
-abc -fast -liberty /foss/pdks/sky130A/libs.ref/sky130_fd_sc_hd/lib/sky130_fd_sc_hd__tt_025C_1v80.lib
+# Yosys 0.68 removed `abc -fast`. It was never magic: it swapped ABC's full
+# effort sequence for a three-command one. Spelling that sequence out keeps
+# the experiment - and the point - exactly as it was.
+#   full:  strash; &get -n; &fraig -x; &put; scorr; dc2; dretime; strash;
+#          &get -n; &dch -f; &nf; &put
+#   fast:  strash; dretime; map
+abc -liberty /foss/pdks/sky130A/libs.ref/sky130_fd_sc_hd/lib/sky130_fd_sc_hd__tt_025C_1v80.lib -script +strash;dretime;map
 opt_clean
 tee -o results/blinker_fast.json stat -json -liberty /foss/pdks/sky130A/libs.ref/sky130_fd_sc_hd/lib/sky130_fd_sc_hd__tt_025C_1v80.lib
 stat -liberty /foss/pdks/sky130A/libs.ref/sky130_fd_sc_hd/lib/sky130_fd_sc_hd__tt_025C_1v80.lib

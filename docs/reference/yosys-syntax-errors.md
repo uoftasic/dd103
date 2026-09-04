@@ -52,7 +52,7 @@ verilator --lint-only --top alu alu.sv
 ```
 
 ```
-- V e r i l a t i o n   R e p o r t: Verilator 5.046 2026-02-28 rev v5.046
+- V e r i l a t i o n   R e p o r t: Verilator 5.050 2026-07-01 rev v5.050
 - Verilator: Built from 0.031 MB sources in 3 modules, into 0.012 MB in 3 C++ files needing 0.000 MB
 ```
 
@@ -277,7 +277,7 @@ parameterized package.
 
 Yes — and check this yourself, because older write-ups say otherwise.
 
-LibreLane 3.0.2 has a config variable for exactly this:
+LibreLane 3.1.0.dev3 has a config variable for exactly this:
 
 ```
 Variable(
