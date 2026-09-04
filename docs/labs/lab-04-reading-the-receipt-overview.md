@@ -51,7 +51,7 @@ Experiment 1 is failure mode 1. Experiment 2 is failure mode 2.
 . /foss/designs/common/.designinit
 mod dd103
 cd labs/lab-04-reading-the-receipt
-yosys -V                 # expect: Yosys 0.64
+yosys -V                 # expect: Yosys 0.68
 make                     # all four experiments, about five seconds
 ```
 

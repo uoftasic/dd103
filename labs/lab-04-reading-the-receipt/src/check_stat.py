@@ -8,7 +8,7 @@
 Nobody is grading this lab. This script is the grader. It reads the same four
 keys the receipt printed -- num_cells, area, sequential_area, num_cells_by_type
 -- and says PASS or FAIL against numbers measured on
-hpretl/iic-osic-tools:2026.04 (Yosys 0.64, sky130A).
+hpretl/iic-osic-tools:2026.08 (Yosys 0.68, sky130A).
 
 Exit status 0 = pass, 1 = fail. That makes it usable from a Makefile.
 """

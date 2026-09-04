@@ -113,7 +113,7 @@ Two details make this a rename rather than a fork:
 | **status** | maintenance only | renamed | current |
 | **latest** | 1.0.x | 2.3.1 (Dec 2024) | 3.0.11 (Aug 2026) |
 
-**Your image has LibreLane 3.0.2**, released 2 April 2026.
+**Your image has LibreLane 3.1.0.dev3**, released 2 April 2026.
 
 ## The rule for reading an old tutorial
 
@@ -128,8 +128,9 @@ Change the command name to `librelane` and it will usually run. Watch for variab
 to 3.x is a major version, and some configuration keys were renamed or removed. LibreLane
 does not silently ignore a bad key — it validates your config and tells you.
 
-**If it says `librelane` — check which version it targets.** Upstream is on 3.0.11 as of
-August 2026; you have 3.0.2. Within 3.0.x you are fine.
+**If it says `librelane` — check which version it targets.** You have **3.1.0.dev3**, a
+pre-release of the 3.1 line, which is what the pinned image ships. Anything written for
+3.0.x still applies: nothing this course does was renamed between 3.0 and 3.1.
 
 Here is the translation, for the commands you are most likely to find:
 

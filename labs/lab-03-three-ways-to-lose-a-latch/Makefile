@@ -1,5 +1,5 @@
 # Lab 03 — Three ways to lose a latch
-# Runs inside hpretl/iic-osic-tools:2026.04 (Yosys 0.64, Verilator 5.046, Icarus 14.0).
+# Runs inside hpretl/iic-osic-tools:2026.08 (Yosys 0.68, Verilator 5.050, Icarus 14.0).
 #
 #   make          everything, in order
 #   make latch    the three-way synthesis contrast

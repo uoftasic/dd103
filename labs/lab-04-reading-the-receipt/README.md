@@ -9,7 +9,7 @@ before you look.
 . /foss/designs/common/.designinit
 mod dd103
 cd labs/lab-04-reading-the-receipt
-yosys -V          # expect: Yosys 0.64
+yosys -V          # expect: Yosys 0.68
 make
 ```
 
@@ -38,7 +38,7 @@ summary; `make clean` empties `results/`.
 
 ## Expected results
 
-Measured on `hpretl/iic-osic-tools:2026.04` — Yosys 0.64, Python 3.12.3, `sky130A`.
+Measured on `hpretl/iic-osic-tools:2026.08` — Yosys 0.68, Python 3.12.3, `sky130A`.
 `src/check_stat.py` knows these numbers and will tell you if yours drift.
 
 ```

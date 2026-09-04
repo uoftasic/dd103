@@ -9,7 +9,7 @@ outcomes, only one of which involves the tool telling you.
 ## Prerequisites
 
 - [IC101](https://uoftasic.com/ic101/) complete — you are working inside
-  `hpretl/iic-osic-tools:2026.04`. Check with `yosys -V` → `0.64`.
+  `hpretl/iic-osic-tools:2026.08`. Check with `yosys -V` → `0.64`.
 - [Lab 02 — RTL becomes gates](labs/lab-02-rtl-becomes-gates-overview.md) done, so `stat` output is
   not new to you.
 - Read Part III: [The latch you didn't ask for](guide/the-latch-you-didnt-ask-for.md) →

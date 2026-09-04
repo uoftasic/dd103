@@ -8,7 +8,7 @@
 // Do not read this until you have your own version simulating. Then read it and
 // argue with it -- there is more than one correct elevator.
 //
-// Verified in hpretl/iic-osic-tools:2026.04 -- lint clean under
+// Verified in hpretl/iic-osic-tools:2026.08 -- lint clean under
 // -Wall, and mapped to SKY130 standard cells. The numbers are in the writeup.
 // -----------------------------------------------------------------------------
 

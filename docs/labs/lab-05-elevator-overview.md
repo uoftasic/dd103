@@ -13,7 +13,7 @@ the lab.
 ## Prerequisites
 
 - [IC101](https://uoftasic.com/ic101/) complete — you are inside
-  `hpretl/iic-osic-tools:2026.04`. Check with `yosys -V` → `0.64` and
+  `hpretl/iic-osic-tools:2026.08`. Check with `yosys -V` → `0.64` and
   `librelane --version` → `LibreLane v3.0.2`.
 - [Lab 04 — Reading the receipt](labs/lab-04-reading-the-receipt-overview.md) done. `stat -liberty`
   should not be new.

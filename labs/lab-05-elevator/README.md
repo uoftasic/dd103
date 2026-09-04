@@ -5,8 +5,8 @@ Writeup: [`docs/labs/lab-05-elevator-overview.md`](../../docs/labs/lab-05-elevat
 A 4-floor elevator controller, designed from a state table, taken all the way to a `.gds` file
 that passes DRC, LVS and antenna signoff.
 
-Run everything inside the workbench (`hpretl/iic-osic-tools:2026.04` — Verilator 5.046,
-Icarus 14.0, Yosys 0.64, LibreLane 3.0.2).
+Run everything inside the workbench (`hpretl/iic-osic-tools:2026.08` — Verilator 5.050,
+Icarus 14.0, Yosys 0.68, LibreLane 3.1.0.dev3).
 
 ```bash
 . /foss/designs/common/.designinit
@@ -50,7 +50,7 @@ RTL half of the lab.
 
 ## Numbers measured on this design
 
-Reference implementation, `hpretl/iic-osic-tools:2026.04`, 6 cores / 7.5 GB:
+Reference implementation, `hpretl/iic-osic-tools:2026.08`, 6 cores / 7.5 GB:
 
 | | Skeleton | Finished |
 |---|---|---|

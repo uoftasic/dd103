@@ -1,6 +1,6 @@
 # Lab 05 — Elevator to GDSII
-# Runs inside hpretl/iic-osic-tools:2026.04
-# (Verilator 5.046, Icarus 14.0, Yosys 0.64, LibreLane 3.0.2).
+# Runs inside hpretl/iic-osic-tools:2026.08
+# (Verilator 5.050, Icarus 14.0, Yosys 0.68, LibreLane 3.1.0.dev3).
 #
 #   make lint     verilator --lint-only -Wall            ~0.01 s
 #   make sim      iverilog + vvp, six checks             ~0.1 s

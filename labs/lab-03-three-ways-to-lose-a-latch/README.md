@@ -2,8 +2,8 @@
 
 Writeup: [`docs/labs/lab-03-three-ways-to-lose-a-latch-overview.md`](../../docs/labs/lab-03-three-ways-to-lose-a-latch-overview.md)
 
-Everything runs in the workbench (`hpretl/iic-osic-tools:2026.04` — Yosys 0.64,
-Verilator 5.046, Icarus Verilog 14.0). No arguments, no paths to retype.
+Everything runs in the workbench (`hpretl/iic-osic-tools:2026.08` — Yosys 0.68,
+Verilator 5.050, Icarus Verilog 14.0). No arguments, no paths to retype.
 
 ```bash
 cd labs/lab-03-three-ways-to-lose-a-latch
@@ -38,7 +38,7 @@ make            # all six sections, ~2 s
 `results/` holds every Yosys log, netlist and compiled testbench the Makefile produces. It is
 gitignored apart from `.gitkeep`.
 
-## Reference numbers (Yosys 0.64, sky130A)
+## Reference numbers (Yosys 0.68, sky130A)
 
 ```
 bar_comb     exit 1   ERROR: Latch inferred ... from always_comb process

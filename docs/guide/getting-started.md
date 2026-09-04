@@ -128,7 +128,7 @@ your work.
 
 ## 4. Check your versions
 
-This course is pinned to `hpretl/iic-osic-tools:2026.04`. Two commands confirm you are on it:
+This course is pinned to `hpretl/iic-osic-tools:2026.08`. Two commands confirm you are on it:
 
 ```bash
 yosys -V
@@ -136,7 +136,7 @@ librelane --version
 ```
 
 ```
-Yosys 0.64 (git sha1 6d2c445ae, g++ 13.3.0-6ubuntu2~24.04.1 -fPIC -O3)
+Yosys 0.68 (git sha1 38e001a6f, Release, GNU /usr/bin/c++ 13.3.0)
 ```
 
 ```
@@ -148,19 +148,19 @@ Adapted from OpenLane 2.0
 Copyright ©2020-2025 Efabless Corporation
 ```
 
-**`0.64` and `3.0.2` are the numbers that matter.** If you see something else, you are on a
+**`0.68` and `3.1.0.dev3` are the numbers that matter.** If you see something else, you are on a
 different image, and commands on these pages may fail in ways this course does not describe.
 
 The full set, if you want to check the rest:
 
 | Tool | Command | Expect |
 |---|---|---|
-| Yosys | `yosys -V` | `Yosys 0.64` |
+| Yosys | `yosys -V` | `Yosys 0.68` |
 | LibreLane | `librelane --version` | `LibreLane v3.0.2` |
 | Icarus Verilog | `iverilog -V` | `14.0 (devel)` |
-| Verilator | `verilator --version` | `Verilator 5.046` |
+| Verilator | `verilator --version` | `Verilator 5.050` |
 | Surfer | `surfer --version` | `surfer 0.6.0` |
-| nextpnr | `nextpnr-ice40 --version` | `nextpnr-0.10-33-ge6ecd8fa` |
+| nextpnr | `nextpnr-ice40 --version` | `nextpnr-0.11.1-9-gb17408e2` |
 
 > Yosys and LibreLane are both moving fast. The official docs online describe **newer**
 > releases, sometimes with renamed options. When the internet and this course disagree, this
@@ -236,7 +236,7 @@ export COLUMNS=200
 export STD_CELL_LIBRARY=sky130_fd_sc_hd
 export COLUMNS=200
 mod dd103
-yosys -V                       # Yosys 0.64
+yosys -V                       # Yosys 0.68
 ls labs/                       # the lab packages
 ```
 
@@ -266,6 +266,6 @@ hardens a design in CI and hands back the layout, a render of it, and the sign-o
 [`uoftasic/librelane-action`](https://github.com/uoftasic/librelane-action).
 
 Copy its `templates/harden.yml` into your own repo as `.github/workflows/harden.yml` and point
-it at your design directory. It runs the same LibreLane 3.0.2 on the same `config.json` you run
+it at your design directory. It runs the same LibreLane 3.1.0.dev3 on the same `config.json` you run
 locally — a convenience, not a replacement for the workbench, which is what every number in this
 course was measured on.

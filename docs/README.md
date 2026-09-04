@@ -16,8 +16,8 @@ Labs run inside the shared **workspace** you set up in [IC101](https://uoftasic.
 | **Time** | 16–20 hours, self-paced |
 | **Machine** | 4 GB RAM to run, 8 GB to be comfortable. You already have the workbench from IC101. |
 
-> **This course is pinned to the workbench image `hpretl/iic-osic-tools:2026.04`**, which ships
-> **Yosys 0.64** and **LibreLane 3.0.2**. Official docs online describe newer versions with
+> **This course is pinned to the workbench image `hpretl/iic-osic-tools:2026.08`**, which ships
+> **Yosys 0.68** and **LibreLane 3.1.0.dev3**. Official docs online describe newer versions with
 > different option names. When a command here disagrees with the internet, the command here is
 > the one that runs on your machine.
 >
@@ -71,7 +71,7 @@ Reference: [The synthesizable subset](reference/synthesizable-subset.md) ·
 . /foss/designs/common/.designinit
 mod add dd103          # first time only
 mod dd103
-yosys -V               # expect: Yosys 0.64
+yosys -V               # expect: Yosys 0.68
 cd labs/lab-01-one-adder-two-targets && make
 ```
 

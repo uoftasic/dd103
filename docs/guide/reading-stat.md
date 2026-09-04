@@ -347,7 +347,7 @@ Trimmed, `blinker.json` looks like this:
 
 ```json
 {
-   "creator": "Yosys 0.64 (git sha1 6d2c445ae, ...)",
+   "creator": "Yosys 0.68 (git sha1 38e001a6f, ...)",
    "modules": {
       "\\blinker": {
          "num_cells":         27,

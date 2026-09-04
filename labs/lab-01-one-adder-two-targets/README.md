@@ -4,7 +4,7 @@ Writeup: [`docs/labs/lab-01-one-adder-two-targets-overview.md`](../../docs/labs/
 
 One `ripple4.sv`. Two synthesizers. Two answers that do not look like each other.
 
-Runs inside the workbench `hpretl/iic-osic-tools:2026.04` — Yosys **0.64**,
+Runs inside the workbench `hpretl/iic-osic-tools:2026.08` — Yosys **0.64**,
 nextpnr-ice40 **0.10**. Check yours with `yosys -V`.
 
 ```bash
@@ -62,7 +62,7 @@ one `$scopeinfo` marker per dissolved instance so it can still tell you which
 slice a cell came from. They are notes, not hardware. `write_verilog` does not
 emit them.
 
-## Reference numbers (Yosys 0.64, sky130A, iCE40 UP5K)
+## Reference numbers (Yosys 0.68, sky130A, iCE40 UP5K)
 
 ```
 FPGA  8 × SB_LUT4  →  10 / 5280 ICESTORM_LC  →  104,090-byte bitstream
