@@ -479,13 +479,8 @@ technology.
 > Most real chip-design failures look like this: not a crash, but a run that succeeds at the wrong
 > thing. Every check on this page exists because somebody once shipped what it catches.
 
-## Summary
-
-You have now seen the whole path: RTL, gates, area, placement, metal, polygons and three sign-off
-checks, all from one command.
-
 Next: [Lab 05: Elevator to GDSII](labs/lab-05-elevator-overview.md). You design a four-floor
 elevator controller with the recipe from the previous page, harden it with a config like the one on
 this page, and finish with a `.gds` file, a `metrics.json` full of zeros, and a picture of a chip
 you designed. Record your five numbers (die area, instance count, setup slack, DRC count, LVS
-count) and compare them with someone else's elevator. They won't match.
+count) and compare them with someone else's elevator; the two sets will not match.

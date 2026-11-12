@@ -479,7 +479,7 @@ cells landed in a 4553.88 µm² die.
 
 The flow already rendered it, with no screenshot or X server needed.
 
-1. Open the render:
+1. Find the render, then open it in the noVNC desktop's browser or with `xdg-open`:
 
    ```bash
    ls -l runs/v1/final/render/elevator.png

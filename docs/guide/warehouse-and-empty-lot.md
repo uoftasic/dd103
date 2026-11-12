@@ -137,8 +137,8 @@ twelve seconds to map twenty-seven thousand cells:
 
 16,384 is exactly 2048 × 8: one physical flip-flop for every bit you asked for, plus 2,748
 multiplexers to pick which one you meant. That is 0.61 mm² of silicon, about 5,500 times the
-110 µm² of your adder. Nothing in your source changed. What changed is what was already on the
-chip for free.
+110 µm² of your adder. The source file is the same in both runs. The difference is that the FPGA
+already had block RAM on the die, and SKY130 has to build every bit out of flip-flops.
 
 On a real chip you would fix this by instantiating a macro: a memory block designed and
 characterised separately, then placed in your floorplan as a fixed rectangle. Macros are out of

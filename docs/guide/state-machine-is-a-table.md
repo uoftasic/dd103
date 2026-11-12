@@ -312,8 +312,8 @@ and is effectively free. It is not automatically the ASIC answer.
 
 ## Deleting the defaults
 
-Take out the three default assignments at the top of the `always_comb` and the `default:` branch,
-and run `synth` again:
+If you take out the three default assignments at the top of the `always_comb` and the `default:`
+branch and run `synth` again, Yosys stops (you'll do this in Lab 05, Part 1, step 6):
 
 ```
 2.2.8. Executing PROC_DLATCH pass (convert process syncs to latches).
@@ -347,7 +347,7 @@ fastest tool in the container and the only one that quotes your own source back 
 | 3 | One `always_ff` | `@(posedge clk or negedge rst_n)`, `<=` only, nothing else in it. |
 | 4 | `default:` branch | Unused encodings exist. Send them back to a named state. |
 
-That is four blocks of code with nothing clever in them, and it works for six states or sixty.
+The same four blocks work for six states or sixty.
 
 Next: [From netlist to layout](guide/from-gates-to-geometry.md), which takes this 231 µm² design
 through the stages that turn a `stat` receipt into a rectangle of silicon.
