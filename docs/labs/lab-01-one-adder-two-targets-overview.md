@@ -150,7 +150,8 @@ You should see `Yosys 0.68` from `yosys -V`, and `ls labs/` should list the five
 
    Keep the module named `ripple4` with ports `a`, `b`, `cin`, `sum`, `cout`. If it
    instantiates a `fulladder`, keep that in `src/fulladder.sv`. The package README covers
-   other file layouts.
+   other file layouts. The numbers in this writeup come from the shipped adder, so with your
+   own expect different ones; `git checkout src/ripple4.sv` puts the shipped one back.
 
 2. Run both flows:
 
@@ -216,7 +217,7 @@ high". Carry-out, however you write it,
 $$c_{\text{out}} = ab + c_{\text{in}}(a \oplus b)$$
 
 is the majority of $a$, $b$ and $c_{\text{in}}$. SKY130 ships a cell for exactly that. iCE40
-does not, because it does not ship cells for any particular function.
+does not; its logic is built from LUTs that can each be any 4-input function.
 
 1. Read the last twenty lines of `results/asic.log`:
 
@@ -259,6 +260,7 @@ so `110.105600 µm²` is a price.
 ## Part 5: Fill in the table
 
 1. Run `make table`, and copy the numbers into this table by hand. Typing them is the exercise.
+   For "cells reported", say whether your number includes the `$scopeinfo` markers.
 
    | | iCE40 UP5K (FPGA) | SKY130 (ASIC) |
    |---|---|---|
@@ -294,8 +296,8 @@ ASIC answer.
       Chip area for module '\fulladder': 33.782400
    ```
 
-2. Without looking back at Part 4, multiply by four and write down your prediction for
-   `ripple4`.
+2. Multiply by four to get the area you would predict for `ripple4` from one adder alone, and
+   write it down.
 
 3. Compare your prediction with the area you measured in Part 4, and look at the cell mix to see
    where the difference came from.
@@ -304,8 +306,8 @@ You should see a prediction of $4 \times 33.7824 = 135.1296\ \mu\text{m}^2$ agai
 measured 110.1056 µm²: the chained adder is 18.5 % smaller than your prediction. Alone, the sum
 becomes one `xor3_1` (23.773 µm²). In the chain, ABC used two `xnor2_1` (17.517 µm²) per slice
 instead, because in context it can share the intermediate $a \oplus b$ term across the carry
-path. `asic.ys` runs `flatten` before `abc`, which dissolves the four `fulladder` instances, and
-that is what let ABC see across the module boundary you drew.
+path. `asic.ys`, the script `make asic` runs, has a `flatten` before `abc`. It dissolves the four
+`fulladder` instances, and that is what let ABC see across the module boundary you drew.
 
 A block costs less in context than it does alone. This is why you can't answer "how big is my
 design?" with a spreadsheet of sub-block areas, and why every area figure in a datasheet is for
@@ -366,7 +368,8 @@ different cells. Write down what you got.
 
 ## Going further
 
-- Delete three of your four full adders and rebuild the bitstream with `make fpga`. `results/ripple4.bin` stays
+- Delete three of your four full adders and rebuild the bitstream with `make fpga`
+  (`git checkout src/ripple4.sv` restores the file afterwards). `results/ripple4.bin` stays
   at 104,090 bytes. It is not a description of your adder. It configures every LUT, every
   routing switch and every I/O buffer on the entire UP5K, including the 5,270 logic cells you
   left empty. A GDSII is the opposite: it describes only what you built, and it grows when your

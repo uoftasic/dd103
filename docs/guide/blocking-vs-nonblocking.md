@@ -51,7 +51,7 @@ error, a Yosys warning, or anything else you would notice in a log.
 Ignore the third row for now. The first two rows are the case for `<=`; the rest of this page
 explains them.
 
-## Where the other two flops went
+## The two missing flip-flops
 
 Writing the `=` version back out as Verilog shows what Yosys thinks you wrote:
 
@@ -85,7 +85,7 @@ The `<=` version, written out the same way:
 
 Three registers and three separate clocked assignments: a shift register.
 
-## Three people with whiteboards
+## Analogy: three people with whiteboards
 
 Stand three people in a line, each holding a small whiteboard, and hold a numbered card up in
 front of the first one. Everyone gets the same instruction: write down whatever the person on
@@ -154,7 +154,7 @@ end
 shift_b_rev          3   60.058   sky130_fd_sc_hd__dfxtp_1
 ```
 
-That is three flip-flops: same statements, same operator, different order, different chip.
+That is three flip-flops; only the statement order changed.
 
 With `=`, the order you typed the lines in is part of the design. With `<=` it is not: write
 those three non-blocking assignments in any of the six possible orders and you get the same three
@@ -245,7 +245,7 @@ when `make comb` compiles the testbench:
 comb_nb.sv:4: warning: A non-blocking assignment should not be used in an always_comb process.
 ```
 
-## The rule
+## Rule: `<=` in `always_ff`, `=` in `always_comb`
 
 ```
 always_ff @(posedge clk)   →   <=   always

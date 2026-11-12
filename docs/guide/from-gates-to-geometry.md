@@ -488,5 +488,4 @@ Next: [Lab 05: Elevator to GDSII](labs/lab-05-elevator-overview.md). You design 
 elevator controller with the recipe from the previous page, harden it with a config like the one on
 this page, and finish with a `.gds` file, a `metrics.json` full of zeros, and a picture of a chip
 you designed. Record your five numbers (die area, instance count, setup slack, DRC count, LVS
-count) and compare them with someone else's elevator. They won't match, and working out why is the
-rest of your degree.
+count) and compare them with someone else's elevator. They won't match.

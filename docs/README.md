@@ -22,7 +22,8 @@ Yosys 0.68 and LibreLane 3.1.0.dev3. Documentation online describes newer versio
 with different option names. When a command here disagrees with the internet, use the command
 here: it is the one that runs on your machine. Lab 01, Part 1 checks your versions.
 
-If a step in Lab 01, Part 1 fails, try `make` in the lab anyway. Every lab package pins its own
+If the environment setup in Lab 01, Part 1 (loading `.designinit` and checking the variables)
+gives you trouble, try `make` in the lab anyway. Every lab package pins its own
 PDK and liberty paths, so Labs 01–04 run to completion even in a container with no environment
 setup. Lab 05 uses LibreLane and does need the full workbench.
 

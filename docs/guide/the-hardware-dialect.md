@@ -61,7 +61,7 @@ laptop. The other half describes a structure made of wires and gates, which exis
 and keeps working every picosecond whether anyone is watching. Synthesis only reads the second
 half.
 
-## Margin notes on a blueprint
+## Analogy: margin notes on a blueprint
 
 An architect's drawing carries two kinds of marks. Walls, dimensions and materials become the
 building. Notes in the margin, such as "verify dimension on site", "see sheet A-3" or
@@ -128,7 +128,7 @@ no gate whose function is "be late".
 
 ## Reaction three: it builds something you didn't mean
 
-This is the dangerous one.
+This is the most dangerous of the three, because nothing tells you.
 
 ```systemverilog
 always_comb begin

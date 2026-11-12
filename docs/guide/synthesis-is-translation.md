@@ -47,7 +47,7 @@ filtering for lines that start with a number leaves just the top-level steps:
 Six steps. The first says "Verilog-2005 frontend" even for a `.sv` file because Yosys's front
 end grew out of a Verilog-2005 parser; `-sv` asks it to accept SystemVerilog.
 
-## Translation with an accent
+## Synthesis as translation
 
 Your source says "add one to `count`". SKY130 has no word for "add". Its vocabulary is
 `xnor2_1`, `maj3_1`, `a31oi_1`, `nand4_1`: a few hundred fixed nouns, and nothing else.
@@ -202,8 +202,8 @@ ABC RESULTS:   sky130_fd_sc_hd__xor2_1 cells:        1
 subsection.)
 
 There are two because ABC is a Boolean optimizer. It works by rewriting logic functions, so it
-needs every cell to be a function of its inputs. Here is what the liberty file says two of these
-cells are:
+needs every cell to be a function of its inputs. Here is what the liberty file says about two
+cells, `maj3_1` from your Lab 01 adder and `dfrtp_1` from the counter:
 
 ```
     cell ("sky130_fd_sc_hd__maj3_1") {
@@ -241,7 +241,8 @@ SKY130's one enable flop, `edfxtp_1`, has no reset pin. Your counter needs both 
 an asynchronous reset, and no single cell provides both, so `dfflibmap` used the reset flop and
 rebuilt the enable out of logic. That is where the four `$_MUX_` in the half-mapped design at the
 end of this page came from, and eventually the `a31oi_1`, `nand2_1` and `nand4_1` in the final
-cell list.
+cell list. (They are not the four `$_MUX_` from `techmap`: the `abc` inside `synth` had already
+folded those into six generic gates, as [Two ABC runs](#two-abc-runs) shows.)
 
 The library made that decision, not your code. With the same RTL on a target that has an
 enable-and-reset flop, those cells would not appear.
@@ -321,7 +322,8 @@ ABC: Library "sky130_fd_sc_hd__tt_025C_1v80" from "…tt_025C_1v80.lib" has 334 
      (94 skipped: 63 seq; 13 tri-state; 18 no func; 0 dont_use; …).  Time = 0.12 sec
 ```
 
-That is 334 usable cells (428 − 94) and 94 skipped. 63 of the 94 are flip-flops and latches,
+The library has 428 cells (the next page counts them), so that is 334 usable cells and 94
+skipped. 63 of the 94 are flip-flops and latches,
 the kind of cell `dfflibmap` handles one step earlier. ABC is not rejecting them. It is the
 combinational mapper, and they are not combinational logic, so it leaves them out of
 consideration.
