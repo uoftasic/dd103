@@ -1,82 +1,158 @@
-# Lab 05 — Elevator to GDSII
+# Lab 05: Elevator to GDSII
 
-Full runnable package:
-[`labs/lab-05-elevator/`](https://github.com/uoftasic/dd103/tree/main/labs/lab-05-elevator).
+You'll finish a four-floor elevator controller from a state table and take it all the way to a
+`.gds` file: a real chip layout, DRC clean, LVS clean, with zero antenna violations, rendered as a
+picture. You start from `src/elevator.sv`, a working three-state elevator that is a bad elevator
+in two specific ways. Fixing those two things is the design half of the lab.
 
-Four floors, five states, and at the end of it a `.gds` file — a real chip layout, DRC clean,
-LVS clean, zero antenna violations, rendered as a picture you can put on a poster.
+Time: about 4–5 hours.
 
-You are not starting from a blank file. `src/elevator.sv` is already a working three-state
-elevator. It is also a **bad** elevator, in two specific ways, and fixing those two things is
-the lab.
+Package: [`labs/lab-05-elevator/`](https://github.com/uoftasic/dd103/tree/main/labs/lab-05-elevator)
 
-## Prerequisites
+## Before you start
 
-- [IC101](https://uoftasic.com/ic101/) complete — you are inside
-  `hpretl/iic-osic-tools:2026.08`. Check with `yosys -V` → `0.64` and
-  `librelane --version` → `LibreLane v3.0.2`.
-- [Lab 04 — Reading the receipt](labs/lab-04-reading-the-receipt-overview.md) done. `stat -liberty`
-  should not be new.
-- Read the capstone guide pages first:
-  [A state machine is a table with a memory](guide/state-machine-is-a-table.md) →
-  [From gates to geometry](guide/from-gates-to-geometry.md).
-- **Disk:** each LibreLane run directory is about **65 MB**. Budget a few hundred megabytes
-  and delete old run tags.
+- [Lab 04](labs/lab-04-reading-the-receipt-overview.md) is complete, so `stat -liberty` is
+  familiar.
+- Read [Writing a state machine](guide/state-machine-is-a-table.md) and
+  [From netlist to layout](guide/from-gates-to-geometry.md).
+- Check your versions: `yosys -V` should say `Yosys 0.68` and `librelane --version` should say
+  `LibreLane v3.1.0.dev3`.
+- Each LibreLane run directory is about 65 MB. Budget a few hundred megabytes and delete old run
+  tags.
 
-## Objectives
+Start in the package directory:
 
-- Transcribe a five-row state table into the four-block FSM recipe, and get all six testbench
-  checks to pass
-- Add two state elements — a call queue and a countdown timer — and measure what they cost in
-  flip-flops and square micrometres
-- Run `librelane config.json` to completion and read `metrics.json` instead of the exit code
-- Produce `runs/<tag>/final/gds/elevator.gds` and the KLayout render beside it
+```bash
+mod dd103
+cd labs/lab-05-elevator
+LIB=/foss/pdks/sky130A/libs.ref/sky130_fd_sc_hd/lib/sky130_fd_sc_hd__tt_025C_1v80.lib
+```
 
-## Theory (short)
+## Part 1: Warm up on the vending machine
 
-An elevator is a Moore machine with three things to remember:
+The vending machine from [Writing a state machine](guide/state-machine-is-a-table.md) ships in
+`examples/vending.sv`.
+
+1. Synthesize it:
+
+   ```bash
+   cd examples
+   yosys -p "read_verilog -sv vending.sv; synth -top vending;
+             dfflibmap -liberty $LIB; abc -liberty $LIB; opt_clean; stat -liberty $LIB"
+   ```
+
+   You should see `17  231.472 cells`, five `sky130_fd_sc_hd__dfrtp_1` and one
+   `sky130_fd_sc_hd__dfstp_2`, and `65.41%` sequential. Six flip-flops from a three-bit state
+   register.
+
+2. Find the FSM passes in the log:
+
+   ```bash
+   yosys -p "read_verilog -sv vending.sv; synth -top vending" 2>&1 | grep -A3 'FSM_DETECT pass'
+   yosys -p "read_verilog -sv vending.sv; synth -top vending" 2>&1 | grep -c 'transition:'
+   yosys -p "read_verilog -sv vending.sv; synth -top vending" 2>&1 | grep -A9 'FSM_RECODE pass'
+   ```
+
+   You should see `Found FSM state register vending.state.`, a count of `14` transitions, and
+   `mapping auto encoding to `one-hot` for this FSM.` followed by six one-hot codes. Pick two
+   `transition:` lines from the full log and match them to rows of the table in the guide.
+
+3. Turn the FSM pass off:
+
+   ```bash
+   yosys -p "read_verilog -sv vending.sv; synth -top vending -nofsm;
+             dfflibmap -liberty $LIB; abc -liberty $LIB; opt_clean; stat -liberty $LIB"
+   ```
+
+   You should see `13  137.632 cells` and `54.55%` sequential.
+
+4. Force binary encoding. `synth` has no encoding flag, so the coarse passes are spelled out.
+   Note `opt -nodffe -nosdff` before `fsm`:
+
+   ```bash
+   yosys -p "read_verilog -sv vending.sv; hierarchy -top vending; proc;
+             opt_expr; opt_clean; opt -nodffe -nosdff;
+             fsm -encoding binary;
+             opt; wreduce; peepopt; opt_clean; alumacc; share; opt;
+             memory -nomap; opt_clean; techmap; opt -fast;
+             dfflibmap -liberty $LIB; abc -liberty $LIB; opt_clean; stat -liberty $LIB"
+   ```
+
+   You should see three `sky130_fd_sc_hd__dfrtp_1`. Compare the area with the one-hot run in
+   step 1.
+
+5. Lint it:
+
+   ```bash
+   verilator --lint-only -Wall vending.sv
+   ```
+
+   You should see a verilation report and no warnings.
+
+6. Break it on purpose. In `vending.sv`, delete the three default assignments at the top of the
+   `always_comb` (`next = state;`, `dispense = 1'b0;`, `refund = 1'b0;`) and the
+   `default: next = IDLE;` line. Then run `synth` and the linter again:
+
+   ```bash
+   yosys -p "read_verilog -sv vending.sv; synth -top vending" 2>&1 | grep -B1 ERROR
+   verilator --lint-only -Wall vending.sv
+   ```
+
+   You should see `ERROR: Latch inferred for signal `\vending.\dispense' from always_comb process`
+   from Yosys, and from Verilator a `CASEINCOMPLETE` warning with `(example pattern 0x6)` and
+   `LATCH` warnings for `next`, `dispense` and `refund`. Put the file back:
+
+   ```bash
+   git checkout vending.sv
+   cd ..
+   ```
+
+7. Optional: write `tb_vending.sv` yourself. Hold `rst_n` low for two cycles, pulse `nickel` or
+   `dime` for one cycle at a time, and `$display` whenever `dispense` goes high. Run it with
+   `iverilog -g2012 -o ../results/tb_vending.vvp tb_vending.sv vending.sv` and
+   `vvp ../results/tb_vending.vvp` from `examples/`. Two dimes and four nickels should each
+   dispense with `refund=0`, and a nickel then two dimes should dispense with `refund=1`.
+
+You should be back in `labs/lab-05-elevator` with `vending.sv` unchanged.
+
+## Part 2: The skeleton
+
+The elevator is a Moore machine with three things to remember:
 
 | Register | Width | What it holds |
 |---|---|---|
 | `state` | 3 bits | where in the cycle the machine is |
-| `pending` | 4 bits | which floors have unanswered calls — **the call queue** |
-| `dwell` | 4 bits | how many ticks the doors still have to stay open — **the timer** |
+| `pending` | 4 bits | which floors have unanswered calls: the call queue |
+| `dwell` | 4 bits | how many ticks the doors still have to stay open: the timer |
 
-One clock tick is one "step". In a real building `clk` would come from a divider so a step is
-about half a second; here it is 20 ns because that is what the testbench and `config.json`
-agree on.
+One clock tick is one step. In a real building `clk` would come from a divider so a step is about
+half a second; here it is 20 ns, because that is what the testbench and `config.json` agree on.
 
-**The table you are transcribing.** Five rows, one per state:
+This is the table you are implementing, one row per state:
 
 | State | means | leaves when | `next` | `moving_up` | `moving_dn` | `door_open` |
 |---|---|---|---|---|---|---|
 | `IDLE` | parked, queue empty | `pending` is non-zero | `MOVING`, or `DOOR_OPEN` if already there | 0 | 0 | 0 |
 | `MOVING` | travelling one floor per tick | `floor == target` | `DOOR_OPEN` | `target > floor` | `target < floor` | 0 |
-| `DOOR_OPEN` | arrived; this call is answered | immediately | `DWELL` | 0 | 0 | **1** |
-| `DWELL` | doors held open, counting down | `dwell == 0` | `DOOR_SHUT` | 0 | 0 | **1** |
+| `DOOR_OPEN` | arrived; this call is answered | immediately | `DWELL` | 0 | 0 | 1 |
+| `DWELL` | doors held open, counting down | `dwell == 0` | `DOOR_SHUT` | 0 | 0 | 1 |
 | `DOOR_SHUT` | doors closing | immediately | `IDLE` | 0 | 0 | 0 |
 
-`DOOR_SHUT` looks pointless — it does nothing but go to `IDLE`. It exists so that `door_open`
-falls one tick *before* the machine is free to take the next call. That is what a Moore output
-buys you: the output is a property of the state, so you get a clean extra state instead of a
-condition smeared across two of them.
+`DOOR_SHUT` looks pointless, since it only goes to `IDLE`. It exists so that `door_open` falls one
+tick before the machine is free to take the next call. Because a Moore output is a property of
+the state, you get a clean extra state instead of a condition spread across two of them.
 
-Which floor is `target`? **Lowest pending floor wins.** That is a decision, not a fact, and
-"Going further" argues with it.
+The next floor to serve is the lowest pending floor. That is a design decision, and Going further
+argues with it.
 
-## Procedure
+1. Lint the skeleton, then simulate it:
 
-```bash
-. /foss/designs/common/.designinit
-mod dd103
-cd labs/lab-05-elevator
-```
+   ```bash
+   make lint
+   make sim
+   ```
 
-### Step 0 — Find out what you were handed
-
-- **Try this:** `make lint`, then `make sim`.
-- **What you should see:** lint exits 0 on code you did not write. Then six checks, three of
-  which fail:
+You should see lint exit 0 on code you did not write, then six checks, three of which fail:
 
 ```
   PASS  T1 reset: floor 0, doors shut, display shows 1
@@ -98,44 +174,53 @@ T5  tap call[1] and call[3] in the same cycle
 make: *** [Makefile:32: sim] Error 1
 ```
 
-- **Why an engineer cares:** the skeleton lints clean, synthesizes, and hardens to a valid
-  chip. It is *correct* in every sense a tool can check, and it still strands people on floor
-  3. **Lint clean does not mean right, and neither does a GDS.** The only thing that caught it
-  was a test that described what the machine is *for*.
+The skeleton lints clean, synthesizes, and hardens to a valid chip. Every tool check passes, and
+it still strands people on floor 3. The only thing that caught it was a test that describes what
+the machine is for. Before you edit anything, keep a copy of the skeleton for Part 5:
+`cp src/elevator.sv results/elevator_skeleton.sv`.
 
-### Step 1 — TODO(1): the call queue
+## Part 3: The call queue (TODO 1)
 
-Right now the priority encoder reads `call` directly. Press a button and let go, and if the
-machine happened to be busy that tick, nobody is coming.
+Right now the priority encoder reads `call` directly. If you press a button and let go while the
+machine is busy, nobody comes.
 
-- **Try this:** declare `logic [3:0] pending;`, reset it to `4'd0`, point the priority encoder
-  at `pending` instead of `call`, and give it exactly **one** assignment in the `always_ff`:
+1. Declare `logic [3:0] pending;` and reset it to `4'd0`.
+2. Point the priority encoder at `pending` instead of `call`.
+3. Add a signal `serve` that your `always_comb` raises for one tick in `DOOR_OPEN`.
+4. Give `pending` exactly one assignment in the `always_ff`:
 
-```systemverilog
-pending <= (pending | call) & ~(serve ? (4'd1 << floor) : 4'd0);
-```
+   ```systemverilog
+   pending <= (pending | call) & ~(serve ? (4'd1 << floor) : 4'd0);
+   ```
 
-  where `serve` is a new signal your `always_comb` raises for one tick in `DOOR_OPEN`.
+5. Run `make sim`.
 
-- **What you should see:** T3 and the second half of T5 turn green.
-- **Why an engineer cares:** two things want to write `pending` — the buttons setting bits and
-  the doors clearing one. Written as two separate `if` statements in the same `always_ff`, the
-  last one silently wins and a press that lands on the same tick as a service is lost. One
-  register, one assignment, both effects in the expression. Get used to that shape; it is how
-  every status register in every chip is written.
+You should see T3 and the second half of T5 pass.
 
-### Step 2 — TODO(2) and TODO(3): a fifth state and a timer
+Two things want to write `pending`: the buttons setting bits and the doors clearing one. Written as
+two separate `if` statements in the same `always_ff`, the last one wins, and a press that lands on
+the same tick as a service is lost. With one register and one assignment, both effects live in the
+expression. Every status register in every chip is written this way.
 
-- **Try this:** add `DWELL` (and `DOOR_SHUT`) to the `typedef enum`, declare
-  `logic [3:0] dwell;`, and drive it from two combinational control lines — `dwell_load` in
-  `DOOR_OPEN`, `dwell_dec` in `DWELL` while `dwell != 0`:
+## Part 4: A fifth state and a timer (TODO 2 and 3)
 
-```systemverilog
-if      (dwell_load) dwell <= DWELL_TICKS[3:0];
-else if (dwell_dec)  dwell <= dwell - 4'd1;
-```
+1. Add `DWELL` and `DOOR_SHUT` to the `typedef enum`.
+2. Declare `logic [3:0] dwell;`.
+3. In the `always_comb`, raise `dwell_load` in `DOOR_OPEN`, and `dwell_dec` in `DWELL` while
+   `dwell != 0`.
+4. Drive `dwell` from those two control lines in the `always_ff`:
 
-- **What you should see:**
+   ```systemverilog
+   if      (dwell_load) dwell <= DWELL_TICKS[3:0];
+   else if (dwell_dec)  dwell <= dwell - 4'd1;
+   ```
+
+5. Delete the two `lint_off` / `lint_on` pragma lines around `DWELL_TICKS` at the top of the file,
+   as the comment there says, and run `make lint`. If lint still passes, your timer really uses
+   `DWELL_TICKS`.
+6. Run `make sim`.
+
+You should see:
 
 ```
 T4  tap call[0] and time the doors
@@ -146,14 +231,13 @@ T4  tap call[0] and time the doors
 ALL CHECKS PASSED
 ```
 
-  Six, not four: one tick in `DOOR_OPEN` plus five in `DWELL` while the counter walks
-  4, 3, 2, 1, 0.
+It is six ticks, not four: one tick in `DOOR_OPEN` plus five in `DWELL` while the counter goes 4,
+3, 2, 1, 0. Notice that no decision lives in the `always_ff`; it reads two wires the `always_comb`
+already worked out. When the machine misbehaves, you have exactly one block to look at, the one
+with the `case` in it.
 
-- **Why an engineer cares:** no decision lives in the `always_ff`. It reads two wires that the
-  `always_comb` already worked out. When your machine misbehaves you then have exactly one
-  block to stare at, and it is the one with the `case` in it.
-
-> **Two errors you will hit, from tools that disagree with each other.**
+> You may hit either of these errors, from tools that disagree with each other. Neither is a bug in
+> your logic.
 >
 > Icarus rejects an enum assigned through a ternary:
 >
@@ -161,69 +245,64 @@ ALL CHECKS PASSED
 > src/elevator.sv:89: error: This assignment requires an explicit cast.
 > ```
 >
-> That is `next = (a == b) ? DOORS : MOVING;`. Verilator accepts it; `iverilog -g2012` does
-> not. Write it as `if`/`else` and both are happy.
+> That is `next = (a == b) ? DOORS : MOVING;`. Verilator accepts it and `iverilog -g2012` does not.
+> Write it as `if`/`else` and both are happy.
 >
-> And if you write a comment that *starts* with the word `verilator`, Verilator reads it as a
-> directive aimed at itself:
+> If you write a comment that starts with the word `verilator`, Verilator reads it as a directive
+> aimed at itself:
 >
 > ```
 > %Error-BADVLTPRAGMA: solutions/elevator.sv:12:1: Unknown verilator comment:
 >                      '/*verilator --lint-only -Wall -> exit 0*/'
 > ```
->
-> Expect to hit at least one of these. Neither is a bug in your logic.
 
-### Step 3 — Read the receipt, twice
+## Part 5: Compare the receipts
 
-- **Try this:** `make synth` on the finished design, then again on the skeleton — keep a copy
-  of it before you start editing, or just compare against the numbers below.
-- **What you should see**, on the finished elevator:
+1. Run `make synth` on your finished design:
 
-```
-=== elevator ===
+   ```
+   === elevator ===
 
-       76  765.734 cells
-        ...
-       16  400.384   sky130_fd_sc_hd__dfrtp_1
-        1   26.275   sky130_fd_sc_hd__dfstp_2
-        ...
-   Chip area for module '\elevator': 765.734400
-     of which used for sequential elements: 426.659200 (55.72%)
-```
+          76  765.734 cells
+           ...
+          16  400.384   sky130_fd_sc_hd__dfrtp_1
+           1   26.275   sky130_fd_sc_hd__dfstp_2
+           ...
+      Chip area for module '\elevator': 765.734400
+        of which used for sequential elements: 426.659200 (55.72%)
+   ```
+
+2. Compare with the skeleton's numbers below. (If you want to reproduce them, run the Yosys
+   command from the `synth` target in the `Makefile` on the copy you saved in Part 2.)
 
 | | Skeleton (3 states) | Finished (5 states) |
 |---|---|---|
-| cells | 43 | **76** |
-| area | 382.87 µm² | **765.73 µm²** |
-| flip-flops | 7 | **17** |
-| sequential share | 46.08 % | **55.72 %** |
+| cells | 43 | 76 |
+| area | 382.87 µm² | 765.73 µm² |
+| flip-flops | 7 | 17 |
+| sequential share | 46.08 % | 55.72 % |
 
-- **Why an engineer cares:** eight extra flip-flops — four for `pending`, four for `dwell` —
-  and the chip **doubled**. Seventeen flops are 22 % of the cells and **55.72 % of the area**:
-  more than half of this chip is remembering where it is, not deciding where to go. A
-  `dfrtp_1` costs 25.02 µm²; a `nand2_1` costs 3.75. **State is the expensive thing.** That is
-  the entire reason engineers argue about minimizing states, and you now have your own number
-  for it.
+You should see that eight extra flip-flops, four for `pending` and four for `dwell`, roughly
+doubled the chip. Seventeen flops are 22 % of the cells and 55.72 % of the area. A `dfrtp_1` costs
+25.02 µm² and a `nand2_1` costs 3.75, so state is the expensive part. That is why engineers argue
+about minimizing states, and you now have your own number for it.
 
-### Step 4 — Look at it, but only the RTL view
+## Part 6: The RTL view
 
-- **Try this:** `make show`, then open `results/elevator_rtl.svg` in the browser or in
-  `xdg-open`.
-- **What you should see:** a wide landscape strip — **6503 × 1566 pt** for the finished design
-  — with your own names on the wires. Search the SVG for them: `floor`, `target`, `pending`,
-  `dwell`, `state`, `serve`, `any_pending`, `first_pending`, `door_open`, `moving_up`, `seg`.
-  Five register boxes, for your five multi-bit state elements.
-- **Do not** run `show` on the gate netlist. Measured on this design, the gate-level diagram
-  comes out **883 × 9018 pt** — a vertical ribbon ten times taller than it is wide, with 76
-  unlabelled boxes in it. It is not a diagram, it is a wall. The readable gate view in
-  [Lab 02](labs/lab-02-rtl-becomes-gates-overview.md) was a **two-cell** full adder, and that is about
-  the size where `show` stops helping.
-- **Why an engineer cares:** the RTL view is the one that still has your vocabulary in it. Once
-  the design is mapped to cells, the picture belongs to the layout tools, and the way you look
-  at it is a KLayout render — which is Step 7.
+1. Run `make show`, then open `results/elevator_rtl.svg` in the browser or with `xdg-open`.
+2. Search the SVG for your own signal names: `floor`, `target`, `pending`, `dwell`, `state`,
+   `serve`, `any_pending`, `first_pending`, `door_open`, `moving_up`, `seg`.
 
-### Step 5 — RTL to GDSII
+You should see a wide strip, 6503 × 1566 pt for the finished design, with your names on the wires
+and five register boxes for your five multi-bit state elements.
+
+Do not run `show` on the gate netlist. Measured on this design, the gate-level diagram comes out
+883 × 9018 pt, a vertical ribbon ten times taller than it is wide with 76 unlabelled boxes in it.
+The readable gate view in [Lab 02](labs/lab-02-rtl-becomes-gates-overview.md) was a two-cell full
+adder, which is about the size where `show` stops helping. Once the design is mapped to cells, you
+look at it as a layout, which is Part 9.
+
+## Part 7: RTL to GDSII
 
 `config.json` is already written. Read it before you run it:
 
@@ -246,97 +325,121 @@ ALL CHECKS PASSED
 }
 ```
 
-Three things in there are not decoration.
+Three things in it matter:
 
-**`PDK` and `STD_CELL_LIBRARY` are pinned.** The image's default PDK is `ihp-sg13g2`, a
-completely different technology. Leave those two keys out and the flow runs happily, exits 0,
-and hands you a chip built out of `sg13g2_*` cells. Nothing errors. You would not find out.
+- `PDK` and `STD_CELL_LIBRARY` are pinned. The image's default PDK is `ihp-sg13g2`, a different
+  technology. Leave those two keys out and the flow runs, exits 0, and builds a chip out of
+  `sg13g2_*` cells without any error.
+- `VERILOG_FILES` names one file, not `dir::src/*.sv`. The glob is what upstream examples use, and
+  here it would sweep up `tb_elevator.sv` and ask LibreLane to build silicon out of your
+  testbench.
+- There is no `DIE_AREA`. The floorplanner sizes the chip from `FP_CORE_UTIL`: you ask for 35 %
+  core utilization and let it work out the rectangle.
 
-**`VERILOG_FILES` names one file, not `dir::src/*.sv`.** The glob is what upstream examples
-use, and here it would sweep up `tb_elevator.sv` and ask LibreLane to build silicon out of your
-testbench.
+1. Harden the design:
 
-**No `DIE_AREA`.** The floorplanner sizes the chip from `FP_CORE_UTIL` — you are asking for a
-35 % core utilization and letting it work out the rectangle.
+   ```bash
+   make harden TAG=v1
+   ```
 
-- **Try this:**
+   80 stages scroll past, and then:
 
-```bash
-make harden TAG=v1
-```
+   ```
+   * Antenna
+   Passed ✅
 
-- **What you should see:** 80 stages scroll past, and then:
+   * LVS
+   Passed ✅
 
-```
-* Antenna
-Passed ✅
+   * DRC
+   Passed ✅
 
-* LVS
-Passed ✅
+   [00:48:11] INFO     Saving views to '/work/runs/v1/final'…
+   [00:48:11] INFO     Flow complete.
+   Classic - Stage 80 - Report Manufacturability ━━━━━━━━━━━━━━━━━━━━ 80/80 0:00:57
+   ```
 
-* DRC
-Passed ✅
+   On a 6-core laptop with 7.5 GB of RAM this took 59 seconds of wall-clock time and peaked at
+   525 MB. If yours takes noticeably longer, your design got bigger, not broken.
 
-[00:48:11] INFO     Saving views to '/work/runs/v1/final'…
-[00:48:11] INFO     Flow complete.
-Classic - Stage 80 - Report Manufacturability ━━━━━━━━━━━━━━━━━━━━ 80/80 0:00:57
-```
+   A dozen `WARNING` lines follow. They are normal on a design with no SDC file and no power source
+   location: `'PNR_SDC_FILE' is not defined`, `found 2 floating nets`,
+   `LEF58_ENCLOSURE with no CUTCLASS is not supported`. None of them is a failure. The three ✅
+   lines are the results that matter, and Part 8 checks them properly.
 
-  On a 6-core laptop with 7.5 GB of RAM this took **59 seconds wall clock** and peaked at
-  **525 MB**. It is not an overnight job. If yours takes noticeably longer, your design got
-  bigger, not broken.
+2. Confirm you built the chip you meant to:
 
-  Then a dozen `WARNING` lines. They are normal on a design with no SDC file and no power
-  source location — `'PNR_SDC_FILE' is not defined`, `found 2 floating nets`,
-  `LEF58_ENCLOSURE with no CUTCLASS is not supported`. None of them is a failure. The failures
-  are the three ✅ lines above, and Step 6 is how you check them properly.
+   ```bash
+   grep -m1 "Liberty frontend" runs/v1/06-yosys-synthesis/yosys-synthesis.log
+   grep '"PDK"' runs/v1/resolved.json
+   ```
 
-- **Confirm you built the chip you meant to:**
+You should see a liberty path under `/foss/pdks/sky130A/libs.ref/sky130_fd_sc_hd/lib/` and
+`"PDK": "sky130A",`. If the path says `ihp-sg13g2`, your `PDK` key is not being read.
 
-```bash
-grep -m1 "Liberty frontend" runs/v1/06-yosys-synthesis/yosys-synthesis.log
-```
+> Re-running with the same tag does not start over. LibreLane prints
+> `INFO Using existing run at 'v1'` and appends stages 78, 79, 80… onto the finished run, which is
+> confusing and doubles the disk use. Use a new tag every time: `make harden TAG=v2`. Don't reach
+> for `--overwrite`; it crashes with a Python traceback when `runs/` does not exist yet.
 
-```
-1. Executing Liberty frontend: /foss/pdks/sky130A/libs.ref/sky130_fd_sc_hd/lib/sky130_fd_sc_hd__tt_025C_1v80.lib
-```
+## Part 8: The report card
 
-  If that path says `ihp-sg13g2`, your `PDK` key is not being read.
+1. Print the metrics:
 
-> Re-running with the same tag does **not** start over. LibreLane prints
-> `INFO Using existing run at 'v1'` and appends stages **78, 79, 80…** onto the finished run,
-> which is confusing and doubles the disk. Bump the tag every time:
-> `make harden TAG=v2`. And do not reach for `--overwrite` — it crashes with a Python
-> traceback when `runs/` does not exist yet.
+   ```bash
+   make metrics TAG=v1
+   ```
 
-### Step 6 — The report card, not the exit code
+   ```
+   design__die__area                      4553.88
+   design__core__area                     2499.9
+   design__instance__utilization          0.550551
+   timing__setup__ws                      11.664674889496723
+   timing__hold__ws                       0.10763004681033471
+   route__wirelength                      1989
+   design__instance__count__stdcell       148
+   antenna__violating__nets               0
+   magic__drc_error__count                0
+   klayout__drc_error__count              0
+   design__lvs_error__count               0
+   ```
 
-- **Try this:** `make metrics TAG=v1`.
-- **What you should see:**
+   LibreLane exits 0 on runs with antenna violations in them. The exit code says the flow
+   finished, not that the chip is good. The four zeros at the bottom are what "signoff clean"
+   means.
 
-```
-design__die__area                      4553.88
-design__core__area                     2499.9
-design__instance__utilization          0.550551
-timing__setup__ws                      11.664674889496723
-timing__hold__ws                       0.10763004681033471
-route__wirelength                      1989
-design__instance__count__stdcell       148
-antenna__violating__nets               0
-magic__drc_error__count                0
-klayout__drc_error__count              0
-design__lvs_error__count               0
-```
+2. Read the three sign-off reports directly:
 
-- **Why an engineer cares:** LibreLane exits 0 on runs with antenna violations in them. The
-  exit code tells you the *flow* finished, not that the *chip* is good. `metrics.json` is the
-  thing to check, and those four zeros at the bottom are what "signoff clean" actually means.
+   ```bash
+   cat runs/v1/65-magic-drc/reports/drc.magic.rpt
+   tail -5 runs/v1/71-netgen-lvs/reports/lvs.netgen.rpt
+   cat runs/v1/47-openroad-checkantennas-1/reports/antenna_summary.rpt
+   ```
 
-Three of those numbers deserve a second look.
+   You should see `[INFO] COUNT: 0`, then `Final result: Circuits match uniquely.`, then an
+   antenna table with a header and no rows.
 
-**`design__instance__count__stdcell` is 148.** Yosys said 76. The extra instances are real
-cells that the flow added after synthesis: a clock tree, hold-fix delay cells, and antenna
-diodes. Look at what got inserted:
+3. Count the cell classes on the die:
+
+   ```bash
+   python3 -c "
+   import json
+   m = json.load(open('runs/v1/final/metrics.json'))
+   for k, v in sorted(m.items()):
+       if 'count__class' in k: print(k.split(':')[-1], v)
+   print('design__instance__count', m['design__instance__count'])"
+   grep -c sky130_fd_sc_hd runs/v1/final/nl/elevator.nl.v
+   ```
+
+   You should see `sequential_cell 17`, and the `grep -c` count equal to
+   `design__instance__count`: every instance on the die is a SKY130 cell. A count of `0` would mean
+   you hardened a different technology.
+
+Three of the metrics deserve a closer look.
+
+`design__instance__count__stdcell` is 148, where Yosys said 76. The extra instances are real cells
+the flow added after synthesis: a clock tree, hold-fix delay cells and antenna diodes. The logs
+show what was inserted:
 
 ```
 [INFO CTS-0018]     Created 3 clock buffers.
@@ -344,22 +447,22 @@ diodes. Look at what got inserted:
 [INFO RSZ-0032] Inserted 14 hold buffers.
 ```
 
-Eleven hold violations you never wrote. A hold violation is data arriving at a flip-flop
-*too early* — the previous stage was so fast that the new value overtook the clock edge. The
-fix is to deliberately slow the path down, which is why the layout contains 32 timing-repair
-buffers costing 320.31 µm², and why `timing__hold__ws` came out at **+0.108 ns**: just barely
-positive, because that is exactly what the resizer was aiming for.
+Those are eleven hold violations you never wrote. A hold violation is data arriving at a
+flip-flop too early: the previous stage was so fast that the new value overtook the clock edge.
+The fix is to slow the path down on purpose, which is why the layout contains 32 timing-repair
+buffers costing 320.31 µm², and why `timing__hold__ws` came out at +0.108 ns: just positive,
+because that is what the resizer aims for.
 
-**`timing__setup__ws` is +11.66 ns on a 20 ns clock.** Your longest path takes about 8.3 ns, so
-this elevator would run at roughly 120 MHz. It has 11.66 ns of headroom it is not using — which
-is a design decision you could go spend, on more floors or a smarter scheduler.
+`timing__setup__ws` is +11.66 ns on a 20 ns clock. Your longest path takes about 8.3 ns, so this
+elevator would run at roughly 120 MHz. It has 11.66 ns of headroom it isn't using, which you could
+spend on more floors or a smarter scheduler.
 
-**The finished layout contains 481 physical cells**, of which `metrics.json` counts 148 as
-standard-cell instances — and only 118 of those compute anything at all:
+The finished layout contains 481 physical cells. `metrics.json` counts 148 of them as standard-cell
+instances, and only 118 of those compute anything:
 
 | | count | what it is |
 |---|---|---|
-| `decap` | 265 | decoupling capacitors — local charge storage for the power rails |
+| `decap` | 265 | decoupling capacitors: local charge storage for the power rails |
 | `fill` | 68 | nothing at all; filler so the rows are continuous |
 | `tapvpwrvgnd` | 30 | well taps, tying the substrate to the rails |
 | `dfrtp` / `dfstp` | 17 | your flip-flops |
@@ -367,47 +470,46 @@ standard-cell instances — and only 118 of those compute anything at all:
 | `diode` | 6 | antenna protection |
 | everything else | 58 | your logic |
 
-Decap, fill and taps are 363 of the 481. **More than two-thirds of the cells in your chip
-exist to make the silicon manufacturable, not to make the elevator work.** That is normal, and
-it is why an area number from `stat` is always an underestimate of the rectangle you end up
-paying for: 765.73 µm² of cells landed in a 4553.88 µm² die.
+Decap, fill and taps are 363 of the 481. More than two thirds of the cells in your chip exist to
+make the silicon manufacturable, not to make the elevator work. That is normal, and it is why an
+area number from `stat` always underestimates the rectangle you end up paying for: 765.73 µm² of
+cells landed in a 4553.88 µm² die.
 
-### Step 7 — Go and look at your chip
+## Part 9: The layout
 
-The flow already rendered it. No screenshot choreography, no X server needed:
+The flow already rendered it, with no screenshot or X server needed.
 
-```bash
-ls -l runs/v1/final/render/elevator.png
-```
+1. Open the render:
 
-![The elevator, hardened](../assets/img/lab05-elevator-render.png)
+   ```bash
+   ls -l runs/v1/final/render/elevator.png
+   ```
 
-- **What you should see:** a rectangle **62.335 × 73.055 µm**. Rows of standard cells, magenta
-  power straps running vertically, a thicket of routing, and pins on the edges. Zoom in far
-  enough and the individual cells resolve.
-- **Why an engineer cares:** a human hair is 60–80 µm across. **Your entire elevator
-  controller is narrower than one hair.** That number is the honest scale of everything this
-  course has been about, and the picture is the receipt.
+   ![The elevator, hardened](../assets/img/lab05-elevator-render.png)
 
-The GDS itself is next door:
+2. Check the GDS:
 
-```bash
-ls -l runs/v1/final/gds/elevator.gds
-```
+   ```bash
+   ls -l runs/v1/final/gds/elevator.gds
+   ```
 
-```
--rw-r--r-- 1 designer designers 420588 ... runs/v1/final/gds/elevator.gds
-```
+   ```
+   -rw-r--r-- 1 designer designers 420588 ... runs/v1/final/gds/elevator.gds
+   ```
 
-**411 KB. That file is the deliverable.** It is the polygons, layer by layer, that a foundry
-would use to make masks. Everything else in `final/` — `def/ lef/ lib/ nl/ sdc/ sdf/ spef/
-spice/ vh/` — is the paperwork that goes with it: the netlist someone else would simulate, the
-timing model someone else would build on top of you, the abstract view someone else would
-place next to their block.
+You should see a rectangle 62.335 × 73.055 µm: rows of standard cells, magenta power straps
+running vertically, a thicket of routing, and pins on the edges. Zoom in far enough and the
+individual cells resolve. A human hair is 60–80 µm across, so your entire elevator controller is
+narrower than one hair.
 
-## Expected results
+The 411 KB GDS file is the deliverable: the polygons, layer by layer, that a foundry would use to
+make masks. Everything else in `final/` (`def/ lef/ lib/ nl/ sdc/ sdf/ spef/ spice/ vh/`) is the
+paperwork that goes with it: the netlist someone else would simulate, the timing model someone
+else would build on, the abstract view someone else would place next to their block.
 
-You are done when this table is filled in from **your own** run:
+## Finishing
+
+You are done when this table is filled in from your own run:
 
 | | Your number | Ours |
 |---|---|---|
@@ -423,52 +525,41 @@ You are done when this table is filled in from **your own** run:
 | wall-clock time for `make harden` | | 59 s |
 | `runs/<tag>/final/gds/elevator.gds` exists | | 420,588 bytes |
 
-Your numbers will not match ours exactly, and should not — a different call-scheduling rule or
-one extra state moves everything. What must match:
+Your numbers will not match ours exactly, and shouldn't: a different call-scheduling rule or one
+extra state moves everything. These must match:
 
 - all six checks pass
-- the four error counts are **zero**
-- setup and hold slack are both **positive**
+- the four error counts are zero
+- setup and hold slack are both positive
 - the synthesis log names `sky130_fd_sc_hd`, not `sg13g2`
 
-If you are within about 20 % on cells and area, you built the same kind of thing we did.
+If you are within about 20 % on cells and area, you built the same kind of thing we did. When all
+six of your own checks pass, compare your design with the
+[reference implementation](https://github.com/uoftasic/dd103/tree/main/labs/lab-05-elevator/solutions).
+Keep two files from this lab: `elevator.sv` and `runs/<tag>/final/metrics.json`.
 
 ## Going further
 
-- **Delete a state.** Merge `DOOR_SHUT` into `DWELL` and re-run `make synth`. You lose a state
-  and gain a condition. Did the chip get smaller? Write down the number before you look.
-- **Argue with the scheduler.** Lowest-pending-floor-first means somebody on floor 3 waits
-  forever if floors 0 and 1 keep pressing. Real elevators use **SCAN**: keep going the way you
-  were going, serve everything on the way, then reverse. Implement it, re-run `make sim` (the
-  six checks still pass — SCAN is a superset), and see what it costs in cells.
+- **Delete a state.** Merge `DOOR_SHUT` into `DWELL` and re-run `make synth`. You lose a state and
+  gain a condition. Write down whether you expect the chip to shrink before you look.
+- **Argue with the scheduler.** Lowest-pending-floor-first means somebody on floor 3 waits forever
+  if floors 0 and 1 keep pressing. Real elevators use SCAN: keep going the way you were going,
+  serve everything on the way, then reverse. Implement it, re-run `make sim` (the six checks still
+  pass, since SCAN is a superset), and see what it costs in cells.
 - **Let the tool re-encode, or stop it.** `synth -top elevator -nofsm` leaves your 3-bit state
-  register alone instead of one-hotting it: **79 cells, 756.98 µm², 15 flip-flops** against the
-  default's 76 / 765.73 / 17. Two fewer flops, three more gates, 1.1 % smaller. On this design
-  the famous binary-vs-one-hot trade is worth almost nothing — which is a more useful thing to
-  know than either side of the argument.
-- **Push the clock.** Set `"CLOCK_PERIOD": 4.0` in `config.json` and harden again. You have
-  11.66 ns of slack to spend; find out where it runs out and read
-  `runs/<tag>/56-openroad-stapostpnr/` for the path that gave up first.
-- **Grow it.** Eight floors, a door-obstruction input, an overload sensor. The flow handled 76
-  cells in 59 seconds, but detailed routing scales steeply — keep it under a few thousand cells
+  register alone instead of making it one-hot: 79 cells, 756.98 µm² and 15 flip-flops, against the
+  default's 76 / 765.73 / 17. That is two fewer flops, three more gates, and 1.1 % smaller. On this
+  design the binary-versus-one-hot trade is worth almost nothing, which is more useful to know than
+  either side of the argument.
+- **Push the clock.** Set `"CLOCK_PERIOD": 4.0` in `config.json` and harden again with a new tag.
+  You have 11.66 ns of slack to spend; find out where it runs out, and read
+  `runs/<tag>/56-openroad-stapostpnr/` for the path that failed first.
+- **Grow it.** Add eight floors, a door-obstruction input, an overload sensor. The flow handled 76
+  cells in 59 seconds, but detailed routing scales steeply, so keep it under a few thousand cells
   and re-check the wall-clock time as you go.
-- **Compare with someone else.** Two people who both passed all six checks will have different
-  cell counts, different die sizes and different slack. Find out which of your two decisions
-  caused the biggest gap.
+- **Compare with someone else.** Two people who both passed all six checks will have different cell
+  counts, die sizes and slack. Find out which of your two decisions caused the biggest gap.
 
-## Links
-
-- [Lab package](https://github.com/uoftasic/dd103/tree/main/labs/lab-05-elevator) ·
-  [reference implementation](https://github.com/uoftasic/dd103/tree/main/labs/lab-05-elevator/solutions)
-  — **after** all six of your own checks pass, not before
-- Guide: [A state machine is a table with a memory](guide/state-machine-is-a-table.md) ·
-  [From gates to geometry](guide/from-gates-to-geometry.md)
-- Reference: [The synthesizable subset](reference/synthesizable-subset.md) ·
-  [OpenLane, OpenLane 2, LibreLane](reference/the-name-history.md)
-- Previous lab: [Lab 04 — Reading the receipt](labs/lab-04-reading-the-receipt-overview.md)
-
----
-
-**That is DD103.** Keep two files: `elevator.sv`, and `runs/<tag>/final/metrics.json`.
-[**DD104 — Pre-Silicon Verification**](https://uoftasic.com/dd104/) opens by putting your numbers next to an 8-bit CPU's — a few thousand cells against your 76 —
-and asking you to find the bugs in it.
+That is the end of DD103.
+[DD104: Pre-Silicon Verification](https://uoftasic.com/dd104/) opens by putting your numbers next to
+an 8-bit CPU's, a few thousand cells against your 76, and asking you to find the bugs in it.
