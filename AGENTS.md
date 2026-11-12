@@ -49,7 +49,8 @@ Lab IDs: `lab-NN-short-name` (for example `lab-02-rtl-becomes-gates`).
    each part ending in a concrete "you should see" check, and a finishing section (how to check
    you're done, what to submit if anything).
 3. Add a Do row to the Course path in `docs/README.md`, and link the writeup from
-   `docs/_sidebar.md` in the same position.
+   `docs/_sidebar.md` in the same position (and from `_navbar.md` only if it belongs in the top
+   nav).
 4. Cross-link: writeup → GitHub `labs/<lab-id>/`; package README → `docs/labs/<lab-id>-overview.md`.
 
 Writeups are where students do things; packages execute. Don't paste long HDL into Docsify pages;

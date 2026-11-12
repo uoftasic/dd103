@@ -10,7 +10,7 @@
 - **5–6. The traps**
   - [Synthesizable SystemVerilog](guide/the-hardware-dialect.md)
   - [Inferred latches](guide/the-latch-you-didnt-ask-for.md)
-  - [Blocking and non-blocking](guide/blocking-vs-nonblocking.md)
+  - [Blocking and non-blocking assignments](guide/blocking-vs-nonblocking.md)
   - [Lab 03: Three ways to lose a latch](labs/lab-03-three-ways-to-lose-a-latch-overview.md)
 - **7–8. Area and timing**
   - [Reading the `stat` report](guide/reading-stat.md)
