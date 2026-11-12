@@ -302,8 +302,8 @@ this:
 }
 ```
 
-Eleven more cell types and eight more `num_*` keys have been cut from both objects to fit; run it
-and read the real thing. Four keys carry everything the text receipt showed you:
+Eleven more cell types and eight more `num_*` keys have been cut from both objects to fit. The
+full file is `results/blinker.json` once you have run `make` in Lab 04. Four keys carry everything the text receipt showed you:
 
 | Key | What it is |
 |---|---|

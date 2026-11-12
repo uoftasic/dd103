@@ -343,6 +343,8 @@ LEF=$REF/lef/sky130_fd_sc_hd.lef
    grep '^  SIZE' /foss/pdks/sky130A/libs.ref/sky130_fd_sc_hvl/lef/*.lef | awk '{print $4}' | sort | uniq -c
    ```
 
+   You should see `61 4.070` and `8 8.140`: the high-voltage row is 4.070 µm tall.
+
 6. Count the transistors in the cell:
 
    ```bash
