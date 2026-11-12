@@ -49,9 +49,11 @@ Package: [`labs/lab-01-one-adder-two-targets/`](https://github.com/uoftasic/dd10
    echo $STD_CELL_LIBRARY
    ```
 
-   `PDK` must say `sky130A`. If it says `ihp-sg13g2`, step 3 did not run in this terminal, so
-   run it again. `STD_CELL_LIBRARY` must end up as `sky130_fd_sc_hd`. Run these two lines either
-   way; the first sets the cell library and the second sets the terminal width:
+   `PDK` must say `sky130A`. If it says `ihp-sg13g2`, the image's own default, step 3 did not
+   run in this terminal, so run it again. `STD_CELL_LIBRARY` may say `sky130_fd_sc_hd` or the
+   image's default, `sg13g2_stdcell`. Whatever it says, run these two lines. The first sets the
+   SKY130 cell library. The second tells LibreLane the terminal is 200 columns wide, which does
+   the same job as maximizing the window:
 
    ```bash
    export STD_CELL_LIBRARY=sky130_fd_sc_hd
@@ -90,7 +92,7 @@ Package: [`labs/lab-01-one-adder-two-targets/`](https://github.com/uoftasic/dd10
 
    | What you see | What it means |
    |---|---|
-   | `bash: mod: command not found` | You did not run step 3 in this terminal. Every new tab starts clean. |
+   | `bash: mod: command not found` | You did not run step 3 in this terminal. Every new terminal starts clean. |
    | `mod: no such module: dd103` | You ran `mod dd103` before `mod add dd103`. |
    | `fatal: could not read Username for 'https://github.com'` | git could not read the repo anonymously and is asking you to log in. Check the spelling first. If it is right, ask in [Discord](https://discord.gg/hrJnP5UsGz). Do not type your password. |
 
@@ -271,8 +273,8 @@ so `110.105600 µm²` is a price.
    | the file you hand over | | |
    | size of that file | | |
 
-   This lab doesn't produce the ASIC handover file; you'll make one in Lab 05. Write down what
-   it is called and leave its size blank.
+   This lab doesn't produce the ASIC handover file, a GDSII layout; you'll make one in Lab 05.
+   Write down its name and leave its size blank.
 
 You should see two columns whose rows do not share units. There is no conversion factor between
 `10/5280` and `110.1056 µm²`. "It fits" is an FPGA answer; "it costs this much silicon" is an
@@ -342,7 +344,8 @@ end
              dfflibmap -liberty $LIB; abc -liberty $LIB; opt_clean; stat -liberty $LIB"
    ```
 
-3. Compare the two. Divide the SKY130 flip-flop count by the number of bits in the array.
+3. Compare the two. Divide the SKY130 flip-flop count (the `sky130_fd_sc_hd__edfxtp_1` cells,
+   flip-flops with an enable) by the number of bits in the array.
 
 You should see four `SB_RAM40_4K` block RAMs on the FPGA side, and on the SKY130 side
 16,384 `sky130_fd_sc_hd__edfxtp_1`, 2,748 `sky130_fd_sc_hd__mux4_2` and a chip area of
@@ -351,7 +354,7 @@ after this lab, [FPGA and ASIC targets](guide/warehouse-and-empty-lot.md), expla
 
 ## Finishing
 
-You are done when all of these are true:
+With the shipped adder, you are done when all of these are true:
 
 | Check | Expected |
 |---|---|
@@ -361,6 +364,8 @@ You are done when all of these are true:
 | `grep "Chip area" results/asic.log` | `110.105600` |
 | `grep sky130 results/asic.log \| tail -2` | 4 × `maj3_1`, 8 × `xnor2_1` |
 | Your filled-in table | six rows, two columns, no shared units |
+| Part 6, your prediction | $4 \times 33.7824 = 135.1296$ µm² |
+| Part 7, SKY130 flip-flops for `mem.sv` | 16,384 `sky130_fd_sc_hd__edfxtp_1` |
 
 If you brought your own `ripple4.sv` and wrote the carry differently, your numbers will differ.
 That is a result, not an error: two adders that simulate identically can synthesize to
@@ -371,8 +376,8 @@ different cells. Write down what you got.
 - Delete three of your four full adders and rebuild the bitstream with `make fpga`
   (`git checkout src/ripple4.sv` restores the file afterwards). `results/ripple4.bin` stays
   at 104,090 bytes. It is not a description of your adder. It configures every LUT, every
-  routing switch and every I/O buffer on the entire UP5K, including the 5,270 logic cells you
-  left empty. A GDSII is the opposite: it describes only what you built, and it grows when your
+  routing switch and every I/O buffer on the entire UP5K, including every logic cell you left
+  empty (5,270 of them with the full adder). A GDSII is the opposite: it describes only what you built, and it grows when your
   design does.
 - Search `results/asic.log` for this line from `abc`:
 
