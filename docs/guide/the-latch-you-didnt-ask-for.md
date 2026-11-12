@@ -274,7 +274,8 @@ Run on all four files, it gives:
 
 Verilator is not fooled by `unique`. Yosys said "No latch inferred" and handed you a circuit with
 a dead LED; Verilator, reading the same file, still points at line 7 and says
-`Latch inferred for signal 'bar'`. It does not treat a promise as evidence.
+`Latch inferred for signal 'bar'`. It checks the cases itself instead of taking `unique` at its
+word.
 
 For the rest of this track, lint clean before you synthesize. Verilator's exit code is 0 or it
 isn't, and `-Wall` makes warnings fatal. It runs in 4 milliseconds, so there is no reason to skip
