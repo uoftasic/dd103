@@ -1,27 +1,25 @@
 - [Home](README.md)
-- **Guide**
+- **1–2. Start**
   - [Getting started](guide/getting-started.md)
-  - **I. What synthesis is**
-    - [Synthesis is translation with an accent](guide/synthesis-is-translation.md)
-    - [The hardware dialect](guide/the-hardware-dialect.md)
-  - **II. Reading what it did**
-    - [A standard cell is a real thing](guide/standard-cells-are-real.md)
-    - [Reading `stat` like a receipt](guide/reading-stat.md)
-  - **III. The traps**
-    - [The latch you didn't ask for](guide/the-latch-you-didnt-ask-for.md)
-    - [Blocking vs non-blocking](guide/blocking-vs-nonblocking.md)
-  - **IV. Two targets**
-    - [The warehouse and the empty lot](guide/warehouse-and-empty-lot.md)
-    - [The carry has to walk](guide/the-carry-has-to-walk.md)
-  - **Capstone**
-    - [A state machine is a table with a memory](guide/state-machine-is-a-table.md)
-    - [From gates to geometry](guide/from-gates-to-geometry.md)
-- **Labs**
-  - [Lab 01 — One adder, two targets](labs/lab-01-one-adder-two-targets-overview.md)
-  - [Lab 02 — RTL becomes gates](labs/lab-02-rtl-becomes-gates-overview.md)
-  - [Lab 03 — Three ways to lose a latch](labs/lab-03-three-ways-to-lose-a-latch-overview.md)
-  - [Lab 04 — Reading the receipt](labs/lab-04-reading-the-receipt-overview.md)
-  - [Lab 05 — Elevator to GDSII](labs/lab-05-elevator-overview.md)
+  - [Lab 01: One adder, two targets](labs/lab-01-one-adder-two-targets-overview.md)
+- **3–4. What synthesis builds**
+  - [FPGA and ASIC targets](guide/warehouse-and-empty-lot.md)
+  - [What synthesis does](guide/synthesis-is-translation.md)
+  - [Standard cells](guide/standard-cells-are-real.md)
+  - [Lab 02: RTL becomes gates](labs/lab-02-rtl-becomes-gates-overview.md)
+- **5–6. The traps**
+  - [Synthesizable SystemVerilog](guide/the-hardware-dialect.md)
+  - [Inferred latches](guide/the-latch-you-didnt-ask-for.md)
+  - [Blocking and non-blocking](guide/blocking-vs-nonblocking.md)
+  - [Lab 03: Three ways to lose a latch](labs/lab-03-three-ways-to-lose-a-latch-overview.md)
+- **7–8. Area and timing**
+  - [Reading the `stat` report](guide/reading-stat.md)
+  - [Carry delay and static timing](guide/the-carry-has-to-walk.md)
+  - [Lab 04: Reading the receipt](labs/lab-04-reading-the-receipt-overview.md)
+- **9–10. Capstone**
+  - [Writing a state machine](guide/state-machine-is-a-table.md)
+  - [From netlist to layout](guide/from-gates-to-geometry.md)
+  - [Lab 05: Elevator to GDSII](labs/lab-05-elevator-overview.md)
 - **Reference**
   - [The synthesizable subset](reference/synthesizable-subset.md)
   - [When Yosys says syntax error](reference/yosys-syntax-errors.md)
