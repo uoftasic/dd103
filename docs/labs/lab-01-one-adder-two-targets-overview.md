@@ -116,8 +116,8 @@ Package: [`labs/lab-01-one-adder-two-targets/`](https://github.com/uoftasic/dd10
    Copyright ©2020-2025 Efabless Corporation
    ```
 
-   `0.68` and `3.1.0.dev3` are the numbers that matter. If either is different, you are on a
-   different image; see [IC101: Launch the noVNC desktop](https://uoftasic.com/ic101/#/guide/launch-novnc)
+   `0.68` and `3.1.0.dev3` are the numbers that matter. If either is different, you are not on
+   `hpretl/iic-osic-tools:2026.08`; see [IC101: Launch the noVNC desktop](https://uoftasic.com/ic101/#/guide/launch-novnc)
    for the image the `workspace` scripts pull. The rest of the toolchain, if you want to check
    it:
 
@@ -240,7 +240,8 @@ does not; its logic is built from LUTs that can each be any 4-input function.
         of which used for sequential elements: 0.000000 (0.00%)
    ```
 
-   The `$scopeinfo` warning is harmless: as in Part 3, those cells are markers, not hardware.
+   The `$scopeinfo` warning is harmless: as in Part 3, those cells are markers left by `flatten`,
+   not hardware.
 
 2. Before that block, `abc` prints 94 lines like these, 63 of them about flip-flops and
    latches:
@@ -261,7 +262,8 @@ so `110.105600 µm²` is a price.
 
 ## Part 5: Fill in the table
 
-1. Run `make table`, and copy the numbers into this table by hand. Typing them is the exercise.
+1. Run `make table`, which reprints the `YOUR NUMBERS` summary, and copy the numbers into this
+   table by hand. Typing them is the exercise.
    For "cells reported", say whether your number includes the `$scopeinfo` markers.
 
    | | iCE40 UP5K (FPGA) | SKY130 (ASIC) |
@@ -348,9 +350,9 @@ end
    flip-flops with an enable) by the number of bits in the array.
 
 You should see four `SB_RAM40_4K` block RAMs on the FPGA side, and on the SKY130 side
-16,384 `sky130_fd_sc_hd__edfxtp_1`, 2,748 `sky130_fd_sc_hd__mux4_2` and a chip area of
-`606554.233600` µm². 16,384 is exactly 2048 × 8: one flip-flop for every bit. The reading
-after this lab, [FPGA and ASIC targets](guide/warehouse-and-empty-lot.md), explains why.
+16,384 `sky130_fd_sc_hd__edfxtp_1` and 2,748 `sky130_fd_sc_hd__mux4_2` among 27,684 cells, and a
+chip area of `606554.233600` µm². 16,384 is exactly 2048 × 8: one flip-flop for every bit. The
+reading after this lab, [FPGA and ASIC targets](guide/warehouse-and-empty-lot.md), explains why.
 
 ## Finishing
 
@@ -377,7 +379,7 @@ different cells. Write down what you got.
   (`git checkout src/ripple4.sv` restores the file afterwards). `results/ripple4.bin` stays
   at 104,090 bytes. It is not a description of your adder. It configures every LUT, every
   routing switch and every I/O buffer on the entire UP5K, including every logic cell you left
-  empty (5,270 of them with the full adder). A GDSII is the opposite: it describes only what you built, and it grows when your
+  empty (5,270 of them with the whole `ripple4`). A GDSII is the opposite: it describes only what you built, and it grows when your
   design does.
 - Search `results/asic.log` for this line from `abc`:
 
