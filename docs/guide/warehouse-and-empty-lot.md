@@ -1,35 +1,30 @@
-# The warehouse and the empty lot
+# FPGA and ASIC targets
 
-**Question this page answers:** *Why does the same SystemVerilog become different hardware
-depending on where I send it?*
+This page explains why the same SystemVerilog becomes different hardware depending on where you
+send it. Read it after [Lab 01](labs/lab-01-one-adder-two-targets-overview.md): every number
+here is one you already measured there.
 
-You have written exactly one `ripple4.sv`. In [Lab 01](labs/lab-01-one-adder-two-targets-overview.md)
-you sent that one file to two synthesizers and got two answers that do not resemble each
-other. Neither tool was wrong. They were solving different problems.
+In Lab 01 you sent one `ripple4.sv` through two synthesis flows and got two answers that look nothing
+alike. Neither tool was wrong. They were solving different problems.
 
-## Two ways to get a building
+## The warehouse and the empty lot
 
-Suppose you need a warehouse.
+Suppose you need a warehouse. You have two options.
 
-**Option one:** rent a building that already exists. It has a fixed footprint, fixed ceiling
-height, and a grid of shelving already bolted to the floor. You cannot move a wall. What you
-*can* do is decide what goes on each shelf, and re-decide next week. You are in business
-tomorrow.
+You can rent a building that already exists. It has a fixed footprint, a fixed ceiling height,
+and a grid of shelving already bolted to the floor. You can't move a wall, but you can decide
+what goes on each shelf, and change your mind next week. You are in business tomorrow.
 
-**Option two:** buy an empty lot and pour a foundation. Every wall goes exactly where you want
-it. Nothing is wasted on shelving you never use. It is cheaper per square metre once you build
-a hundred of them — and it takes months, and once the concrete sets, that is the building you
+Or you can buy an empty lot and pour a foundation. Every wall goes exactly where you want it,
+and nothing is wasted on shelving you never use. Once you build a hundred of them it is cheaper
+per square metre. But it takes months, and once the concrete sets, that is the building you
 have, forever.
 
-An **FPGA** is the rented warehouse. An **ASIC** is the empty lot.
+An FPGA is the rented warehouse. An ASIC is the empty lot.
 
 ## The same adder, both ways
 
-Here is your adder in the warehouse:
-
-```bash
-yosys -p "read_verilog -sv ripple4.sv fulladder.sv; synth_ice40 -top ripple4; stat"
-```
+Here is your adder in the warehouse, from `synth_ice40`:
 
 ```
 === ripple4 ===
@@ -38,16 +33,8 @@ yosys -p "read_verilog -sv ripple4.sv fulladder.sv; synth_ice40 -top ripple4; st
     8   SB_LUT4
 ```
 
-(The four `$scopeinfo` are bookkeeping, not hardware —
-[Lab 01](labs/lab-01-one-adder-two-targets-overview.md) explains them. Eight `SB_LUT4` is the answer.)
-
-And the same file on the empty lot:
-
-```bash
-LIB=/foss/pdks/sky130A/libs.ref/sky130_fd_sc_hd/lib/sky130_fd_sc_hd__tt_025C_1v80.lib
-yosys -p "read_verilog -sv ripple4.sv fulladder.sv; synth -top ripple4; flatten;
-          abc -liberty $LIB; opt_clean; stat -liberty $LIB"
-```
+The four `$scopeinfo` are bookkeeping, not hardware, so the answer is eight `SB_LUT4`. Here is
+the same file on the empty lot, from `synth` and `abc -liberty` with the SKY130 liberty file:
 
 ```
 === ripple4 ===
@@ -56,38 +43,29 @@ yosys -p "read_verilog -sv ripple4.sv fulladder.sv; synth -top ripple4; flatten;
    Chip area for module '\ripple4': 110.105600
 ```
 
-Same source file. Eight `SB_LUT4` on one side; twelve named SKY130 cells and a number in
-square micrometres on the other.
+One side reports eight lookup tables. The other reports twelve named SKY130 cells and an area
+in square micrometres.
 
-## The difference is what a "cell" is allowed to be
+## LUTs and standard cells
 
-**`SB_LUT4` is a lookup table.** It is four inputs, sixteen bits of memory, and a multiplexer.
-Load those sixteen bits with one pattern and it is an XOR; load a different pattern and it is
-a carry function; load a third and it is something nobody has a name for. The silicon is
-already there, sitting on the FPGA, whether you use it or not. Synthesis for an FPGA is
-mostly the question **"which of the shelves do I fill, and with what?"**
+`SB_LUT4` is a lookup table: four inputs, sixteen bits of memory, and a multiplexer. Load those
+sixteen bits with one pattern and it is an XOR; load another and it is a carry function; load a
+third and it is something nobody has a name for. The silicon is already on the FPGA whether you
+use it or not. Synthesis for an FPGA mostly decides which shelves to fill, and with what.
 
-**`sky130_fd_sc_hd__maj3_1` is a majority gate.** Fourteen transistors, arranged in a pattern
-that computes "at least two of these three inputs are high", and nothing else, ever. It
-occupies 10.01 µm² because that is how much room those transistors need. Synthesis for an ASIC
-is the question **"which shapes do I pour, and how much land does that take?"**
+`sky130_fd_sc_hd__maj3_1` is a majority gate: fourteen transistors arranged to compute "at
+least two of these three inputs are high", and nothing else, ever. It occupies 10.01 µm²
+because that is how much room those transistors need. Synthesis for an ASIC decides which
+shapes to manufacture and how much area they take.
 
-That is why one report counts *slots used out of a fixed supply* and the other reports *area
-consumed*. An FPGA design can run out of LUTs. An ASIC design cannot run out of area — it just
+That is why one report counts slots used out of a fixed supply and the other reports area
+consumed. An FPGA design can run out of LUTs. An ASIC design cannot run out of area; it just
 gets bigger, and bigger costs money.
 
-## Try this
+## Placing the FPGA design
 
-Take the FPGA flow one step further and actually place the design:
-
-```bash
-yosys -p "read_verilog -sv ripple4.sv fulladder.sv; synth_ice40 -top ripple4 -json r4.json"
-nextpnr-ice40 --up5k --package sg48 --json r4.json --asc r4.asc --freq 50
-icepack r4.asc r4.bin
-ls -l r4.bin
-```
-
-**What you should see:**
+In Lab 01 the FPGA flow went one step further: `nextpnr-ice40` placed the design on a real UP5K
+and `icepack` wrote a bitstream. The placer reported:
 
 ```
 Info: Device utilisation:
@@ -95,40 +73,35 @@ Info:            ICESTORM_LC:      10/   5280     0%
 Info:                  SB_IO:      14/     39    35%
 ```
 
-and a bitstream of about **104 KB**.
+and the bitstream came out at about 104 KB.
 
-Two things worth noticing. First, `nextpnr` says **10** logic cells where `yosys` said **8**
-LUTs — placement packs LUTs together with carry logic and the counts stop matching. Second,
-that 104 KB file is **the same size no matter what your design does**. It is not a description
-of your adder; it is the settings for every shelf in the entire warehouse, including the
-5,270 you left empty.
+Two things to notice. First, `nextpnr` reports 10 logic cells where `yosys` reported 8 LUTs:
+placement packs LUTs together with carry logic, so the counts stop matching. Second, the 104 KB
+file is the same size no matter what your design does. It is the settings for every shelf in
+the whole warehouse, including the 5,270 you left empty. An ASIC's GDSII is the opposite: it
+describes only what you built, and it grows when your design does.
 
-An ASIC's GDSII is the opposite: it describes only what you actually built, and it grows when
-your design does.
+The numbers `10/5280` and `110.11 µm²` are the first things anyone will ask about your design,
+and they are not interchangeable. "It fits" is an FPGA answer. "It costs this much silicon" is
+an ASIC answer.
 
-**Why an engineer cares:** these two numbers — `10/5280` and `110.11 µm²` — are the first
-questions anyone will ask about your design, and they are not interchangeable. "It fits" is an
-FPGA answer. "It costs this much silicon" is an ASIC answer.
-
-## What you ship
+## Deliverables
 
 | | FPGA (iCE40 UP5K) | ASIC (SKY130) |
 |---|---|---|
 | your logic becomes | 8 × `SB_LUT4` | 4 × `maj3_1` + 8 × `xnor2_1` |
 | the report says | 10 of 5280 logic cells | 110.11 µm² |
-| you hand over | a 104 KB **bitstream** | a **GDSII** file |
+| you hand over | a 104 KB bitstream | a GDSII file |
 | to change it | reload, three seconds | re-manufacture, months |
 | cost shape | one chip, one price | enormous once, then nearly free per unit |
 
-## The part that trips people up
+## Memory on each target
 
-A design that works beautifully on an FPGA can synthesize badly for an ASIC, and the reverse.
-They are different targets, not different qualities.
+A design that works well on an FPGA can synthesize badly for an ASIC, and the reverse. They are
+different targets, not different levels of quality.
 
-The clearest case is memory. Here is a 2 KB array — eleven lines, nothing clever. It ships
-complete as
-[`labs/lab-01-one-adder-two-targets/examples/mem.sv`](https://github.com/uoftasic/dd103/blob/main/labs/lab-01-one-adder-two-targets/examples/mem.sv),
-so both commands below run as written:
+Memory shows this most clearly. Lab 01, Part 7 used a 2 KB array, shipped as
+[`labs/lab-01-one-adder-two-targets/examples/mem.sv`](https://github.com/uoftasic/dd103/blob/main/labs/lab-01-one-adder-two-targets/examples/mem.sv):
 
 ```systemverilog
 logic [7:0] store [0:2047];
@@ -138,7 +111,7 @@ always_ff @(posedge clk) begin
 end
 ```
 
-Send it to the FPGA — `yosys -p "read_verilog -sv mem.sv; synth_ice40 -top mem; stat"`:
+On the FPGA it becomes:
 
 ```
 === mem ===
@@ -148,12 +121,11 @@ Send it to the FPGA — `yosys -p "read_verilog -sv mem.sv; synth_ice40 -top mem
     4   SB_RAM40_4K
 ```
 
-Four **block RAMs** — dedicated memory hardware that was already sitting on the die, free,
-whether you used it or not. Fifty-four cells in total.
+The four `SB_RAM40_4K` are block RAMs: dedicated memory hardware that was already sitting on
+the die, whether you used it or not. That is 54 cells in total.
 
-Send the same file to SKY130 — the same `synth` / `dfflibmap` / `abc` / `stat -liberty`
-line you have been running all course. It takes about twelve seconds, because there are
-twenty-seven thousand cells to map:
+On SKY130, with the same `synth` / `dfflibmap` / `abc` / `stat -liberty` flow, it takes about
+twelve seconds to map twenty-seven thousand cells:
 
 ```
 === mem ===
@@ -163,17 +135,14 @@ twenty-seven thousand cells to map:
    Chip area for module '\mem': 606554.233600
 ```
 
-Look at that flip-flop count. **16,384 is exactly 2048 × 8** — one physical flip-flop for
-every single bit you asked for, plus 2,748 multiplexers to pick which one you meant.
+16,384 is exactly 2048 × 8: one physical flip-flop for every bit you asked for, plus 2,748
+multiplexers to pick which one you meant. That is 0.61 mm² of silicon, about 5,500 times the
+110 µm² of your adder. Nothing in your source changed. What changed is what was already on the
+chip for free.
 
-**0.61 mm² of silicon.** Your adder was 110 µm². The memory is about **5,500 times bigger**.
+On a real chip you would fix this by instantiating a macro: a memory block designed and
+characterised separately, then placed in your floorplan as a fixed rectangle. Macros are out of
+scope for DD103, but they are why chip designers treat memory as something you acquire rather
+than something you write.
 
-Nothing in your source code changed. What changed is what was lying around for free.
-
-> On a real chip you would fix this by instantiating a **macro** — a memory block designed and
-> characterised separately, dropped into your floorplan as a fixed rectangle. That is out of
-> scope here, but it is the reason chip designers talk about memory as a thing you *acquire*
-> rather than a thing you *write*.
-
-Next: [The carry has to walk](guide/the-carry-has-to-walk.md), where the adder you just
-measured turns out to have a speed limit — and you find it in nanoseconds.
+Next: [What synthesis does](guide/synthesis-is-translation.md).

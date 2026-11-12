@@ -1,25 +1,25 @@
-# A standard cell is a real thing
+# Standard cells
 
-**Question this page answers:** *What actually IS a standard cell?*
+This page explains what a standard cell is, using the SKY130 library files on your disk. You'll
+open the same files yourself in
+[Lab 02, Part 4](labs/lab-02-rtl-becomes-gates-overview.md#part-4-open-the-cell-library).
 
-You have been pasting this path since [Lab 01](labs/lab-01-one-adder-two-targets-overview.md):
+Since [Lab 01](labs/lab-01-one-adder-two-targets-overview.md) you have been pointing Yosys at
+this path:
 
 ```
 /foss/pdks/sky130A/libs.ref/sky130_fd_sc_hd/lib/sky130_fd_sc_hd__tt_025C_1v80.lib
 ```
 
-You know that pointing at it makes `stat` print square micrometres instead of a bare cell
-count. You may be assuming it contains something abstract — a model, an estimate, a
-placeholder for real hardware.
+Pointing at it makes `stat` print square micrometres instead of a bare cell count. It is easy to
+assume it holds something abstract: a model, an estimate, a placeholder for real hardware. It is
+a catalogue of physical objects, and you can count them.
 
-It does not. It is a **catalogue of physical objects**, and you can count them.
+## Video: from RTL to cells
 
-## Watch this first
-
-**3 minutes**, silent, captioned — the captions are the narration, so read rather than
-listen. It takes the full adder from [Lab 01](labs/lab-01-one-adder-two-targets-overview.md) all the
-way from seven lines of SystemVerilog to two rectangles out of this catalogue, and prices
-them.
+This 3-minute video is silent and captioned; the captions are the narration. It takes the full
+adder from [Lab 01](labs/lab-01-one-adder-two-targets-overview.md) from seven lines of
+SystemVerilog to two cells out of this catalogue, and prices them.
 
 <video controls loop muted playsinline preload="none"
        poster="assets/img/rtl-to-cells.poster.png"
@@ -27,48 +27,25 @@ them.
   <source src="assets/img/rtl-to-cells.web.mp4" type="video/mp4">
 </video>
 
-**Commit to a number before the last third.** The animation chains four of those adders and
-asks what the total area is. Write your answer down first. It is wrong, on purpose, and the
+In the last third, the animation chains four of those adders and asks for the total area. Write
+your answer down before it shows you. The answer you write will be wrong, on purpose, and the
 size of the gap is the most useful thing on this page.
 
-## Measure it
+## The size of the library
 
-Open a terminal in the workbench and ask three questions:
+The liberty file is 13 MB and 173,157 lines long, and counting its `cell (` entries gives 428.
+That is the whole vocabulary: exactly 428 cells. Every gate in every design that uses this
+library is one of those 428.
 
-```bash
-LIB=/foss/pdks/sky130A/libs.ref/sky130_fd_sc_hd/lib/sky130_fd_sc_hd__tt_025C_1v80.lib
-ls -lh $LIB
-wc -l $LIB
-grep -c '^    cell (' $LIB
-```
+Big chips also contain things that are not standard cells, and they live in sibling directories
+under `/foss/pdks/sky130A/libs.ref/`: `sky130_sram_macros` (memory blocks), `sky130_fd_io` (the
+pads that connect to the outside world), and `sky130_fd_pr` (raw transistors, for analog).
+Everything you build in DD103 comes out of the one `.lib` file.
 
-```
--rw-r--r-- 1 root root 13M Apr 16 21:44 /foss/pdks/sky130A/libs.ref/sky130_fd_sc_hd/lib/sky130_fd_sc_hd__tt_025C_1v80.lib
-173157 /foss/pdks/sky130A/libs.ref/sky130_fd_sc_hd/lib/sky130_fd_sc_hd__tt_025C_1v80.lib
-428
-```
+## What a design uses
 
-**13 megabytes. 173,157 lines. 428 cells.**
-
-That is the whole vocabulary. Not "a few hundred typical gates" — exactly 428, sitting on
-your disk, and you just counted them. Every gate in every design that uses this library is one
-of those 428.
-
-> Big chips also contain things that are *not* standard cells, and they live in sibling
-> directories: `ls /foss/pdks/sky130A/libs.ref/` also shows `sky130_sram_macros` (memory
-> blocks), `sky130_fd_io` (the pads that connect to the outside world), and `sky130_fd_pr`
-> (raw transistors, for analog). Everything you build in DD103 comes out of this one file.
-
-## Your design ordered seven of them
-
-Run the counter from [the last page](guide/synthesis-is-translation.md) and look only at what
-came back:
-
-```bash
-yosys -p "read_verilog -sv counter.sv; synth -top counter;
-          dfflibmap -liberty $LIB; abc -liberty $LIB; opt_clean;
-          stat -liberty $LIB" 2>&1 | awk '/^6\. Printing statistics/,0' | grep sky130
-```
+The counter from [What synthesis does](guide/synthesis-is-translation.md) came back as these
+cells:
 
 ```
         1    6.256   sky130_fd_sc_hd__a31oi_1
@@ -80,30 +57,14 @@ yosys -p "read_verilog -sv counter.sv; synth -top counter;
         1    8.758   sky130_fd_sc_hd__xor2_1
 ```
 
-**Seven distinct types out of 428.** The `ripple4.sv` from
-[Lab 01](labs/lab-01-one-adder-two-targets-overview.md) used **two**: `maj3_1` and `xnor2_1`.
+That is seven distinct types out of 428. The `ripple4.sv` from Lab 01 used two, `maj3_1` and
+`xnor2_1`. Synthesis is ordering from a menu, and the menu is short.
 
-Synthesis is not open-ended invention. It is ordering from a menu, and the menu is short.
+## One catalogue entry
 
-## Open one entry
-
-You already met `sky130_fd_sc_hd__maj3_1` — it was four of the twelve cells in your ripple
-adder, at **10.01 µm²** each. Go and read its catalogue entry:
-
-```bash
-awk '/cell \("sky130_fd_sc_hd__maj3_1"\)/,/^    }$/' $LIB | wc -l
-```
-
-```
-350
-```
-
-**350 lines for one gate.** Pull out the six that carry the meaning:
-
-```bash
-awk '/cell \("sky130_fd_sc_hd__maj3_1"\)/,/^    }$/' $LIB \
-  | grep -E '^        area :|^        cell_footprint|^        pin \(|^            direction :|^            function :'
-```
+You already met `sky130_fd_sc_hd__maj3_1`: it was four of the twelve cells in your ripple adder,
+at 10.01 µm² each. Its entry in the liberty file is 350 lines long. These are the lines that
+carry the meaning:
 
 ```
         area : 10.009600000;
@@ -119,22 +80,17 @@ awk '/cell \("sky130_fd_sc_hd__maj3_1"\)/,/^    }$/' $LIB \
             function : "(A&B) | (A&C) | (B&C)";
 ```
 
-Read the `function` line out loud. **`(A&B) | (A&C) | (B&C)`** — X is high when *at least two
-of the three inputs are high*. That is the majority function, it is exactly the carry-out of
-a full adder, and it is why your adder came back with four of these.
+Read the `function` line: `(A&B) | (A&C) | (B&C)`. X is high when at least two of the three
+inputs are high. That is the majority function, which is exactly the carry-out of a full adder,
+and it is why your adder came back with four of these.
 
-The entry declares four things a synthesizer needs: **what it computes**, **how big it is**,
-**what its pins are called**, and — in the other 344 lines — **how long it takes**.
+The entry declares four things a synthesizer needs: what the cell computes, how big it is, what
+its pins are called, and, in the other 344 lines, how long it takes.
 
-## The area is not an estimate
+## Area and the LEF rectangle
 
-`area : 10.0096` looks like a modelled figure. It is not. The same cell has a second entry in
-the physical library, and that one is a rectangle:
-
-```bash
-grep -A5 '^MACRO sky130_fd_sc_hd__maj3_1$' \
-  /foss/pdks/sky130A/libs.ref/sky130_fd_sc_hd/lef/sky130_fd_sc_hd.lef
-```
+`area : 10.0096` looks like a modelled figure. It isn't. The same cell has a second entry in the
+physical library, `sky130_fd_sc_hd.lef`, and that one is a rectangle:
 
 ```
 MACRO sky130_fd_sc_hd__maj3_1
@@ -147,31 +103,21 @@ MACRO sky130_fd_sc_hd__maj3_1
 
 $$3.680 \times 2.720 = 10.0096$$
 
-The area in the liberty file is the width times the height of an actual rectangle of silicon,
-to four decimal places. Nothing was rounded, modelled, or guessed. **This cell is 3.68 µm
-across.** A human hair is around 70 µm; you could line up nineteen of these across one.
+The liberty area is the width times the height of an actual rectangle of silicon, to four
+decimal places, with nothing rounded, modelled or guessed. This cell is 3.68 µm across. A human
+hair is around 70 µm, so nineteen of these would fit across one.
 
-## Why they are called *standard* cells
+## Row height and width grid
 
-Ask the physical library for every cell's dimensions at once:
-
-```bash
-LEF=/foss/pdks/sky130A/libs.ref/sky130_fd_sc_hd/lef/sky130_fd_sc_hd.lef
-grep '^  SIZE' $LEF | awk '{print $4}' | sort | uniq -c
-```
+Listing every cell's height in the LEF file gives:
 
 ```
     430 2.720
       7 5.440
 ```
 
-**430 of the 437 layouts are exactly 2.720 µm tall.** The other seven are exactly double.
-
-Now the widths:
-
-```bash
-grep '^  SIZE' $LEF | awk '{print $2}' | sort -g -u | head -4
-```
+430 of the 437 layouts are exactly 2.720 µm tall, and the other seven are exactly double. The
+smallest widths are:
 
 ```
 0.460
@@ -180,42 +126,34 @@ grep '^  SIZE' $LEF | awk '{print $2}' | sort -g -u | head -4
 1.840
 ```
 
-Every width is a multiple of **0.460 µm**. `maj3_1` at 3.680 is eight of them.
+Every width is a multiple of 0.460 µm; `maj3_1` at 3.680 is eight of them.
 
-That is the whole idea, and it is the reason for the name. Cells are drawn to a **fixed
-height and a quantised width** so that they snap side by side into rows like text on a page,
-with power and ground rails lining up automatically at the top and bottom of every row.
-Placement then becomes a problem of arranging tiles, not of drawing transistors.
+That is the reason for the name. Cells are drawn to a fixed height and a quantised width so they
+snap side by side into rows, like text on a page, with the power and ground rails lining up at
+the top and bottom of every row. Placement then becomes a matter of arranging tiles rather than
+drawing transistors. The alternative, where every gate is a different shape, is what people did
+before 1980, by hand, with tape.
 
-The alternative — every gate a different shape — is what people did before 1980, by hand,
-with tape.
-
-Here is a piece of a real chip built from this library — the counter from
-[Lab 02](labs/lab-02-rtl-becomes-gates-overview.md), hardened by LibreLane and opened in KLayout:
+Here is part of a real chip built from this library: the counter from
+[Lab 02](labs/lab-02-rtl-becomes-gates-overview.md), hardened by LibreLane and opened in KLayout.
 
 ![Three standard-cell rows in KLayout: each row bounded top and bottom by a horizontal metal1 power rail, poly gates as vertical red stripes, diffusion and local interconnect between them, cells abutting edge to edge with no gaps](../assets/img/dd103-klayout-cell-rows.png)
 
-Three rows of it, each **2.720 µm** tall, each bounded top and bottom by the horizontal `met1`
-rails that carry `VPWR` and `VGND` — and the rails of one row are the rails of the next, which
-is the whole point of the fixed height. The cells sit shoulder to shoulder with no gaps: where
-the placer ran out of logic it dropped filler in, because a row with a hole in it is not a
-legal shape.
+The picture shows three rows, each 2.720 µm tall, each bounded top and bottom by the horizontal
+`met1` rails that carry `VPWR` and `VGND`. The rails of one row are the rails of the next, which
+is what the fixed height is for. The cells sit shoulder to shoulder with no gaps: where the
+placer ran out of logic it dropped in filler, because a row with a hole in it is not a legal
+shape.
 
-This view has `met2` and everything above it turned off, along with the implant masks, so that
-the transistors underneath are visible at all. Leave them on and the routing covers the cells
-completely — which is what your own KLayout window will look like when you open a `.gds` for
-the first time.
+This view has `met2` and everything above it turned off, along with the implant masks, so the
+transistors underneath are visible. With them on, the routing covers the cells completely, which
+is what your own KLayout window will show when you first open a `.gds`.
 
-## Somebody drew this
+## Transistors and layout
 
 The liberty entry is a description. Two directories over is the thing being described.
 
-The transistors:
-
-```bash
-REF=/foss/pdks/sky130A/libs.ref/sky130_fd_sc_hd
-awk '/^\.SUBCKT sky130_fd_sc_hd__maj3_1 /,/^\.ENDS/' $REF/cdl/sky130_fd_sc_hd.cdl | head -6
-```
+The transistor netlist, `cdl/sky130_fd_sc_hd.cdl`, starts the `maj3_1` subcircuit like this:
 
 ```
 .SUBCKT sky130_fd_sc_hd__maj3_1 A B C VGND VNB VPB VPWR X
@@ -226,71 +164,34 @@ MMN10 y B sndNBa VNB nfet_01v8 m=1 w=0.42 l=0.15 mult=1 sa=0.265
 + sb=0.265 sd=0.28 topography=normal area=0.063 perim=1.14
 ```
 
-```bash
-awk '/^\.SUBCKT sky130_fd_sc_hd__maj3_1 /,/^\.ENDS/' $REF/cdl/sky130_fd_sc_hd.cdl | grep -c '^MM'
-```
+Counting the `MM` lines gives fourteen transistors, seven n-type and seven p-type, each with a
+channel width (`w=0.65`, `w=0.42`) that somebody chose.
+
+The layout, `mag/sky130_fd_sc_hd__maj3_1.mag`, is a 7.4 KB file with 267 rectangles describing a
+shape 3.68 µm by 2.72 µm. It lists sixteen sections:
 
 ```
-14
-```
-
-**Fourteen transistors**, seven n-type and seven p-type, each with a stated channel width
-(`w=0.65`, `w=0.42`) that somebody chose.
-
-And the layout:
-
-```bash
-ls -lh $REF/mag/sky130_fd_sc_hd__maj3_1.mag
-grep -c '^rect' $REF/mag/sky130_fd_sc_hd__maj3_1.mag
-grep '^<< ' $REF/mag/sky130_fd_sc_hd__maj3_1.mag | tr -d '<>' | tr '\n' ' '
-```
-
-```
--rw-r--r-- 1 root root 7.4K Apr 16 21:44 /foss/pdks/sky130A/libs.ref/sky130_fd_sc_hd/mag/sky130_fd_sc_hd__maj3_1.mag
-267
  nwell   pwell   scnmos   scpmoshvt   ndiff   pdiff   ndiffc   pdiffc   poly   polycont   locali   viali   metal1   labels   properties   end
 ```
 
-**267 rectangles**, in a 7.4 KB file, describing a shape 3.68 µm by 2.72 µm. Sixteen sections
-are listed; thirteen of them are real mask layers — `nwell`, `poly`, `metal1` and the rest —
-while `labels`, `properties` and `end` are bookkeeping.
-
-Open the file and look at it. Copy it out of the PDK first — the PDK tree is read-only, and
-Magic dims every layer of a cell it cannot edit:
-
-```bash
-cp /foss/pdks/sky130A/libs.ref/sky130_fd_sc_hd/mag/sky130_fd_sc_hd__maj3_1.mag .
-magic -d X11 -T sky130A sky130_fd_sc_hd__maj3_1.mag
-```
-
-`magic130` is the alias `.designinit` sets up for that second line. Magic does not zoom to fit
-when it opens — type `view` in its console to put the whole cell in the window, which is what
-the picture below shows.
+Thirteen of them are real mask layers, such as `nwell`, `poly` and `metal1`; `labels`,
+`properties` and `end` are bookkeeping. Opened in Magic, the cell looks like this:
 
 ![sky130_fd_sc_hd__maj3_1 open in Magic: the VPWR rail across the top, VGND across the bottom, seven p-channel and seven n-channel devices as poly stripes crossing diffusion, and the pins A, B, C and X labelled on local interconnect](../assets/img/dd103-magic-maj3-cell.png)
 
-Those 267 rectangles, drawn. The vertical stripes crossing the diffusion are the fourteen
-transistor gates the `.cdl` listed; `A`, `B`, `C` and `X` are the four pins the liberty entry
-named; the two wide bands at the top and the bottom are the power rails that let this cell abut
-its neighbours. The palette on the right is every layer the technology has.
+Those are the 267 rectangles, drawn. The vertical stripes crossing the diffusion are the
+fourteen transistor gates the `.cdl` listed. `A`, `B`, `C` and `X` are the four pins the liberty
+entry named. The two wide bands at the top and bottom are the power rails that let this cell
+abut its neighbours. The palette on the right is every layer the technology has.
 
-That is what a standard cell is. Not an abstraction of a gate — a **specific arrangement of
-267 polygons that a person laid out**, that a real foundry knows how to print, and that has
-been printed on real wafers. When `stat` charges you 10.01 µm², it is charging you for this.
+So a standard cell is a specific arrangement of 267 polygons that a person laid out, that a real
+foundry knows how to print, and that has been printed on real wafers. When `stat` charges you
+10.01 µm², this is what it is charging you for.
 
-## The 344 lines you skipped are measurements
+## Timing tables
 
-Go back to the liberty entry and count its tables:
-
-```bash
-awk '/cell \("sky130_fd_sc_hd__maj3_1"\)/,/^    }$/' $LIB | grep -c 'values('
-```
-
-```
-24
-```
-
-Twenty-four tables. Here is one of them:
+The other 344 lines of the liberty entry are measurements, in 24 tables. Here is the start of
+one:
 
 ```
                 cell_rise ("del_1_7_7") {
@@ -301,26 +202,16 @@ Twenty-four tables. Here is one of them:
 ```
 
 `index_1` is how fast the input edge arrives. `index_2` is how much capacitance hangs off the
-output. `values` is the resulting delay in nanoseconds, for all 49 combinations. Delay is not
-one number — it depends on what is driving you and what you are driving, so the library ships
-a **7 × 7 grid** and the timing tools interpolate.
+output. `values` is the resulting delay in nanoseconds, for all 49 combinations. Delay depends on
+what is driving the cell and what it is driving, so the library ships a 7 × 7 grid and the timing
+tools interpolate.
 
-Twenty-four such tables, forty-nine numbers each: **1,176 measured numbers for one three-input
-gate.** Across the library:
+Twenty-four tables of forty-nine numbers each is 1,176 measured numbers for one three-input gate.
+The whole library has 11,101 tables. That is where the 13 MB went, and it is why building a
+standard-cell library takes years: every point in every grid came from a circuit simulation, run
+against transistor models the foundry calibrated against real silicon.
 
-```bash
-grep -c 'values(' $LIB
-```
-
-```
-11101
-```
-
-Eleven thousand tables. That is where the 13 MB went, and it is why building a standard cell
-library is a multi-year job: every point in every one of those grids came from a circuit
-simulation, run against transistor models that the foundry calibrated against real silicon.
-
-## The menu has variants
+## Drive strengths
 
 `maj3_1` has siblings:
 
@@ -330,17 +221,8 @@ simulation, run against transistor models that the foundry calibrated against re
 | `sky130_fd_sc_hd__maj3_2` | 11.2608 µm² | 4.140 × 2.720 |
 | `sky130_fd_sc_hd__maj3_4` | 13.7632 µm² | 5.060 × 2.720 |
 
-Same function, same three inputs, same `cell_footprint`. The suffix is **drive strength**, and
-you can see exactly what changes. Ask the transistor netlist for the channel widths:
-
-```bash
-for C in maj3_1 maj3_2 maj3_4; do
-  echo -n "$C: "
-  awk "/^\.SUBCKT sky130_fd_sc_hd__$C /,/^\.ENDS/" $REF/cdl/sky130_fd_sc_hd.cdl \
-    | grep -o 'w=[0-9.]*' | sort | uniq -c | tr '\n' ' '
-  echo
-done
-```
+They have the same function, the same three inputs and the same `cell_footprint`. The suffix is
+the drive strength. The transistor channel widths show what changes:
 
 ```
 maj3_1:      12 w=0.42       1 w=0.65       1 w=1.0
@@ -348,33 +230,17 @@ maj3_2:       6 w=0.42       6 w=0.64       1 w=0.65       1 w=1.0
 maj3_4:       7 w=0.65       7 w=1.0
 ```
 
-**The same fourteen transistors every time — just wider.** A wider channel passes more
-current, so it charges whatever the output is driving faster, and it needs more room:
-`maj3_4` costs 37% more area than `maj3_1` and computes exactly the same function. It is the
-same word said louder.
+It is the same fourteen transistors every time, just wider. A wider channel passes more current,
+so it charges whatever the output drives faster, and it needs more room: `maj3_4` costs 37 % more
+area than `maj3_1` and computes exactly the same function.
 
-That is why there are 428 cells but only 143 distinct functions:
+That is why there are 428 cells but only 143 distinct `cell_footprint` values: 143 things the
+library can compute, and 428 ways to buy them. Picking drive strengths is not your job. `abc` and
+the placer make that choice, and it is most of what "timing optimization" means in practice.
 
-```bash
-grep 'cell_footprint :' $LIB | sort -u | wc -l
-```
+## The full-adder cell
 
-```
-143
-```
-
-**143 things the library can compute, 428 ways to buy them.** Picking the right drive
-strength is not your job — it is what `abc` and the placer argue about, and it is most of what
-"timing optimization" means in practice.
-
-## The item you did not order
-
-There is a cell in the catalogue called `sky130_fd_sc_hd__fa_1`:
-
-```bash
-awk '/cell \("sky130_fd_sc_hd__fa_1"\)/,/^    }$/' $LIB \
-  | grep -E '^        area :|^            function :' | grep -v power_down
-```
+The catalogue has a cell called `sky130_fd_sc_hd__fa_1`:
 
 ```
         area : 20.019200000;
@@ -382,10 +248,10 @@ awk '/cell \("sky130_fd_sc_hd__fa_1"\)/,/^    }$/' $LIB \
             function : "(A&!B&!CIN) | (!A&B&!CIN) | (!A&!B&CIN) | (A&B&CIN)";
 ```
 
-Two outputs, `COUT` and `SUM`. It is a **complete one-bit full adder as a single cell** —
-literally the module you wrote in DD102 — at **20.02 µm²**.
+It has two outputs, `COUT` and `SUM`: a complete one-bit full adder in a single cell, the module
+you wrote in DD102, at 20.02 µm².
 
-Your `fulladder.sv` did not synthesize to it. It came back as `maj3_1` + `xor3_1`:
+Your `fulladder.sv` did not synthesize to it. It came back as `maj3_1` plus `xor3_1`:
 
 ```
         2   33.782 cells
@@ -393,50 +259,36 @@ Your `fulladder.sv` did not synthesize to it. It came back as `maj3_1` + `xor3_1
         1   23.773   sky130_fd_sc_hd__xor3_1
 ```
 
-**33.78 µm², against a 20.02 µm² cell sitting unused in the same file.** ABC even mentions it
-while reading the library:
+That is 33.78 µm², with a 20.02 µm² cell sitting unused in the same file. ABC mentions it while
+reading the library:
 
 ```
 ABC: Warning: Detected 9 multi-output cells (for example, "sky130_fd_sc_hd__fa_1").
 ```
 
-ABC's mapper covers a netlist with **single-output** gates, and it says out loud that it found
-nine cells that are not that shape. It then mapped your full adder without using one.
+ABC's mapper covers a netlist with single-output gates, and it reports that it found nine cells
+that are not that shape. It then mapped your full adder without using one.
 
-> Do not read this as "Yosys is bad". Read it as: **the library and the tool are separate
-> things, and the tool decides which part of the library you can reach.** Commercial mappers
-> handle multi-output cells; a different open flow might too. The catalogue is fixed; what you
-> can order from it depends on who is taking the order.
+This doesn't mean Yosys is bad. It means the library and the tool are separate things, and the
+tool decides which part of the library you can reach. Commercial mappers handle multi-output
+cells, and a different open flow might too. The catalogue is fixed; what you can order from it
+depends on who takes the order.
 
-## One library, eighteen versions of it
+## Process corners
 
-The file you have been using is one of many:
+The file you have been using is one of 18 `.lib` files in
+`/foss/pdks/sky130A/libs.ref/sky130_fd_sc_hd/lib/`, 329 MB in all, with the same 428 cells in
+every one. What changes is the conditions the timing was characterised under, and the filename
+says which:
 
-```bash
-ls /foss/pdks/sky130A/libs.ref/sky130_fd_sc_hd/lib/ | wc -l
-du -sh /foss/pdks/sky130A/libs.ref/sky130_fd_sc_hd/lib/
-```
+`sky130_fd_sc_hd__` `tt` `_` `025C` `_` `1v80` `.lib`
 
-```
-18
-329M	/foss/pdks/sky130A/libs.ref/sky130_fd_sc_hd/lib/
-```
-
-Eighteen files, 329 MB, **the same 428 cells every time**. What changes is the conditions the
-timing was characterised under, and the filename says which:
-
-`sky130_fd_sc_hd__` **`tt`** `_` **`025C`** `_` **`1v80`** `.lib`
-
-- **`tt`** — *typical-typical*: transistors came out of the fab at nominal speed. The
-  neighbours are `ff` (fast) and `ss` (slow).
-- **`025C`** — characterised at 25 °C. Others go to −40 °C and 100 °C.
-- **`1v80`** — a 1.80 V supply. Others run from 1.28 V to 1.95 V.
+- `tt` is typical-typical: transistors came out of the fab at nominal speed. The neighbours are
+  `ff` (fast) and `ss` (slow).
+- `025C` means it was characterised at 25 °C. Others go to −40 °C and 100 °C.
+- `1v80` is a 1.80 V supply. Others run from 1.28 V to 1.95 V.
 
 The liberty file agrees with its own name:
-
-```bash
-grep -m3 -E 'nom_temperature|nom_voltage|nom_process' $LIB
-```
 
 ```
     nom_process : 1.0000000000;
@@ -445,36 +297,29 @@ grep -m3 -E 'nom_temperature|nom_voltage|nom_process' $LIB
 ```
 
 A chip has to work across all of them. DD103 uses `tt_025C_1v80` throughout because it is the
-middle of the range and one corner is enough to learn on — but a real design "closes timing"
-against several of these files at once, and the `ss` ones (slow transistors, low voltage) are
-where setup timing usually fails.
+middle of the range and one corner is enough to learn on. A real design closes timing against
+several of these files at once, and the `ss` ones (slow transistors, low voltage) are where setup
+timing usually fails.
 
-## Decoding the rest of the name
+## Reading a cell name
 
-While you are here, the prefix is not noise either:
+The prefix carries information too:
 
 | Piece | Means |
 |---|---|
 | `sky130` | SkyWater's 130 nm process |
-| `fd` | *foundry* — SkyWater drew these themselves |
-| `sc` | *standard cell* |
-| `hd` | *high density* — the 2.720 µm row height. The same PDK also ships `sky130_fd_sc_hvl`, a high-voltage family on a 4.070 µm row: `grep '^  SIZE' …/sky130_fd_sc_hvl/lef/*.lef` to see it |
+| `fd` | foundry: SkyWater drew these themselves |
+| `sc` | standard cell |
+| `hd` | high density, the 2.720 µm row height. The same PDK also ships `sky130_fd_sc_hvl`, a high-voltage family on a 4.070 µm row |
 | `__maj3` | the function |
 | `_1` | drive strength |
 
-`sky130_fd_sc_hd__maj3_1` is a sentence: *SkyWater's own 130 nm high-density standard-cell
-three-input majority gate, weakest drive.*
+So `sky130_fd_sc_hd__maj3_1` reads as "SkyWater's own 130 nm high-density standard-cell
+three-input majority gate, weakest drive".
 
-## Try this
+## Smallest and largest cells
 
-Find the biggest and smallest things in the catalogue:
-
-```bash
-awk '/^    cell \(/{n=$0} /^        area :/{print $3, n}' $LIB | sort -g | head -3
-awk '/^    cell \(/{n=$0} /^        area :/{print $3, n}' $LIB | sort -g | tail -3
-```
-
-**What you should see:**
+Sorting the catalogue by area gives these three at each end:
 
 ```
 2.5024000000;     cell ("sky130_fd_sc_hd__diode_2") {
@@ -485,33 +330,30 @@ awk '/^    cell \(/{n=$0} /^        area :/{print $3, n}' $LIB | sort -g | tail 
 45.043200000;     cell ("sky130_fd_sc_hd__lpflow_isobufsrc_16") {
 ```
 
-**Why an engineer cares:** the entire catalogue spans **2.50 µm² to 45.04 µm² — a factor of
-18.** There is no cell a hundred times bigger than another, because they all have to fit the
-same row. So a design's area grows by using **more cells**, not dramatically bigger ones —
-which is why "how many cells?" and "how many µm²?" get asked in the same breath, and why a
-cell count alone already tells you roughly what you are dealing with.
+The whole catalogue spans 2.50 µm² to 45.04 µm², a factor of 18. No cell is a hundred times
+bigger than another, because they all have to fit the same row. So a design's area grows by
+using more cells, not dramatically bigger ones. That is why "how many cells?" and "how many
+µm²?" get asked together, and why a cell count alone already tells you roughly what you are
+dealing with.
 
-Notice also which end is which. Two of the three largest entries are flip-flops — `sdfbbn_2`
-and `sedfxbp_2`, both 41.29 µm² — while `nand2_1` is 3.75 µm². Even the plain reset flop your
-counter actually used, `dfrtp_1`, is **25.02 µm²: about seven NAND gates each.**
+Two of the three largest entries are flip-flops, `sdfbbn_2` and `sedfxbp_2`, both 41.29 µm²,
+while `nand2_1` is 3.75 µm². Even the plain reset flop your counter used, `dfrtp_1`, is
+25.02 µm², about seven NAND gates' worth.
 
-**A bit of memory costs several times what a bit of logic costs.** That ratio is why your
-counter — four flip-flops and seven gates — spent **67.23% of its area on remembering** and
-only the rest on computing.
+A bit of memory costs several times what a bit of logic costs. That ratio is why your counter,
+with four flip-flops and seven gates, spent 67.23 % of its area on remembering and only the rest
+on computing.
 
-## What to remember
+## Summary
 
-- 428 cells, 13 MB, 173,157 lines. A fixed menu you can count.
-- A cell entry declares a **boolean function**, an **area**, **pins**, and 24 tables of
-  measured timing.
-- The area is a real rectangle: `maj3_1` is **3.680 × 2.720 = 10.0096 µm²**, drawn as 267
-  polygons on 13 layers by a person.
-- Every cell is **2.720 µm tall** and a multiple of **0.460 µm** wide. That is what makes them
-  *standard*.
+- 428 cells, 13 MB, 173,157 lines: a fixed menu you can count.
+- A cell entry declares a Boolean function, an area, pins, and 24 tables of measured timing.
+- The area is a real rectangle: `maj3_1` is 3.680 × 2.720 = 10.0096 µm², drawn as 267 polygons
+  on 13 layers by a person.
+- Every cell is 2.720 µm tall and a multiple of 0.460 µm wide. That is what makes them standard.
 - `_1` / `_2` / `_4` is drive strength: 143 functions, 428 variants.
-- A flip-flop costs several plain gates: `dfrtp_1` is **25.02 µm²**, `nand2_1` is
-  **3.75 µm²**.
+- A flip-flop costs several plain gates: `dfrtp_1` is 25.02 µm² and `nand2_1` is 3.75 µm².
 
-Next: [Reading `stat` like a receipt](guide/reading-stat.md), where that last point turns into
-a number you will quote in every design review — and where the line
-`of which used for sequential elements` finally earns its place.
+Next: [Lab 02: RTL becomes gates](labs/lab-02-rtl-becomes-gates-overview.md). Later in the
+course, [Reading the `stat` report](guide/reading-stat.md) turns that last point into a number
+you'll quote in every design review.

@@ -1,37 +1,33 @@
-# A state machine is a table with a memory
+# Writing a state machine
 
-**Question this page answers:** *I have a state diagram. How do I actually turn it into
+This page gives you a recipe for turning a state diagram into SystemVerilog, worked through on a
+vending machine. You'll synthesize the same vending machine and break it on purpose in
+[Lab 05, Part 1](labs/lab-05-elevator-overview.md#part-1-warm-up-on-the-vending-machine). The
+full source ships as
+[`labs/lab-05-elevator/examples/vending.sv`](https://github.com/uoftasic/dd103/blob/main/labs/lab-05-elevator/examples/vending.sv).
 
-> The full `vending.sv` ships at
-> [`labs/lab-05-elevator/examples/vending.sv`](https://github.com/uoftasic/dd103/blob/main/labs/lab-05-elevator/examples/vending.sv)
-> so every command on this page is copy-pasteable.
+Somebody hands you a drawing: circles with names in them, arrows between the circles, and a
+condition written on each arrow. Everyone calls it "the state machine". Then you open an empty
+`.sv` file and get stuck, because a drawing is not syntax.
 
-SystemVerilog?*
-
-Somebody hands you a drawing: circles with names in them, arrows between the circles, a
-condition written on each arrow. Everyone calls this "the state machine" and nods.
-
-Then you open an empty `.sv` file and nothing happens, because a drawing is not a syntax.
-
-Here is the whole trick. **A finite state machine is a lookup table plus one register.** The
-table says *given where I am and what I see, where do I go and what do I output*. The register
-remembers the answer until the next clock edge. Every FSM you will ever write is those two
-things, and SystemVerilog gives you exactly one construct for each: an `always_comb` for the
-table, an `always_ff` for the register.
+A finite state machine is a lookup table plus one register. The table says: given where I am and
+what I see, where do I go and what do I output. The register remembers the answer until the next
+clock edge. Every FSM you write is those two things, and SystemVerilog gives you one construct
+for each: an `always_comb` for the table and an `always_ff` for the register.
 
 The rest of this page is a recipe. Follow it literally.
 
-## The machine we are building
+## The example machine
 
-A vending machine. One item, **20 cents**. It takes nickels and dimes, one coin per clock
-cycle. If you overpay it gives you a nickel back.
+A vending machine sells one item for 20 cents. It takes nickels and dimes, one coin per clock
+cycle, and if you overpay it gives you a nickel back.
 
-That is enough to need memory: the machine has to remember how much you have put in so far,
-and "how much so far" is the state.
+That needs memory: the machine has to remember how much you have put in so far, and "how much so
+far" is the state.
 
-## Step 0 — write the table before you write any code
+## Step 0: write the table before any code
 
-Not the drawing. The **table**. One row per (state, input) pair you care about:
+Write the table, not the drawing, with one row per state:
 
 | State | means | `dime` | `nickel` | neither | `dispense` | `refund` |
 |---|---|---|---|---|---|---|
@@ -39,26 +35,25 @@ Not the drawing. The **table**. One row per (state, input) pair you care about:
 | `GOT5` | 5¢ in | → `GOT15` | → `GOT10` | stay | 0 | 0 |
 | `GOT10` | 10¢ in | → `VEND` | → `GOT15` | stay | 0 | 0 |
 | `GOT15` | 15¢ in | → `VEND_CHANGE` | → `VEND` | stay | 0 | 0 |
-| `VEND` | paid 20¢ | → `IDLE` | → `IDLE` | → `IDLE` | **1** | 0 |
-| `VEND_CHANGE` | paid 25¢ | → `IDLE` | → `IDLE` | → `IDLE` | **1** | **1** |
+| `VEND` | paid 20¢ | → `IDLE` | → `IDLE` | → `IDLE` | 1 | 0 |
+| `VEND_CHANGE` | paid 25¢ | → `IDLE` | → `IDLE` | → `IDLE` | 1 | 1 |
 
-Two things to notice, because they are decisions and not facts.
+Two things in the table are decisions rather than facts.
 
-**`dime` beats `nickel`.** Physically you cannot insert both coins in one cycle, but the
-hardware has no idea that is true. Every input combination reaches some arm of your code
-whether you thought about it or not, so pick a winner on purpose.
+`dime` beats `nickel`. Physically you can't insert both coins in one cycle, but the hardware
+doesn't know that. Every input combination reaches some branch of your code whether you thought
+about it or not, so pick a winner on purpose.
 
-**The last two columns depend only on the state, never on the input.** That makes this a
-**Moore** machine, and it is why `dispense` needs its own state (`VEND`) instead of being
-asserted from `GOT15`. Moore outputs are the ones you want: they change once per clock edge
-and they cannot glitch. The alternative — outputs that also depend on the inputs, called
-**Mealy** — is legal, sometimes saves a state, and is a much better fight to pick in second
-year.
+The last two columns depend only on the state, never on the input. That makes this a **Moore
+machine**, and it is why `dispense` needs its own state (`VEND`) instead of being asserted from
+`GOT15`. Moore outputs change once per clock edge and can't glitch. The alternative, outputs that
+also depend on the inputs, is called a **Mealy machine**. It is legal and sometimes saves a state,
+and it is a better topic for second year.
 
-Six states. That is 3 bits, which encodes 8 things, so **two encodings are not states at
-all**. Remember that; step 4 is about those two.
+Six states need 3 bits, which encode 8 values, so two encodings are not states at all. Step 4 is
+about those two.
 
-## Step 1 — the states, as a `typedef enum`, module-local
+## Step 1: the states, as a module-local `typedef enum`
 
 ```systemverilog
 typedef enum logic [2:0] {
@@ -73,17 +68,16 @@ typedef enum logic [2:0] {
 state_t state, next;
 ```
 
-The `logic [2:0]` is the part that matters: it says these names are **three real wires**, and
-after synthesis they will be three real flip-flops holding one of six patterns. `state_t` is a
-type, not a variable, and it lives inside the module — a `typedef` at file scope leaks into
-every other module the compiler reads and starts a fight later.
+`logic [2:0]` says these names are three real wires; after synthesis they will be flip-flops
+holding one of six patterns. `state_t` is a type, not a variable, and it lives inside the module.
+A `typedef` at file scope leaks into every other module the compiler reads and causes conflicts
+later.
 
-Declare **two** signals of that type. `state` is what the register currently holds. `next` is
-what you want it to hold after the next edge. Keeping them separate is what makes the two
-`always` blocks independent of each other, and it is the single habit that prevents most
-beginner FSM bugs.
+Declare two signals of that type. `state` is what the register holds now. `next` is what you want
+it to hold after the next edge. Keeping them separate makes the two `always` blocks independent of
+each other, and it is the habit that prevents most beginner FSM bugs.
 
-## Step 2 — one `always_comb`, and it assigns a default to everything on entry
+## Step 2: one `always_comb` that defaults everything on entry
 
 ```systemverilog
 always_comb begin
@@ -122,18 +116,18 @@ always_comb begin
 end
 ```
 
-Read the first three lines again. **Every signal this block drives gets a value before the
-`case` runs.** `next = state` means "stay where you are unless something below says
-otherwise", which is why the `IDLE` arm has no `else` — it does not need one.
+Every signal this block drives gets a value before the `case` runs. `next = state` means "stay
+where you are unless something below says otherwise", which is why the `IDLE` branch has no
+`else`.
 
-That is not style advice. It is the difference between combinational logic and a latch, and
-[The latch you didn't ask for](guide/the-latch-you-didnt-ask-for.md) covers what happens when
-you skip it. There is a demonstration at the bottom of this page.
+This is the difference between combinational logic and a latch.
+[Inferred latches](guide/the-latch-you-didnt-ask-for.md) covers what happens when you skip it, and
+the end of this page shows it on this machine.
 
-Compare the `case` arms against the table above, line by line. The arms are the rows. If you
-cannot point at the row a line of code came from, you transcribed something wrong.
+Compare the `case` branches against the table, line by line. The branches are the rows. If you
+can't point at the row a line of code came from, you transcribed something wrong.
 
-## Step 3 — one `always_ff`, non-blocking only
+## Step 3: one `always_ff`, non-blocking only
 
 ```systemverilog
 always_ff @(posedge clk or negedge rst_n) begin
@@ -142,45 +136,38 @@ always_ff @(posedge clk or negedge rst_n) begin
 end
 ```
 
-Three lines. That is the entire register, and it is the same three lines in every FSM you will
-ever write — only the reset state changes.
+Those three lines are the entire register, and they are the same in every FSM you write; only
+the reset state changes.
 
-- `negedge rst_n` in the sensitivity list makes the reset **asynchronous**: the machine snaps
-  to `IDLE` the moment `rst_n` drops, without waiting for a clock edge. This is the shape
-  LibreLane's default flow expects, and it is what the SKY130 cell
-  `sky130_fd_sc_hd__dfrtp_1` — *d flip-flop, reset, true output, positive edge* — physically
-  does.
-- `<=`, never `=`. [Blocking vs non-blocking](guide/blocking-vs-nonblocking.md) settles that
-  argument by counting flip-flops.
-- Nothing else goes in here. No output logic, no `if (dime)`. If you are tempted to add a
-  line, it belongs in step 2.
+- `negedge rst_n` in the sensitivity list makes the reset asynchronous: the machine goes to `IDLE`
+  the moment `rst_n` drops, without waiting for a clock edge. This is the shape LibreLane's default
+  flow expects, and it is what the SKY130 cell `sky130_fd_sc_hd__dfrtp_1` (D flip-flop, reset,
+  true output, positive edge) physically does.
+- Use `<=`, never `=`. [Blocking and non-blocking assignments](guide/blocking-vs-nonblocking.md)
+  settles that by counting flip-flops.
+- Nothing else goes in this block: no output logic, no `if (dime)`. If you want to add a line, it
+  belongs in step 2.
 
-## Step 4 — the `default:` arm, and why it is not paranoia
+## Step 4: the `default:` branch
 
-You have six states in a 3-bit register. `3'd6` and `3'd7` exist in the hardware and are not
-in your `typedef`. On power-up before reset, or after a cosmic-ray bit flip that a real chip
-in a real satellite really does experience, the register can hold one of them.
+You have six states in a 3-bit register, so `3'd6` and `3'd7` exist in the hardware but not in
+your `typedef`. On power-up before reset, or after a cosmic-ray bit flip (which real chips in
+real satellites do experience), the register can hold one of them.
 
-Without a `default:` arm, your `case` has nothing to say about those two patterns, so the
-synthesizer is free to do whatever is cheapest — including leaving the machine stuck there
-forever. `default: next = IDLE;` costs almost nothing and guarantees the machine walks itself
-back to a state you named.
+Without a `default:` branch, your `case` says nothing about those two patterns, so the
+synthesizer may do whatever is cheapest, including leaving the machine stuck there forever.
+`default: next = IDLE;` costs almost nothing and guarantees the machine walks back to a state you
+named.
 
-> You may see `unique case` recommended online as a way to say "I have covered everything".
-> Do not use it in this course. It tells the tool to *assume* full coverage instead of
-> *checking* it, which switches off the one safety net Yosys gives you for free.
+> You may see `unique case` recommended online as a way to say "I have covered everything". Don't
+> use it in this course. It tells the tool to assume full coverage instead of checking it, which
+> switches off the safety net Yosys gives you for free.
 
-## Does it work? Ask Icarus before you ask Yosys
+## Simulation
 
-Simulate first. Synthesis is slow to tell you your logic is wrong; a testbench is fast.
-
-You write `tb_vending.sv` yourself and it does nothing clever: hold `rst_n` low for two cycles,
-pulse `nickel` or `dime` for one cycle at a time, and `$display` whenever `dispense` goes high.
-
-```bash
-iverilog -g2012 -o tb.vvp tb_vending.sv vending.sv
-vvp tb.vvp
-```
+A testbench tells you your logic is wrong much faster than synthesis does. Here is the output of a
+`tb_vending.sv` that holds `rst_n` low for two cycles, pulses `nickel` or `dime` for one cycle at a
+time, and uses `$display` whenever `dispense` goes high:
 
 ```
 case 1: two dimes
@@ -200,15 +187,12 @@ case 3: nickel then two dimes
   t=155000  DISPENSE  refund=1
 ```
 
-20¢ dispenses. 25¢ dispenses and hands a nickel back. The table transcribed correctly.
+20¢ dispenses, and 25¢ dispenses and returns a nickel, so the table was transcribed correctly.
+The testbench is not shipped; writing it is an optional step in Lab 05.
 
-## Now synthesize it, and find the state register
+## The synthesized machine
 
-```bash
-LIB=/foss/pdks/sky130A/libs.ref/sky130_fd_sc_hd/lib/sky130_fd_sc_hd__tt_025C_1v80.lib
-yosys -p "read_verilog -sv vending.sv; synth -top vending;
-          dfflibmap -liberty $LIB; abc -liberty $LIB; opt_clean; stat -liberty $LIB"
-```
+Mapped to SKY130 with the usual `synth` / `dfflibmap` / `abc` / `stat -liberty` flow:
 
 ```
 === vending ===
@@ -228,21 +212,20 @@ yosys -p "read_verilog -sv vending.sv; synth -top vending;
      of which used for sequential elements: 151.395200 (65.41%)
 ```
 
-**Seventeen cells, 231.47 µm².** The flip-flops are the two `df*` lines: five `dfrtp_1` plus
-one `dfstp_2`, so **six flip-flops** — and they are **65.41% of the area**. Two-thirds of this
-chip is remembering where it is, not deciding where to go.
+That is seventeen cells and 231.47 µm². The flip-flops are the two `df*` lines, five `dfrtp_1`
+plus one `dfstp_2`, so six flip-flops, and they are 65.41 % of the area. Two thirds of this chip
+is remembering where it is.
 
-Look closely at those two names. `dfrtp` is *d flip-flop, **r**eset, true output, positive
-edge*; `dfstp` is the same cell with a **s**et instead. Five of your state bits have to come
-out of reset holding 0 and one has to come out holding 1 — and that one is `IDLE`, exactly as
-step 3 asked for. Your reset line is visible in the cell list.
+`dfrtp` is D flip-flop, reset, true output, positive edge; `dfstp` is the same cell with a set
+instead of a reset. Five of the state bits come out of reset holding 0 and one comes out holding
+1, and that one is `IDLE`, as step 3 asked. You can see your reset in the cell list.
 
-Six flip-flops. You declared a **three**-bit state register. Something re-encoded your machine
-behind your back.
+But you declared a three-bit state register, and there are six flip-flops. Yosys re-encoded the
+machine.
 
-## Yosys found your FSM and rewrote it
+## FSM extraction and recoding
 
-Scroll back up the log to section 2.7:
+Section 2.7 of the log shows it:
 
 ```
 2.7.1. Executing FSM_DETECT pass (finding FSMs in design).
@@ -263,16 +246,15 @@ Extracting FSM `\state' from module `\vending'.
   ...
 ```
 
-That transition list **is your table**, read back to you. Read the first three columns and
-ignore the fourth — `state_in`, `ctrl_in`, `state_out`, then the output bits Yosys packed
-into one vector. `ctrl inputs: { \dime \nickel }` says the two input bits are `dime` first,
-so `3'000 2'01 -> 3'001` is the row "`IDLE`, no dime, a nickel → `GOT5`". Yosys recovered
-the whole thing from your `case` statement, which is the strongest evidence you will get that
-the recipe produced what you meant. If a row you expect is missing, your code and your table
-disagree.
+That transition list is your table, read back to you. Each line is `state_in`, `ctrl_in`,
+`state_out`, then the output bits Yosys packed into one vector; read the first three and ignore
+the fourth. `ctrl inputs: { \dime \nickel }` says the first input bit is `dime`, so
+`3'000 2'01 -> 3'001` is the row "`IDLE`, no dime, a nickel → `GOT5`". Yosys recovered the whole
+table from your `case` statement, which is strong evidence that the recipe produced what you
+meant. If a row you expect is missing, your code and your table disagree.
 
-> Fourteen transitions come out, not eighteen. `VEND` and `VEND_CHANGE` each contribute one
-> `2'--` row, because their arm of the `case` ignores the coins entirely.
+> There are fourteen transitions, not eighteen. `VEND` and `VEND_CHANGE` each contribute one
+> `2'--` row, because their branch of the `case` ignores the coins.
 
 Then it changed the encoding:
 
@@ -288,102 +270,84 @@ Recoding FSM `$fsm$\state$114' from module `\vending' using `auto' encoding:
   011 -> 1-----
 ```
 
-## Binary vs one-hot, with the actual numbers
+## Binary and one-hot encoding
 
-You met this pass in [Reading `stat` like a receipt](guide/reading-stat.md), where it turned a
-2-bit state register into four flip-flops. Six states makes the trade easier to price.
+You met this pass in [Reading the `stat` report](guide/reading-stat.md), where it turned a 2-bit
+state register into four flip-flops. With six states the trade is easier to price.
 
-**Binary encoding** is what you wrote: 6 states packed into $\lceil \log_2 6 \rceil = 3$ bits.
-Three flip-flops, but every arm of the `case` needs a 3-input comparator to ask "am I in state
-4?". **One-hot encoding** gives each state its own flip-flop, exactly one of which is high —
-six states, six flip-flops, and "am I in state 4?" becomes *a single wire*.
+Binary encoding is what you wrote: 6 states packed into $\lceil \log_2 6 \rceil = 3$ bits. That is
+three flip-flops, but every branch of the `case` needs a 3-input comparison to ask "am I in state
+4?". One-hot encoding gives each state its own flip-flop, exactly one of which is high: six states,
+six flip-flops, and "am I in state 4?" becomes a single wire. One-hot uses more memory and less
+logic.
 
-More memory, less logic. That is the entire trade, and here it is measured — same source file,
-three runs:
+Here is that trade measured on the same source file, three ways:
 
 | Run | flip-flops | total cells | area | sequential share |
 |---|---|---|---|---|
-| `synth` (default — `auto` chose one-hot) | 6 | 17 | **231.47 µm²** | 65.41% |
-| `fsm -encoding binary` | 3 | 23 | **185.18 µm²** | 40.54% |
-| `synth -nofsm` (register left alone) | 3 | 13 | **137.63 µm²** | 54.55% |
+| `synth` (default: `auto` chose one-hot) | 6 | 17 | 231.47 µm² | 65.41% |
+| `fsm -encoding binary` | 3 | 23 | 185.18 µm² | 40.54% |
+| `synth -nofsm` (register left alone) | 3 | 13 | 137.63 µm² | 54.55% |
 
-Row 3 is one word added to the command you already ran. Row 2 needs the coarse passes spelled
-out, because `synth` has no encoding flag of its own — `fsm` runs inside it:
+Row 3 adds one word to the usual command. Row 2 needs the coarse passes spelled out, because
+`synth` has no encoding flag of its own; `fsm` runs inside it.
 
-```bash
-yosys -p "read_verilog -sv vending.sv; hierarchy -top vending; proc;
-          opt_expr; opt_clean; opt -nodffe -nosdff;
-          fsm -encoding binary;
-          opt; wreduce; peepopt; opt_clean; alumacc; share; opt;
-          memory -nomap; opt_clean; techmap; opt -fast;
-          dfflibmap -liberty $LIB; abc -liberty $LIB; opt_clean; stat -liberty $LIB"
-```
+> When you spell the passes out, use `opt -nodffe -nosdff` before `fsm`, not plain `opt`. A plain
+> `opt` folds the enable into the register and leaves an `$adffe` cell, which `fsm_detect` does not
+> recognise as a state register. The `fsm` pass then finds nothing, and your `-encoding` flag does
+> nothing at all. If your log has no `Found FSM state register` line, that is what happened.
 
-> That `opt -nodffe -nosdff` is load-bearing, and it is the one place this experiment will
-> bite you. A plain `opt` folds the enable into the register and leaves you an `$adffe` cell —
-> which `fsm_detect` does not recognise as a state register, so the `fsm` pass silently finds
-> nothing and your `-encoding` flag does nothing at all. If your log has no
-> `Found FSM state register` line, that is what happened.
+Compare the middle two columns. One-hot has 6 flops and 11 logic cells; binary has 3 flops and 20
+logic cells. That is the trade the theory predicts: nine fewer decode gates for three more
+registers.
 
-Read the middle two columns. One-hot: 6 flops and **11** logic cells. Binary: 3 flops and
-**20** logic cells. The trade is exactly what the theory promised — nine fewer gates of
-decode, three more registers.
+On SKY130 the trade loses, because a `dfrtp_1` costs 25.02 µm² and a two-input gate costs between
+3.75 and 6.26. One-hot is the standard FPGA answer, where a flip-flop sits unused next to every LUT
+and is effectively free. It is not automatically the ASIC answer.
 
-And on SKY130 the trade **loses**, because a `dfrtp_1` flip-flop costs 25.02 µm² and a
-two-input gate costs between 3.75 and 6.26. One-hot is the standard **FPGA** answer, where a
-flip-flop sits unused next to every LUT and is therefore free. It is not automatically the
-ASIC answer.
+> Don't pin `-encoding binary` into your scripts because of this table. Six states is tiny, and the
+> third row shows that the more interesting question is whether the `fsm` pass should touch a
+> machine this small at all. Let the default run. The point is that you can now check this on your
+> own design instead of repeating what a forum told you.
 
-> Do not go and pin `-encoding binary` into your scripts because of this table. Six states is
-> tiny, and the third row shows that the interesting comparison is not even binary-vs-one-hot
-> — it is whether the `fsm` pass should touch a machine this small at all. Let the default run.
-> The point of this experiment is that **you can now check**, on your own design, instead of
-> repeating what a forum told you.
+## Deleting the defaults
 
-## The trap: delete the defaults, watch it stop being combinational
-
-Take out the three default assignments at the top of the `always_comb` and the `default:` arm,
-and run `synth` again. Expect to hit this at least once:
+Take out the three default assignments at the top of the `always_comb` and the `default:` branch,
+and run `synth` again:
 
 ```
 2.2.8. Executing PROC_DLATCH pass (convert process syncs to latches).
-ERROR: Latch inferred for signal `\vending.\dispense' from always_comb process `\vending.$proc$vending.sv:24$1'.
+ERROR: Latch inferred for signal `\vending.\dispense' from always_comb process `\vending.$proc$vending.sv:32$1'.
 ```
 
-Line 24 is where the `always_comb` starts. The tool is telling you that on some path through
-your `case`, `dispense` never gets assigned — so it has to *remember* its old value, so it
-cannot be a gate, so it must be a latch, and you wrote `always_comb`, so it refuses.
+Line 32 is where the `always_comb` starts. On some path through your `case`, `dispense` is never
+assigned, so it has to remember its old value. That means it can't be a gate, so it must be a
+latch, and because you wrote `always_comb`, Yosys refuses.
 
-Verilator names all of it before you ever start Yosys:
+Verilator names all of it before you start Yosys:
 
 ```
 $ verilator --lint-only -Wall vending.sv
-%Warning-CASEINCOMPLETE: vending.sv:29:9: Case values incompletely covered (example pattern 0x6)
-%Warning-LATCH: vending.sv:24:5: Latch inferred for signal 'vending.next' (not all control paths of combinational always assign a value)
+%Warning-CASEINCOMPLETE: vending.sv:34:9: Case values incompletely covered (example pattern 0x6)
+%Warning-LATCH: vending.sv:32:5: Latch inferred for signal 'vending.next' (not all control paths of combinational always assign a value)
                                : ... Suggest use of always_latch for intentional latches
-%Warning-LATCH: vending.sv:24:5: Latch inferred for signal 'dispense' (not all control paths of combinational always assign a value)
+%Warning-LATCH: vending.sv:32:5: Latch inferred for signal 'dispense' (not all control paths of combinational always assign a value)
 ```
 
-`example pattern 0x6` is `3'd6` — the exact unused encoding step 4 was about. Lint first,
-every time; it is the fastest tool in the container and it is the only one that quotes your
-own source back at you.
+`example pattern 0x6` is `3'd6`, the unused encoding from step 4. Lint first, every time. It is the
+fastest tool in the container and the only one that quotes your own source back at you.
 
-## The recipe, on one card
+## The recipe
 
 | Step | What | Rule |
 |---|---|---|
-| 0 | The table | Write it before the code. One row per (state, input). |
-| 1 | `typedef enum logic [N:0]` | Module-local. Declare `state` **and** `next`. |
-| 2 | **One** `always_comb` | Default every output and `next` on entry, then `case (state)`. |
-| 3 | **One** `always_ff` | `@(posedge clk or negedge rst_n)`, `<=` only, nothing else in it. |
-| 4 | `default:` arm | Unused encodings exist. Send them home. |
+| 0 | The table | Write it before the code. One row per state, one column per input. |
+| 1 | `typedef enum logic [N:0]` | Module-local. Declare `state` and `next`. |
+| 2 | One `always_comb` | Default every output and `next` on entry, then `case (state)`. |
+| 3 | One `always_ff` | `@(posedge clk or negedge rst_n)`, `<=` only, nothing else in it. |
+| 4 | `default:` branch | Unused encodings exist. Send them back to a named state. |
 
-Four blocks of code, no cleverness, and it works for six states or sixty.
+That is four blocks of code with nothing clever in them, and it works for six states or sixty.
 
-Next: [From gates to geometry](guide/from-gates-to-geometry.md). You now have a design worth
-231 µm² and a `stat` receipt to prove it — the next page runs it through all the stages that
-turn that receipt into an actual rectangle of silicon, and shows you how to tell a chip that
-passed from a chip that merely exited zero.
-
-Then [Lab 05 — Elevator to GDSII](labs/lab-05-elevator-overview.md) hands you this recipe and a
-four-floor elevator, and does not hand you a blank file.
+Next: [From netlist to layout](guide/from-gates-to-geometry.md), which takes this 231 µm² design
+through the stages that turn a `stat` receipt into a rectangle of silicon.
