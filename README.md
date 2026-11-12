@@ -2,7 +2,8 @@
 
 SystemVerilog in depth, and how the same RTL lowers differently to FPGA and ASIC.
 
-The third course in the UofT ASIC Team **digital track**. Published docs live under `./docs` and are served by GitHub Pages; the runnable lab packages live in `labs/`.
+The third course in the UofT ASIC Team digital track. The published docs live under `./docs` and
+are served by GitHub Pages; the runnable lab packages live in `labs/`.
 
 Org: [github.com/uoftasic](https://github.com/uoftasic)
 
@@ -14,9 +15,13 @@ Org: [github.com/uoftasic](https://github.com/uoftasic)
 
 **Prerequisites:** [IC101](https://uoftasic.com/ic101/) then [DD102](https://uoftasic.com/dd102/), in that order.
 
+Students start at the Course path table on the course home page, `docs/README.md`.
+
 ## Quick start
 
-Every package under `labs/` runs with `make` alone, in a bare container, with no environment setup — no `.designinit`, no `mod`, no exported PDK variables. Labs 01–04 exit 0; Lab 05 uses LibreLane and needs the workbench proper.
+Every package under `labs/` runs with `make` alone in a bare container, with no environment setup:
+no `.designinit`, no `mod`, no exported PDK variables. Labs 01–04 exit 0; Lab 05 uses LibreLane and
+needs the full workbench.
 
 ```bash
 git clone https://github.com/uoftasic/dd103.git
@@ -27,20 +32,25 @@ docker run --rm --user "$(id -u):$(id -g)" -v "$PWD:/work" -w /work \
   bash -c 'cd /work/labs/lab-01-one-adder-two-targets && make'
 ```
 
+This is a maintainer check. Students run the labs inside the `workspace` desktop they set up in
+IC101.
+
 Docs preview (requires Node.js):
 
 ```bash
 npx docsify-cli serve docs      # -> http://localhost:3000
 ```
 
-Tool-heavy courses that need IIC-OSIC-TOOLS / SKY130 should document the team workbench setup in-course rather than bundling Docker in every repo.
+Courses that need IIC-OSIC-TOOLS and SKY130 document the team workbench setup in the course,
+rather than bundling Docker in every repo.
 
 ## Layout
 
 | Path | On Pages? | Purpose |
 |------|-----------|---------|
-| `docs/` | **Yes** | Human-facing Docsify site |
-| `docs/labs/` | Yes | Lab *writeups* (procedure, theory) |
+| `docs/` | Yes | Docsify site: home page with the Course path, guide pages, reference pages |
+| `docs/guide/` | Yes | Guide pages: reading only, no required commands |
+| `docs/labs/` | Yes | Lab writeups: the numbered steps students run |
 | `labs/` | No | Runnable packages (HDL, Python, data, graders) |
 | `scripts/` | No | Team utilities / automation |
 | `notebooks/` | No | Exploratory / assignment notebooks |

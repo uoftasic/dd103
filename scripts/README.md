@@ -1,6 +1,6 @@
 # Scripts
 
-Utilities for **DD103 — RTL on FPGAs & ASICs** under the UofT ASIC org (`uoftasic`).
+Utilities for DD103 — RTL on FPGAs & ASICs under the UofT ASIC org (`uoftasic`).
 
 ## Entry points
 
