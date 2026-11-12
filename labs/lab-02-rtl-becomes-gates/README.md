@@ -1,83 +1,79 @@
-# Lab 02 — RTL becomes gates
+# Lab 02: RTL becomes gates
 
 Writeup: [`docs/labs/lab-02-rtl-becomes-gates-overview.md`](../../docs/labs/lab-02-rtl-becomes-gates-overview.md)
 
-Two pictures of the same module, taken at two moments in one Yosys session.
-The left one carries your signal names. The right one carries SKY130 cell names.
+Two diagrams of the same module, taken at two points in one Yosys session: one with your signal
+names, one with SKY130 cell names. The writeup also uses `src/counter.sv` and the SKY130 library
+files directly.
 
-Runs inside the workbench `hpretl/iic-osic-tools:2026.08` — Yosys **0.64**,
-graphviz **2.43.0**, cairosvg **2.9.0**.
+Runs inside the workbench `hpretl/iic-osic-tools:2026.08` (Yosys 0.68, graphviz 2.43.0,
+cairosvg 2.9.0).
 
 ```bash
 cd labs/lab-02-rtl-becomes-gates
-make            # results/rtl.svg + results/gates.svg, ~1 s
-make bigger     # the same two pictures of ripple4 — the second one is the point
-make png        # only if you need a raster for slides
+make            # results/rtl.svg + results/gates.svg, about 1 s
+make bigger     # the same two diagrams of ripple4
 ```
 
-Open the SVGs in the noVNC desktop's file manager, or:
+Open the SVGs in the noVNC desktop's file manager, or with
+`firefox results/rtl.svg results/gates.svg &`.
 
-```bash
-firefox results/rtl.svg results/gates.svg &
-```
+| Target | What it runs |
+|---|---|
+| `make` | `show.ys` on `fulladder`, then `sizes` |
+| `make bigger` | `bigger.ys` on `ripple4`, then `sizes` |
+| `make png` | SVG → PNG at 1200 px with `cairosvg`, for slides |
+| `make sizes` | reprint the canvas size of every SVG in `results/` |
+| `make clean` | delete everything in `results/`, keep sources |
 
 ## Files
 
 | File | What it is |
 |---|---|
-| `src/fulladder.sv` | The subject. One bit of the DD102 adder — five operators. |
+| `src/fulladder.sv` | The subject: one bit of the DD102 adder, five operators. |
 | `src/ripple4.sv` | Four of them in a chain. Used by `make bigger` only. |
-| `src/counter.sv` | Not built by `make`. The 4-bit counter every command in [Synthesis is translation with an accent](../../docs/guide/synthesis-is-translation.md) runs on. |
-| `src/alu.sv` | Not built by `make`, and **deliberately unreadable by Yosys's built-in parser**. The worked example in [When Yosys says syntax error](../../docs/reference/yosys-syntax-errors.md). Verilator lints it clean; `yosys` stops at `alu.sv:7`. |
-| `show.ys` | The money shot: RTL view, then gate view, one session. |
-| `bigger.ys` | The same on `ripple4`, to show where diagrams stop working. |
+| `src/counter.sv` | Not built by `make`. The 4-bit counter used in Part 3 of the writeup and in [What synthesis does](../../docs/guide/synthesis-is-translation.md). |
+| `src/alu.sv` | Not built by `make`, and deliberately unreadable by Yosys's built-in parser. The worked example in [When Yosys says syntax error](../../docs/reference/yosys-syntax-errors.md). Verilator lints it clean; `yosys` stops at `alu.sv:7`. |
+| `show.ys` | RTL view, then gate view, in one session. |
+| `bigger.ys` | The same on `ripple4`. |
 | `Makefile` | `all`, `bigger`, `png`, `sizes`, `clean`. |
-| `results/` | SVGs, dots, logs. Gitignored except `.gitkeep`. |
+| `results/` | SVGs, dot files, logs. Gitignored except `.gitkeep`. |
 
-## Why the subject is one full adder and not the whole ripple adder
+## Canvas sizes
 
-Graphviz gate diagrams do not scale. Measured on this image, canvas size in
-points (72 pt = 1 inch):
+Measured on this image, in points (72 pt = 1 inch):
 
 | Diagram | Canvas | Readable? |
 |---|---|---|
-| `rtl.svg` — fulladder, RTL view | 666 × 172 pt | yes |
-| `gates.svg` — fulladder, gate view | **453 × 171 pt** | yes |
-| `rtl_ripple4.svg` — ripple4, RTL view | 1265 × 648 pt | yes |
-| `gates_ripple4.svg` — ripple4, gate view | **3189 × 1264 pt** | no — **52× the canvas area of `gates.svg`** |
+| `rtl.svg`: fulladder, RTL view | 666 × 172 pt | yes |
+| `gates.svg`: fulladder, gate view | 453 × 171 pt | yes |
+| `rtl_ripple4.svg`: ripple4, RTL view | 1265 × 648 pt | yes |
+| `gates_ripple4.svg`: ripple4, gate view | 3189 × 1264 pt | no; 52× the canvas area of `gates.svg` |
 
-**The rule: gate view of the full adder, RTL view of anything bigger.**
-`make bigger` exists so you see that happen once, deliberately, instead of
-discovering it in the middle of the capstone.
+## Troubleshooting
 
-## Two traps
+- `show -format svg` draws exactly one module, so both `.ys` files end their `show` line with a
+  module name. Without it:
 
-**`show -format svg` draws exactly one module.** Both `.ys` files end their
-`show` line with an explicit module name for this reason. Without it:
+  ```
+  ERROR: For formats different than 'ps' or 'dot' only one module must be selected.
+  ```
 
-```
-ERROR: For formats different than 'ps' or 'dot' only one module must be selected.
-```
+- `sak-v2svg.sh` is on the `PATH` in this image but does not work. It wraps `netlistsvg`, which
+  is not installed and can't be installed here (`npm` is absent; only `node` is present):
 
-**Do not use `sak-v2svg.sh`.** It is on the PATH in this image and it looks
-official. It is not usable — it wraps `netlistsvg`, which is not installed and
-cannot be installed here (`npm` is absent; only `node` is present):
+  ```
+  $ sak-v2svg.sh results/fulladder_sky130.v out.svg
+  [ERROR] Netlistsvg could not be found!
+  $ echo $?
+  2
+  ```
 
-```
-$ sak-v2svg.sh results/fulladder_sky130.v out.svg
-[ERROR] Netlistsvg could not be found!
-$ echo $?
-2
-```
+  Use `show`, which is built into Yosys.
 
-`show` is the supported path. It is built into Yosys and it works.
-
-## The `read_liberty -lib` line
-
-Both scripts start by reading the liberty file **as a catalogue** (`-lib` loads
-names, pins, and directions — no logic). Without it, `show` has no idea which
-pins are outputs, draws every port down the left-hand side, and points the
-arrows on `sum` and `cout` the wrong way. One line, much better picture.
+- Both scripts start with `read_liberty -lib`, which loads the cell names, pins and directions
+  without any logic. Without that line, `show` doesn't know which pins are outputs and draws the
+  arrows on `sum` and `cout` the wrong way.
 
 ## Reference numbers (Yosys 0.68, sky130A)
 
@@ -89,4 +85,4 @@ arrows on `sum` and `cout` the wrong way. One line, much better picture.
    Chip area for module '\fulladder': 33.782400
 ```
 
-Whole script: **about 1 second**, ~64 MB peak.
+The whole script takes about 1 second and peaks around 64 MB.
