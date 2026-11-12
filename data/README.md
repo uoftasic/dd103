@@ -1,6 +1,6 @@
 # Shared data
 
-Shared datasets for **DD103 — RTL on FPGAs & ASICs** (`uoftasic`).
+Shared datasets for DD103 — RTL on FPGAs & ASICs (`uoftasic`).
 
 - Prefer Git LFS or external hosting for large files (waveforms, GDS excerpts, etc.).
 - Lab-local inputs may live under `labs/<id>/data/`.
