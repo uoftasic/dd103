@@ -22,21 +22,23 @@ Yosys 0.68 and LibreLane 3.1.0.dev3. Documentation online describes newer versio
 with different option names. When a command here disagrees with the internet, use the command
 here: it is the one that runs on your machine. Lab 01, Part 1 checks your versions.
 
-If the environment setup in Lab 01, Part 1 (loading `.designinit` and checking the variables)
-gives you trouble, try `make` in the lab anyway. Every lab package pins its own
-PDK and liberty paths, so Labs 01–04 run to completion even in a container with no environment
-setup. Lab 05 uses LibreLane and does need the full workbench.
+If the environment setup in Lab 01, Part 1 gives you trouble, try `make` in the lab's package
+directory anyway. Every lab package names its own technology files (the PDK and the cell
+library), so Labs 01–04 run to completion even in a container with no environment setup. Lab 05
+uses LibreLane and does need the full workbench.
 
 ## What you'll do
 
 DD102 ended with a 4-bit ripple adder you wrote yourself. DD103 starts from that file. You'll:
 
 1. Run one `ripple4.sv` through two synthesis flows and get two different pieces of hardware
-2. See your RTL as a diagram, then see the same design as named SKY130 standard cells
-3. Read `stat` output: cells, square micrometres, and what fraction is flip-flops
+2. See your RTL as a diagram, then see the same design as named standard cells from SKY130,
+   SkyWater's 130 nm process
+3. Read the `stat` report Yosys prints: cells, square micrometres, and what fraction is flip-flops
 4. Measure how slow your adder is, in nanoseconds, and see why the carry chain sets that number
 5. Design a 4-floor elevator controller from a state table
-6. Take it all the way to a GDSII file, a chip layout that is DRC and LVS clean
+6. Take it all the way to a GDSII file, a chip layout that passes DRC (the shapes can be
+   manufactured) and LVS (the layout matches your design)
 
 ![The Lab 02 counter hardened to GDSII and opened in KLayout: the die outline, the standard-cell rows filling the core, the routing on top, and the sky130A layer list on the right](assets/img/dd103-klayout-counter-gds.png)
 
