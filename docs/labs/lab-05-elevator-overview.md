@@ -325,7 +325,7 @@ look at it as a layout, which is Part 9.
 }
 ```
 
-Three things in it matter:
+Three things in it to notice:
 
 - `PDK` and `STD_CELL_LIBRARY` are pinned. The image's default PDK is `ihp-sg13g2`, a different
   technology. Leave those two keys out and the flow runs, exits 0, and builds a chip out of
@@ -435,7 +435,7 @@ You should see a liberty path under `/foss/pdks/sky130A/libs.ref/sky130_fd_sc_hd
    `design__instance__count`: every instance on the die is a SKY130 cell. A count of `0` would mean
    you hardened a different technology.
 
-Three of the metrics deserve a closer look.
+Three of the metrics need explaining.
 
 `design__instance__count__stdcell` is 148, where Yosys said 76. The extra instances are real cells
 the flow added after synthesis: a clock tree, hold-fix delay cells and antenna diodes. The logs
@@ -540,24 +540,24 @@ Keep two files from this lab: `elevator.sv` and `runs/<tag>/final/metrics.json`.
 
 ## Going further
 
-- **Delete a state.** Merge `DOOR_SHUT` into `DWELL` and re-run `make synth`. You lose a state and
+- Delete a state. Merge `DOOR_SHUT` into `DWELL` and re-run `make synth`. You lose a state and
   gain a condition. Write down whether you expect the chip to shrink before you look.
-- **Argue with the scheduler.** Lowest-pending-floor-first means somebody on floor 3 waits forever
+- Argue with the scheduler. Lowest-pending-floor-first means somebody on floor 3 waits forever
   if floors 0 and 1 keep pressing. Real elevators use SCAN: keep going the way you were going,
   serve everything on the way, then reverse. Implement it, re-run `make sim` (the six checks still
   pass, since SCAN is a superset), and see what it costs in cells.
-- **Let the tool re-encode, or stop it.** `synth -top elevator -nofsm` leaves your 3-bit state
+- Let the tool re-encode, or stop it. `synth -top elevator -nofsm` leaves your 3-bit state
   register alone instead of making it one-hot: 79 cells, 756.98 µm² and 15 flip-flops, against the
   default's 76 / 765.73 / 17. That is two fewer flops, three more gates, and 1.1 % smaller. On this
   design the binary-versus-one-hot trade is worth almost nothing, which is more useful to know than
   either side of the argument.
-- **Push the clock.** Set `"CLOCK_PERIOD": 4.0` in `config.json` and harden again with a new tag.
+- Push the clock. Set `"CLOCK_PERIOD": 4.0` in `config.json` and harden again with a new tag.
   You have 11.66 ns of slack to spend; find out where it runs out, and read
   `runs/<tag>/56-openroad-stapostpnr/` for the path that failed first.
-- **Grow it.** Add eight floors, a door-obstruction input, an overload sensor. The flow handled 76
+- Grow it. Add eight floors, a door-obstruction input, an overload sensor. The flow handled 76
   cells in 59 seconds, but detailed routing scales steeply, so keep it under a few thousand cells
   and re-check the wall-clock time as you go.
-- **Compare with someone else.** Two people who both passed all six checks will have different cell
+- Compare with someone else. Two people who both passed all six checks will have different cell
   counts, die sizes and slack. Find out which of your two decisions caused the biggest gap.
 
 That is the end of DD103.

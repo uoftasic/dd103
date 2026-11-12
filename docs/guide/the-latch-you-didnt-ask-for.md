@@ -167,7 +167,7 @@ two gates working exactly as built.
 > trade. Write the `default:` instead. It costs one line and the synthesizer enforces it every
 > time.
 
-## The fix
+## Fixing the latch
 
 ```systemverilog
 always_comb begin
@@ -357,6 +357,5 @@ circuit computes what you wanted. Lint is only a minimum check, which is why DD1
 | Before every synthesis | `verilator --lint-only -Wall`, exit 0 |
 | And still | lint clean ≠ correct |
 
-Next: [Blocking and non-blocking assignments](guide/blocking-vs-nonblocking.md), which settles
-the other rule everyone repeats about `always` blocks the same way: by counting what the tool
-built.
+Next: [Blocking and non-blocking assignments](guide/blocking-vs-nonblocking.md), which counts
+what the tool builds for `=` and `<=`.

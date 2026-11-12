@@ -355,5 +355,4 @@ on computing.
 - A flip-flop costs several plain gates: `dfrtp_1` is 25.02 µm² and `nand2_1` is 3.75 µm².
 
 Next: [Lab 02: RTL becomes gates](labs/lab-02-rtl-becomes-gates-overview.md). Later in the
-course, [Reading the `stat` report](guide/reading-stat.md) turns that last point into a number
-you'll quote in every design review.
+course, [Reading the `stat` report](guide/reading-stat.md) turns that last point into a number.

@@ -181,7 +181,7 @@ with the clock set to a realistic 2 ns instead of 100:
             0.519   slack (MET)
 ```
 
-Three terms carry the meaning, and the rest is bookkeeping:
+The report turns on three terms:
 
 - **Data arrival time** is when the answer actually shows up: 1.481 ns. It is a fact about your
   gates.
@@ -287,7 +287,6 @@ reports `-0.060 slack (VIOLATED)`. No setting or flag gets this circuit to 400 M
 period leaves the carry roughly one `maj3_1` hop short of the finish when the edge arrives, and
 the flip-flop captures a half-finished number.
 
-So a clock can be made faster; the logic behind it is what can't keep up.
 
 ## Faster adders
 

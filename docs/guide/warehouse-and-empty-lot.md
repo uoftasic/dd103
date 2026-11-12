@@ -7,7 +7,7 @@ here is one you already measured there.
 In Lab 01 you sent one `ripple4.sv` through two synthesis flows and got two answers that look nothing
 alike. Neither tool was wrong. They were solving different problems.
 
-## The warehouse and the empty lot
+## Analogy: the warehouse and the empty lot
 
 Suppose you need a warehouse. You have two options.
 
