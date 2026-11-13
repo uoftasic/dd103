@@ -30,7 +30,8 @@ three cases written and `2'b11` missing. `src/bar_comb.sv`, `src/bar_star.sv`,
 `src/bar_unique.sv` and `src/bar_fixed.sv` differ only in their header line and, for
 `bar_fixed`, one `default:`. `src/bar_latch.sv` has the same `case` under `always_latch`.
 
-`make` runs Parts 2 to 4 and 6 to 8 in about 2 seconds. Each part below names its own target.
+`make` runs Parts 2 to 4 and 6 to 8 in about 2 seconds. You don't need to run it first: each part
+below names its own target.
 
 ## Part 1: Code that does not become hardware
 
@@ -55,14 +56,14 @@ What does Yosys do with code that only makes sense to a simulator?
    ```bash
    cd src
 
-   # reaction one: it stops
+   # one: a function that uses return
    yosys -p 'read_verilog -sv u_return_id.sv; synth -top u_return_id'   ; echo "exit=$?"
 
-   # reaction two: it drops the line without saying so
+   # two: a #5 delay
    yosys -p 'read_verilog -sv u_delay.sv; synth -top u_delay;
              write_verilog -noattr /dev/stdout'                          ; echo "exit=$?"
 
-   # reaction three: it builds a different circuit without saying so
+   # three: unique case with no default:
    yosys -p 'read_verilog -sv u_unique_nodefault.sv; synth -top u_unique_nodefault;
              write_verilog -noattr /dev/stdout'                          ; echo "exit=$?"
 
@@ -78,8 +79,9 @@ What does Yosys do with code that only makes sense to a simulator?
    <details>
    <summary>Answer</summary>
 
-   You wouldn't have. Two of the three exit codes are zero, and only reading the netlist catches
-   those two.
+   Not from the exit codes: two of the three are zero. Reading the netlist catches both. Lint
+   catches the third, as Part 6 shows for `unique`, but not the second:
+   `verilator --lint-only -Wall u_delay.sv`, run in `src/`, exits 0.
 
    </details>
 
@@ -147,6 +149,7 @@ build for each?
    ERROR: Latch inferred for signal `\bar_comb.\bar' from always_comb process ...
    --- bar_star (exit 0) ---
    Latch inferred for signal `\bar_star.\bar' from process ...
+           5 cells
            2   $_DLATCH_N_
    --- bar_unique (exit 0) ---
    No latch inferred for signal `\bar_unique.\bar' from process ...
@@ -369,7 +372,8 @@ written with `=`?
    ```
 
    You should see `3   60.058   sky130_fd_sc_hd__dfxtp_1` for every ordering. Do the same to
-   `src/shift_b.sv` and watch the count move between 1 and 3. Put both files back the way they
+   `src/shift_b.sv`, with `shift_b` in place of `shift_nb` in the command, and watch the count
+   move between 1 and 3. Put both files back the way they
    were when you finish (`git checkout src/shift_nb.sv src/shift_b.sv`).
 
 5. Look at the mirror-image mistake, `<=` inside `always_comb`:
@@ -403,14 +407,16 @@ add8.sv: LINT CLEAN (exit 0)
 ```
 
 then the `add9` run giving `205.196800` and `200 + 100 = 300`, and finally a
-`%Warning-WIDTHTRUNC` for `add_trunc.sv`.
+`%Warning-WIDTHTRUNC` for `add_trunc.sv`, which assigns a nine-bit sum, `{1'b0, a} + b`, to an
+eight-bit output.
 
 Why do Verilator, Yosys and Icarus all say nothing about `add8.sv`?
 
 <details>
 <summary>Answer</summary>
 
-Nothing is inconsistent. `add8.sv` declares an eight-bit `sum`, so the carry is never computed:
+Because nothing in `add8.sv` is inconsistent. It declares an eight-bit `sum`, so the carry is
+never computed:
 not truncated, never built. Widening `sum` to `[8:0]`, as `add9.sv` does, costs one
 `sky130_fd_sc_hd__maj3_1`, 10.01 µm², and gets you `300`.
 
@@ -420,7 +426,7 @@ not truncated, never built. Widening `sum` to `[8:0]`, as `add9.sv` does, costs 
 
 ### You're done when
 
-Your Part 2 table is filled in for all five headers, and each row of this table has one number
+Your Part 2 table is filled in for all five headers, and each row of this table has the numbers
 from your own terminal:
 
 | Question | Your answer |
@@ -428,7 +434,7 @@ from your own terminal:
 | Cells in the correct (`bar_fixed`) design vs the latched one | |
 | What `bar_unique` outputs at `level = 2'b11` | |
 | Flip-flops from three `<=` statements vs three `=` statements | |
-| SKY130 area of each | |
+| SKY130 area of the `<=` and `=` versions | |
 | Area `add8` reports, and what `200 + 100` gives | |
 | Extra area buying the ninth bit | |
 

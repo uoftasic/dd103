@@ -121,7 +121,8 @@ You should be back in `labs/lab-05-elevator` with `vending.sv` unchanged.
 
 ## Part 2: The skeleton
 
-What does the shipped elevator do, and which checks does it fail? The elevator is a Moore machine with three things to remember:
+What does the shipped elevator do, and which checks does it fail? The finished elevator is a
+Moore machine with three things to remember:
 
 | Register | Width | What it holds |
 |---|---|---|
@@ -129,10 +130,15 @@ What does the shipped elevator do, and which checks does it fail? The elevator i
 | `pending` | 4 bits | which floors have unanswered calls: the call queue |
 | `dwell` | 4 bits | how many ticks the doors still have to stay open: the timer |
 
+The skeleton in `src/elevator.sv` has only `state`, with three states: `IDLE`, `MOVING` and
+`DOORS`, which the table below calls `DOOR_OPEN`. You add `pending` in Part 3 and `dwell` in
+Part 4. The `TODO` comments in the file mark where each change goes.
+
 One clock tick is one step. In a real building `clk` would come from a divider so a step is about
 half a second; here it is 20 ns, because that is what the testbench and `config.json` agree on.
 
-This is the table you are implementing, one row per state:
+This is the table you are implementing, one row per state. It is the spec for every change in
+Parts 3 and 4:
 
 | State | means | leaves when | `next` | `moving_up` | `moving_dn` | `door_open` |
 |---|---|---|---|---|---|---|
@@ -196,7 +202,9 @@ machine is busy, nobody comes.
 
 1. Declare `logic [3:0] pending;` and reset it to `4'd0`.
 2. Point the priority encoder at `pending` instead of `call`.
-3. Add a signal `serve` that your `always_comb` raises for one tick in `DOOR_OPEN`.
+3. Add a signal `serve` that your `always_comb` raises for one tick in `DOOR_OPEN`. Declare it as
+   `logic`, and give it a default of `1'b0` at the top of the `always_comb`, with the defaults
+   already there.
 4. Give `pending` exactly one assignment in the `always_ff`:
 
    ```systemverilog
@@ -223,8 +231,11 @@ effects live in the expression. Every status register in every chip is written t
 
 How do you hold the doors open for a fixed number of ticks?
 
-1. Add `DWELL` and `DOOR_SHUT` to the `typedef enum`.
-2. Declare `logic [3:0] dwell;`.
+1. Add `DWELL` and `DOOR_SHUT` to the `typedef enum`, and make each state's `next` and
+   `door_open` follow the table in Part 2. The `TODO(3)` comment in the `DOORS` branch is where
+   the doors stop leaving after one tick.
+2. Declare `logic [3:0] dwell;`, and two control lines, `logic dwell_load;` and
+   `logic dwell_dec;`, each with a default of `1'b0` at the top of the `always_comb`.
 3. In the `always_comb`, raise `dwell_load` in `DOOR_OPEN`, and `dwell_dec` in `DWELL` while
    `dwell != 0`.
 4. Drive `dwell` from those two control lines in the `always_ff`:
@@ -272,7 +283,8 @@ If Icarus says `This assignment requires an explicit cast.` or Verilator stops o
 What did the call queue, the timer and two more states cost in silicon?
 
 1. The skeleton has 7 flip-flops. Write down how many you expect your finished design to have.
-   Then run `make synth` on it:
+
+2. Run `make synth` on it:
 
    ```
    === elevator ===
@@ -286,7 +298,7 @@ What did the call queue, the timer and two more states cost in silicon?
         of which used for sequential elements: 426.659200 (55.72%)
    ```
 
-2. Compare with the skeleton's numbers below. (If you want to reproduce them, run the Yosys
+3. Compare with the skeleton's numbers below. (If you want to reproduce them, run the Yosys
    command from the `synth` target in the `Makefile` on the copy you saved in Part 2.)
 
 | | Skeleton (3 states) | Finished (5 states) |
@@ -302,8 +314,9 @@ flip-flops come from?
 <details>
 <summary>Answer</summary>
 
-Eight are `pending` and `dwell`, four bits each. The other two come from the state machine: with
-`-nofsm`, which stops Yosys making the state register one-hot (see Going further), the finished
+Eight are `pending` and `dwell`, four bits each. The other two come from the state machine: Yosys
+makes the state register one-hot, one bit per state, and you went from three states to five.
+With `-nofsm`, which leaves the 3-bit state register alone (see Going further), the finished
 design has 15.
 
 Seventeen flops are 22 % of the cells and 55.72 % of the area. A `dfrtp_1` costs 25.02 µm² and a
@@ -469,8 +482,8 @@ Three of the metrics need explaining. Answer each from your own run.
 <details>
 <summary>Answer</summary>
 
-Real cells the flow added after synthesis: a clock tree, hold-fix delay cells and antenna
-diodes. The logs show what was inserted:
+Real cells the flow added after synthesis: 30 well taps, a clock tree, hold-fix delay cells and
+antenna diodes. The last question's table counts each kind. The logs show what was inserted:
 
 ```
 [INFO CTS-0018]     Created 3 clock buffers.

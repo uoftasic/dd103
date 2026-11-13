@@ -3,8 +3,8 @@
 You'll load DD103 into your workbench (the IIC-OSIC-TOOLS container desktop you run from the
 `workspace` repo), then run a 4-bit ripple-carry adder through two synthesis flows, one for an
 iCE40 FPGA and one for SKY130 standard cells, and write down what each one built. Along the way
-you'll predict three numbers before the tools print them, and finish by sending a 2 KB memory to
-both targets.
+you'll write down three predictions and compare each with what the tools report, and finish by
+sending a 2 KB memory to both targets.
 
 Time: about 1.5 hours. The tools themselves run in seconds. The optional Part 8 and Going further
 are not counted.
@@ -56,15 +56,16 @@ If you haven't set up the workbench, do
 
    | If you see | It means |
    |---|---|
-   | `mod: no such module: dd103` | You ran `mod dd103` before `mod add dd103`. |
+   | `mod: no such module: dd103` | You ran `mod dd103` before `mod add dd103`. Run `mod add dd103`. |
    | `fatal: could not read Username for 'https://github.com'` | git could not read the repo anonymously and is asking you to log in. Check that you typed `dd103`. If you did, ask in [Discord](https://discord.gg/hrJnP5UsGz). Do not type your password. |
 
    Anything else about Docker, the desktop, `.designinit` or `mod` is on IC101's
    [Troubleshooting](https://uoftasic.com/ic101/#/reference/troubleshooting) page. If `mod`
    won't work at all, `./scripts/add_module.sh dd103`, run on your laptop from your `workspace`
    clone, clones the course into the same folder (IC101's
-   [What the smoke test checks](https://uoftasic.com/ic101/#/guide/smoke-test) describes it).
-   Labs 01 to 04 then run even without `.designinit`: each package names its own PDK and cell
+   [What the smoke test checks](https://uoftasic.com/ic101/#/guide/smoke-test) describes it);
+   in the desktop terminal, `cd /foss/designs/modules/dd103` then takes you there. Labs 01 to 04
+   run even without `.designinit`: each package names its own PDK and cell
    library, so `make` in the package directory needs no environment setup.
 
 4. Check the versions that every printed result in this course was measured with:
@@ -129,9 +130,9 @@ the bitstream loads.
    ```
 
    `$scopeinfo` is not hardware. `ripple4` is built from four `fulladder` instances, one per bit
-   slice; `synth_ice40` flattened them into one module and left one `$scopeinfo` marker per dissolved instance, so it can still tell you
-   which slice a cell came from. `write_verilog` does not emit them. Eight `SB_LUT4` is the
-   real answer.
+   slice; `synth_ice40` flattened them into one module and left one `$scopeinfo` marker per
+   dissolved instance, so Yosys can still tell you which slice a cell came from. `write_verilog`
+   does not emit them. Eight `SB_LUT4` is the real answer.
 
 2. Find the placement report from `nextpnr-ice40` in `results/fpga-pnr.log`:
 
@@ -143,7 +144,8 @@ the bitstream loads.
    ```
 
    There are 10 logic cells for 8 LUTs because placement packs LUTs together with carry logic;
-   [FPGA and ASIC targets](guide/warehouse-and-empty-lot.md) explains. `icepack` then turns the
+   [FPGA and ASIC targets](guide/warehouse-and-empty-lot.md), the reading after this lab, has
+   more. `icepack` then turns the
    placed design into the bitstream `results/ripple4.bin`, 104,090 bytes.
 
    What does the `/5280` tell you that a cell count alone doesn't?
@@ -166,8 +168,9 @@ the bitstream loads.
    ```
 
    Yosys warns `Wire ripple4.\sum [3] is used but has no driver.`, and the same for `sum [2]`,
-   `sum [1]` and `c [4]`, because you deleted the adders that drove them. The synthesis report
-   now shows `1   SB_LUT4`, and the placement report `ICESTORM_LC:       3/   5280`.
+   `sum [1]` and `c [4]`, because you deleted the adders that drove them; with `c [4]` gone,
+   `cout` is undriven too, so only `sum[0]` is left to compute. The synthesis report now shows
+   `1   SB_LUT4`, and the placement report `ICESTORM_LC:       3/   5280`.
 
    Did the bitstream shrink? Compare the size `make fpga` printed with your guess.
 
@@ -204,7 +207,8 @@ $$c_{\text{out}} = ab + c_{\text{in}}(a \oplus b)$$
 is the majority of $a$, $b$ and $c_{\text{in}}$. SKY130 ships a cell for exactly that. iCE40
 does not; its logic is built from LUTs that can each be any 4-input function.
 
-1. Read the last twenty lines of `results/asic.log`:
+1. Read the `=== ripple4 ===` block at the end of `results/asic.log`
+   (`tail -25 results/asic.log` shows it):
 
    ```
    === ripple4 ===
@@ -253,8 +257,9 @@ millimetre, so `110.105600 µm²` is a price.
 
 ## Part 5: Fill in the table
 
-1. Run `make table`, which reprints the `YOUR NUMBERS` summary, and copy what it prints into
-   this table by hand, on paper or in your own notes. Typing it is the exercise.
+1. Run `make table`, which reprints the `YOUR NUMBERS` summary. Copy its numbers into this table
+   by hand, on paper or in your own notes, and fill the other rows from Parts 3 and 4. Typing
+   them is the exercise.
    For "cells reported", say whether your number includes the `$scopeinfo` markers.
 
    | | iCE40 UP5K (FPGA) | SKY130 (ASIC) |
@@ -338,6 +343,8 @@ end
    yosys -p "read_verilog -sv examples/mem.sv; synth_ice40 -top mem; stat"
    ```
 
+   You should see four `SB_RAM40_4K` block RAMs in it.
+
 2. Work out how many bits the array holds, and write down how many flip-flops you expect
    SKY130 to need for it.
 
@@ -353,7 +360,7 @@ end
 4. Divide the SKY130 flip-flop count (the `sky130_fd_sc_hd__edfxtp_1` cells, flip-flops with an
    enable) by the number of bits in the array.
 
-You should see four `SB_RAM40_4K` block RAMs on the FPGA side, and on the SKY130 side
+You should see four `SB_RAM40_4K` on the FPGA side, and on the SKY130 side
 16,384 `sky130_fd_sc_hd__edfxtp_1` and 2,748 `sky130_fd_sc_hd__mux4_2` among 27,684 cells, and a
 chip area of `606554.233600` µm². 16,384 is exactly 2048 × 8: one flip-flop for every bit.
 
