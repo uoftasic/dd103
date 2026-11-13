@@ -14,7 +14,7 @@ The labs run in the workbench: the IIC-OSIC-TOOLS container desktop you start fr
 | Who it's for | Students on the digital track who have finished DD102 and can write and simulate a small SystemVerilog module |
 | Prerequisites | [IC101](https://uoftasic.com/ic101/), then [DD102](https://uoftasic.com/dd102/), in that order |
 | Tools | Yosys, Verilator, Icarus, nextpnr, OpenSTA, LibreLane, KLayout, all inside the workbench |
-| Time | 16–20 hours, self-paced |
+| Time | 18 h 50 min to 19 h 50 min, self-paced: the sum of the Course path rows below |
 | Machine | 4 GB RAM to run, 8 GB to be comfortable. You already have the workbench from IC101. |
 
 The course is pinned to the workbench image `hpretl/iic-osic-tools:2026.08`, which ships
@@ -48,21 +48,21 @@ on the left is every standard cell it is made of.*
 
 ## Course path
 
-Work down this table in order. A *Read* row is guide pages: concepts and worked examples, no
-commands to run. A *Do* row is one lab, where you run everything.
+Work down this table in order. A Read row is guide pages: concepts and worked examples, no
+commands to run. A Do row is one lab, where you run everything.
 
-| # | Type | What | Time |
+| # | | What | Time |
 |---|---|---|---|
 | 1 | Read | [Getting started](guide/getting-started.md) | 20 min |
-| 2 | Do | [Lab 01: One adder, two targets](labs/lab-01-one-adder-two-targets-overview.md) | 1.5 h |
+| 2 | Do | [Lab 01: One adder, two targets](labs/lab-01-one-adder-two-targets-overview.md). Run one ripple-carry adder through an FPGA flow and an ASIC flow, and write down what each one built. | 1.5 h |
 | 3 | Read | [FPGA and ASIC targets](guide/warehouse-and-empty-lot.md) · [What synthesis does](guide/synthesis-is-translation.md) · [Standard cells](guide/standard-cells-are-real.md) | 1.5 h |
-| 4 | Do | [Lab 02: RTL becomes gates](labs/lab-02-rtl-becomes-gates-overview.md) | 2.5 h |
+| 4 | Do | [Lab 02: RTL becomes gates](labs/lab-02-rtl-becomes-gates-overview.md). Draw a full adder before and after it becomes SKY130 cells, watch each synthesis pass change a counter, and open one cell in the library. | 2.5 h |
 | 5 | Read | [Synthesizable SystemVerilog](guide/the-hardware-dialect.md) · [Inferred latches](guide/the-latch-you-didnt-ask-for.md) · [Blocking and non-blocking assignments](guide/blocking-vs-nonblocking.md) | 1.5 h |
-| 6 | Do | [Lab 03: Three ways to lose a latch](labs/lab-03-three-ways-to-lose-a-latch-overview.md) | 2.5 h |
+| 6 | Do | [Lab 03: Three ways to lose a latch](labs/lab-03-three-ways-to-lose-a-latch-overview.md). Synthesize and lint one incomplete `case` under five headers, and count the flip-flops that `=` and `<=` build. | 2.5 h |
 | 7 | Read | [Reading the `stat` report](guide/reading-stat.md) · [Carry delay and static timing](guide/the-carry-has-to-walk.md) | 1 h |
-| 8 | Do | [Lab 04: Reading the receipt](labs/lab-04-reading-the-receipt-overview.md) | 3 h |
+| 8 | Do | [Lab 04: Reading the receipt](labs/lab-04-reading-the-receipt-overview.md). Predict flip-flop counts, areas and delays before the tools report them, and work out why your predictions miss. | 3 h |
 | 9 | Read | [Writing a state machine](guide/state-machine-is-a-table.md) · [From netlist to layout](guide/from-gates-to-geometry.md) | 1 h |
-| 10 | Do | [Lab 05: Elevator to GDSII](labs/lab-05-elevator-overview.md) | 4–5 h |
+| 10 | Do | [Lab 05: Elevator to GDSII](labs/lab-05-elevator-overview.md). Finish an elevator controller from its state table and take it to a GDSII layout that passes DRC and LVS. | 4–5 h |
 
 Keep these reference pages open while you work; you look things up in them rather than read
 them through:
