@@ -32,9 +32,9 @@ $$\text{area} = \sum_{\text{cell types } t} n_t \times a_t$$
 where $n_t$ is how many cells of type $t$ the netlist contains and $a_t$ is the `area :` line
 for that cell in the liberty file. There are two ways for the answer to be wrong:
 
-1. $n_t$ is not what you think, because synthesis rewrote your design. Part 2 is this case.
+1. $n_t$ is not what you think, because synthesis rewrote your design.
 2. $a_t$ does not exist, because a cell never got mapped to the technology, and Yosys counts it
-   as zero. Part 3 is this case.
+   as zero.
 
 `make` runs Parts 2 to 5 in about five seconds. Each part also has its own target.
 
@@ -51,7 +51,9 @@ Where does the area on a `stat` receipt come from?
              abc -liberty $LIB; opt_clean; stat -liberty $LIB"
    ```
 
-   The first gives counts only. The second adds an area column and `Chip area ... 110.105600`.
+   The first gives counts only. The second adds an area column, `16  110.106 cells` with four
+   `$scopeinfo` among them, an `Area for cell type $scopeinfo is unknown!` warning, and
+   `Chip area ... 110.105600`.
 
 2. Look up the unit price of `maj3_1`:
 
@@ -142,7 +144,8 @@ How many flip-flops does a design with six bits of state get?
 
    </details>
 
-5. Read the run with FSM re-encoding turned off:
+5. `make predict` also ran `scripts/nofsm.ys`, the same flow with `synth -nofsm`, which turns
+   FSM re-encoding off. Read that block:
 
    ```
           27  264.003 cells
@@ -190,7 +193,7 @@ anything share the other 115.11 µm².
 What happens to the receipt when one mapping command is missing?
 
 [`scripts/broken.ys`](https://github.com/uoftasic/dd103/tree/main/labs/lab-04-reading-the-receipt/scripts/broken.ys)
-is `baseline.ys` with exactly one line deleted:
+is `scripts/baseline.ys`, the script `make predict` ran in Part 2, with exactly one line deleted:
 
 ```
 dfflibmap -liberty /foss/pdks/sky130A/libs.ref/sky130_fd_sc_hd/lib/sky130_fd_sc_hd__tt_025C_1v80.lib
@@ -286,7 +289,8 @@ Which script gives "the" area of `blinker.sv`?
 
    </details>
 
-4. Compare the ABC command scripts in `baseline.log` and `fast.log`:
+4. Compare the ABC command scripts, which are the `ABC: +` lines in `results/baseline.log` and
+   `results/fast.log`:
 
    ```
    baseline: strash / &get -n / &fraig -x / &put / scorr / dc2 / dretime /
@@ -302,7 +306,7 @@ Which row is the area of `blinker.sv`?
 
 None of them is the correct row. `-flatten` did nothing here because `blinker` has no
 submodules; on `ripple4` in Part 5 flattening changes everything. The fast script, three
-commands instead of eleven, made the design about 20 % bigger: you bought synthesis runtime with
+commands instead of twelve, made the design about 20 % bigger: you bought synthesis runtime with
 silicon.
 
 "How big is it?" has no answer without "under which script?" attached. LibreLane exposes this
@@ -314,10 +318,15 @@ same RTL and both be right. Quote the script alongside the number, every time.
 ## Part 5: The area gap
 
 Why is `ripple4` smaller than four full adders? Back to the DD102 adder, which is in this package
-as `src/fulladder.sv` and `src/ripple4.sv`. You made this prediction in
-[Lab 01](labs/lab-01-one-adder-two-targets-overview.md), Part 6, and it was 18.5 % too high.
+as `src/fulladder.sv` and `src/ripple4.sv`. In
+[Lab 01](labs/lab-01-one-adder-two-targets-overview.md), Part 6, four times one `fulladder`
+(33.7824 µm²) came out 18.5 % higher than the chained adder's 110.1056 µm².
 
-1. Run:
+1. `make gap` runs three scripts: one `fulladder` alone, four chained and flattened, and
+   `scripts/gap_hier.ys`, the same four with the `flatten` line removed, so ABC optimizes each
+   `fulladder` separately. Before you run it, write down what you expect `gap_hier.ys` to report.
+
+2. Run:
 
    ```bash
    make gap
@@ -332,7 +341,7 @@ as `src/fulladder.sv` and `src/ripple4.sv`. You made this prediction in
       Chip area for module '\fulladder': 33.782400
    ```
 
-2. Multiply by four and write it on the blank line the Makefile prints.
+   Multiply by four and write it on the blank line the Makefile prints.
 
 3. Read the chained result:
 
@@ -362,9 +371,7 @@ as `src/fulladder.sv` and `src/ripple4.sv`. You made this prediction in
 
    </details>
 
-4. Read the last run in `make gap`. `scripts/gap_hier.ys` is the same flow with the `flatten`
-   line removed, so ABC optimizes each `fulladder` separately. Write down what you expect its
-   area to be before you look:
+4. Read the last run, from `gap_hier.ys`, and compare it with what you wrote in step 1:
 
    ```
            8   135.13 cells
@@ -415,8 +422,11 @@ the file.
 
    It exits 0 on pass and 1 on fail, so a `Makefile` can gate on it.
 
-2. Scroll back to the end of the `make broken` output from Part 3, where the checker read the
-   unmapped run:
+2. Run the checker on the unmapped run from Part 3, as the end of `make broken` did:
+
+   ```bash
+   python3 src/check_stat.py results/blinker_broken.json --expect blinker
+   ```
 
    ```
    blinker_broken.json
@@ -492,7 +502,9 @@ from [Carry delay and static timing](guide/the-carry-has-to-walk.md) on `src/rip
 
    </details>
 
-5. Predict $T(64)$ with $T(N) = 0.370 + 0.392\,(N-2) + 0.328$ and write it down. Then measure it:
+5. Predict $T(64)$ with $T(N) = 0.370 + 0.392\,(N-2) + 0.328$, the formula from
+   [Carry delay and static timing](guide/the-carry-has-to-walk.md), and write it down. Then
+   measure it:
 
    ```bash
    yosys -q -p "read_verilog -sv src/ripple.sv src/fulladder.sv; chparam -set N 64 ripple;
@@ -547,7 +559,7 @@ reference values.
 
 ### Questions
 
-Answer each in one sentence, using your own numbers. The step in brackets has the answer.
+Answer each in one sentence, using your own numbers. The step in parentheses has the answer.
 
 1. Why does `blinker.sv` have eight flip-flops when you wrote six bits of state? (Part 2, step 4)
 2. What is wrong with `102.60 µm²`, and what in the output told you? (Part 3)
