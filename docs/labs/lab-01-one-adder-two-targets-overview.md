@@ -62,11 +62,11 @@ If you haven't set up the workbench, do
    Anything else about Docker, the desktop, `.designinit` or `mod` is on IC101's
    [Troubleshooting](https://uoftasic.com/ic101/#/reference/troubleshooting) page. If `mod`
    won't work at all, `./scripts/add_module.sh dd103`, run on your laptop from your `workspace`
-   clone, clones the course into the same folder (IC101's
-   [What the smoke test checks](https://uoftasic.com/ic101/#/guide/smoke-test) describes it);
-   in the desktop terminal, `cd /foss/designs/modules/dd103` then takes you there. Labs 01 to 04
-   run even without `.designinit`: each package names its own PDK and cell
-   library, so `make` in the package directory needs no environment setup.
+   clone, clones the course into `modules/dd103` in that clone, the same folder `mod add` uses
+   (IC101's [What the smoke test checks](https://uoftasic.com/ic101/#/guide/smoke-test)
+   describes it). In the desktop terminal, `cd /foss/designs/modules/dd103` then takes you there.
+   Labs 01 to 04 run even without `.designinit`: each package names its own PDK and cell library,
+   so `make` in the package directory needs no environment setup.
 
 4. Check the versions that every printed result in this course was measured with:
 
@@ -99,10 +99,14 @@ Do both flows run on your workbench?
    make
    ```
 
-You should see `make` finish in a couple of seconds with a `YOUR NUMBERS` summary at the end
-and no red. `make` already ran both flows; Parts 3 and 4 look at each flow's output in turn.
-`make fpga` and `make asic` re-run one flow each. Every number in this writeup comes from the
-adder shipped in `src/`. You'll run your own in Part 8.
+You should see `make` finish in a couple of seconds with no red, ending in a `YOUR NUMBERS`
+summary: FPGA logic cells, LUT4s and bitstream size, then the ASIC cells and area. `make` already
+ran both flows; Parts 3 and 4 look at each flow's output in turn. `make fpga` and `make asic`
+re-run one flow each. Every number in this writeup comes from the adder shipped in `src/`. You'll
+run your own in Part 8.
+
+Parts 3 to 8 all run from this directory. In a new terminal, run `mod dd103` and
+`cd labs/lab-01-one-adder-two-targets` first.
 
 ## Part 3: The FPGA flow
 
@@ -170,12 +174,14 @@ the bitstream loads.
    ```
 
    Yosys warns `Wire ripple4.\sum [3] is used but has no driver.`, and the same for `sum [2]`,
-   `sum [1]` and `c [4]`, because you deleted the adders that drove them. With `c [4]` gone,
+   `sum [1]` and `c [4]` (`c` is the carry chain between the slices), because you deleted the
+   adders that drove them. With `c [4]` gone,
    `cout` is undriven too, and Yosys warns about `\cout` as well, so only `sum[0]` is left to
    compute. The synthesis report now shows
    `1   SB_LUT4`, and the placement report `ICESTORM_LC:       3/   5280`.
 
-   Did the bitstream shrink? Compare the size `make fpga` printed with your guess.
+   Did the bitstream shrink? `make fpga` ends by printing `ls -l results/ripple4.bin`; compare
+   that size with your guess.
 
    <details>
    <summary>Answer</summary>
