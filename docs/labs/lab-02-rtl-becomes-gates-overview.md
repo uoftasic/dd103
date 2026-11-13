@@ -41,13 +41,13 @@ that moment, so running it at two different points gives two views of the same d
 | `abc -liberty` | `sky130_fd_sc_hd__*` | the foundry's |
 
 Between those two points, `dfflibmap -liberty` replaces generic flip-flops with library flops.
-The full adder has none, so it does nothing here; it is in the script because leaving it out of
-a design that does have flops gives a broken area number, as you'll see in Part 3. Then
+The full adder has none, so it does nothing here; it is in the script because a design that does
+have flops needs it, as you'll see in Part 3. Then
 `abc -liberty` covers everything combinational with cells from the liberty file, optimizing for
 area.
 
-1. Run the script. It takes about a second and peaks around 64 MB; Yosys prints its own `time:`
-   and `MEM:` on the last line of `results/show.log`.
+1. Run the package's script, `show.ys`, which draws one picture after `proc; opt` and one after
+   `abc -liberty`. It takes about a second.
 
    ```bash
    make
@@ -80,7 +80,7 @@ area.
    This is the last picture in the flow that is still about your source code. If your RTL is
    wrong, this is where you can still see it.
 
-3. Open `results/gates.svg` next to it. You should see two boxes.
+3. Open `results/gates.svg` next to it. You should see two boxes, labelled like this:
 
    ![The same full adder after abc -liberty — two SKY130 standard cells](../assets/img/lab02-fulladder-gates.svg)
 
@@ -125,7 +125,9 @@ area.
    ```
 
    Before you run anything, write down how many boxes you expect in `results/rtl.svg` and which
-   cells you expect in `results/gates.svg`. Then run `make` and open both pictures again.
+   cells you expect in `results/gates.svg`.
+
+6. Run `make` and open both pictures again.
 
    You should see seven boxes in `results/rtl.svg` (three `$and`, two `$or`, two `$xor`), and the
    same two cells in `results/gates.svg`, `sky130_fd_sc_hd__maj3_1` and
@@ -143,7 +145,7 @@ area.
 
    </details>
 
-6. Put the shipped file back and rebuild:
+7. Put the shipped file back and rebuild:
 
    ```bash
    git checkout src/fulladder.sv
@@ -152,17 +154,19 @@ area.
 
 You should see `results/rtl.svg` with five operator boxes again, `results/gates.svg` with
 `sky130_fd_sc_hd__maj3_1` and `sky130_fd_sc_hd__xor3_1`, and `Chip area ... 33.782400` in
-`results/show.log`. If `show` fails, or you're tempted by a script called `sak-v2svg.sh`, see
-[Troubleshooting](reference/troubleshooting.md).
+`results/show.log`. If `show` fails, or you try the image's `sak-v2svg.sh` script for diagrams,
+see [Troubleshooting](reference/troubleshooting.md).
 
 ## Part 2: Diagram size limits
 
-How big can a gate diagram get before it stops helping? It is better to find out here than
-during the capstone.
+How big can a gate diagram get before it stops helping? It is better to find out here than in
+Lab 05.
 
 1. `make bigger` runs the same two `show` calls on `ripple4`, four full adders instead of one.
-   Before you run it, write down how many times bigger you expect the gate view's canvas to be.
-   Then run it:
+   Before you run it, write down how many times bigger you expect the gate view's canvas area
+   (width × height) to be.
+
+2. Run it:
 
    ```bash
    make bigger
@@ -180,12 +184,12 @@ during the capstone.
    results/rtl_ripple4.svg            width="1265pt" height="648pt"
    ```
 
-2. Open `results/rtl_ripple4.svg`. It shows four boxes labelled `slice[0].fa` to
+3. Open `results/rtl_ripple4.svg`. It shows four boxes labelled `slice[0].fa` to
    `slice[3].fa`, chained through `c`: the ripple adder you would draw on paper.
 
    ![ripple4 after proc; opt — four fulladder boxes chained through the carry](../assets/img/lab02-ripple4-rtl.svg)
 
-3. Open `results/gates_ripple4.svg`. It is 44 inches wide: twelve cells, a scatter of bit-slice
+4. Open `results/gates_ripple4.svg`. It is 44 inches wide: twelve cells, a scatter of bit-slice
    splitters, and no visual centre. Squashed to the width of this page it looks like this, and
    zooming in does not help:
 
@@ -204,8 +208,9 @@ gate schematics.
 
 Which pass turns the counter's flip-flops into SKY130 cells, which pass maps its logic, and what
 happens to the area when one of them is missing? This part runs the walkthrough from
-[What synthesis does](guide/synthesis-is-translation.md) on `src/counter.sv`. Set the liberty
-path first; every command below uses it.
+[What synthesis does](guide/synthesis-is-translation.md) on `src/counter.sv`, a 4-bit counter
+with an enable and an asynchronous reset. Set the liberty path first; every command below uses
+it.
 
 ```bash
 LIB=/foss/pdks/sky130A/libs.ref/sky130_fd_sc_hd/lib/sky130_fd_sc_hd__tt_025C_1v80.lib
@@ -222,7 +227,7 @@ LIB=/foss/pdks/sky130A/libs.ref/sky130_fd_sc_hd/lib/sky130_fd_sc_hd__tt_025C_1v8
    You should see six lines, from `1. Executing Verilog-2005 frontend: src/counter.sv` to
    `6. Printing statistics.`
 
-2. Stop after each of the first four passes and count cells:
+2. Run the first four passes inside `synth` by hand, stopping after each one to count cells:
 
    ```bash
    for S in "hierarchy -top counter" \
@@ -264,9 +269,9 @@ LIB=/foss/pdks/sky130A/libs.ref/sky130_fd_sc_hd/lib/sky130_fd_sc_hd__tt_025C_1v8
              dfflibmap -liberty $LIB" 2>&1 | grep -E 'unmapped dff|dfrtp_1 _DFF_PN0_|edfxtp_1 _DFFE_PP_'
    ```
 
-   Find `sky130_fd_sc_hd__edfxtp_1 _DFFE_PP_` (the only enable flop, with no reset pin) and
-   `unmapped dff cell: $_DFFE_PN_`. Write down why the counter ended up with plain `dfrtp_1`
-   flops and extra logic for the enable.
+   Find `sky130_fd_sc_hd__edfxtp_1 _DFFE_PP_`, the library's only enable flop, and read its pins.
+   Then find `unmapped dff cell: $_DFFE_PN_`. Write down why the counter ended up with plain
+   `dfrtp_1` flops and extra logic for the enable.
 
    <details>
    <summary>Answer</summary>
@@ -277,9 +282,9 @@ LIB=/foss/pdks/sky130A/libs.ref/sky130_fd_sc_hd/lib/sky130_fd_sc_hd__tt_025C_1v8
 
    </details>
 
-5. Write down what you expect if you delete `dfflibmap` from the flow: an error, or a number,
-   and if a number, bigger or smaller than the full flow's `148.892800`? Then run it and check
-   the exit status:
+5. The full flow reports a chip area of `148.892800`. Write down what you expect if you delete
+   `dfflibmap` from it: an error, or a number, and if a number, bigger or smaller? Then run it
+   and check the exit status:
 
    ```bash
    yosys -p "read_verilog -sv src/counter.sv; synth -top counter;
@@ -301,7 +306,7 @@ LIB=/foss/pdks/sky130A/libs.ref/sky130_fd_sc_hd/lib/sky130_fd_sc_hd__tt_025C_1v8
 
    </details>
 
-6. Put a `stat` between `dfflibmap` and `abc`:
+6. Stop after `dfflibmap`, before `abc`, and run `stat` there:
 
    ```bash
    yosys -p "read_verilog -sv src/counter.sv; synth -top counter;
@@ -322,9 +327,9 @@ what transistors it has, what it looks like and how fast it is? This part opens 
 |---|---|---|
 | function | | |
 | area | | |
-| outline | | |
+| outline (width × height) | | |
 | transistors | | |
-| drawing | | |
+| drawing (layout polygons) | | |
 | timing | | |
 
 Set three paths first:
@@ -353,7 +358,8 @@ LEF=$REF/lef/sky130_fd_sc_hd.lef
      | grep -E '^        area :|^        cell_footprint|^        pin \(|^            direction :|^            function :'
    ```
 
-   You should see `350`, then `area : 10.009600000;`, three input pins, one output pin `X`, and
+   You should see `350`, then `area : 10.009600000;`,
+   `cell_footprint : "sky130_fd_sc_hd__maj3";`, three input pins, one output pin `X`, and
    `function : "(A&B) | (A&C) | (B&C)";`.
 
 3. Find the same cell as a rectangle in the LEF file:
@@ -403,7 +409,7 @@ LEF=$REF/lef/sky130_fd_sc_hd.lef
    see the picture in [Standard cells](guide/standard-cells-are-real.md#transistors-and-layout):
    two power rails, fourteen poly stripes crossing diffusion, and pins `A`, `B`, `C` and `X`.
 
-7. Count the timing tables:
+7. Count the timing tables, each a grid of measured delays:
 
    ```bash
    awk '/cell \("sky130_fd_sc_hd__maj3_1"\)/,/^    }$/' $LIB | grep -c 'values('
@@ -420,9 +426,9 @@ every row.
 |---|---|---|
 | function | liberty, `sky130_fd_sc_hd__tt_025C_1v80.lib` | `(A&B) \| (A&C) \| (B&C)` |
 | area | liberty | `10.009600000` |
-| outline | LEF, `sky130_fd_sc_hd.lef` | `SIZE 3.680 BY 2.720` |
+| outline (width × height) | LEF, `sky130_fd_sc_hd.lef` | `SIZE 3.680 BY 2.720` |
 | transistors | CDL, `sky130_fd_sc_hd.cdl` | 14 |
-| drawing | `mag/sky130_fd_sc_hd__maj3_1.mag` | 267 rectangles |
+| drawing (layout polygons) | `mag/sky130_fd_sc_hd__maj3_1.mag` | 267 rectangles |
 | timing | liberty | 24 tables |
 
 </details>
@@ -447,7 +453,9 @@ To check your run against ours:
 | Part 3, step 5 | `exit=0` and a chip area of `37.536000` |
 | Part 4, step 1 | `428` cells |
 
-If Yosys takes minutes on `make`, you are synthesizing something other than a full adder.
+`make` takes about 1 second and peaks around 64 MB; Yosys prints its own `time:` and `MEM:` on
+the last line of `results/show.log`. If it takes minutes, you are synthesizing something other
+than a full adder.
 
 ### Questions
 
@@ -510,14 +518,14 @@ largest cells, and the seven cell types the counter used.
 
 Diagrams:
 
-- Both scripts open with this line:
+- Both scripts, `show.ys` and `bigger.ys`, open with this line:
 
   ```tcl
   read_liberty -lib /foss/pdks/sky130A/libs.ref/sky130_fd_sc_hd/lib/sky130_fd_sc_hd__tt_025C_1v80.lib
   ```
 
   `-lib` reads the library as a catalogue only: cell names, pin names, pin directions, no logic.
-  Delete that line from `show.ys` and re-run `make`. The netlist and the area are identical, but
+  Delete that line from `show.ys` and re-run `make` (`git checkout show.ys` puts it back). The netlist and the area are identical, but
   the picture gets worse: `show` no longer knows which pins are outputs, so it stacks `A B C X`
   down the left side of every cell and draws the arrows on `sum` and `cout` pointing backwards
   into the box. The diagram is a rendering of the design, and renderings have settings.

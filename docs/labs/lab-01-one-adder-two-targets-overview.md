@@ -26,8 +26,7 @@ If you haven't set up the workbench, do
 
 1. Start the desktop from your `workspace` clone (`./scripts/start_vnc.sh`, or
    `scripts\start_vnc.bat` on Windows), open http://localhost/ and open a terminal on the
-   desktop. Type every command from here on in that terminal, not on your laptop. Maximize the
-   window: LibreLane, which you'll use in Lab 05, wraps its log to the terminal width.
+   desktop. Type every command from here on in that terminal, not on your laptop.
 
 2. Load the environment and check the two technology variables. Repeat this step in every new
    terminal, because exports last only for the terminal you type them in.
@@ -41,20 +40,34 @@ If you haven't set up the workbench, do
    You should see the `ASIC-EDU: PDK=sky130A ...` banner, then `sky130A sky130_fd_sc_hd`. If the
    first word is `ihp-sg13g2`, the image's own default, `.designinit` didn't run in this
    terminal; run it again. If the second word is anything else (the image's default is
-   `sg13g2_stdcell`), run `export STD_CELL_LIBRARY=sky130_fd_sc_hd`. `COLUMNS=200` tells LibreLane the terminal is 200
+   `sg13g2_stdcell`), run `export STD_CELL_LIBRARY=sky130_fd_sc_hd`. LibreLane, which you'll use
+   in Lab 05, wraps its log to the terminal width; `COLUMNS=200` tells it the terminal is 200
    columns wide, which does the same job as maximizing the window.
 
 3. Get the course files. `mod add` is needed only the first time; after that, `mod dd103` takes
-   you there.
+   you to the module folder.
 
    ```bash
    mod add dd103      # first time only: clones github.com/uoftasic/dd103
    ```
 
    You should see `OK  module ready: /foss/designs/modules/dd103` and then
-   `cwd: /foss/designs/modules/dd103`: `mod add` also moves you into the module.
+   `cwd: /foss/designs/modules/dd103`: `mod add` also moves you into the module. If it fails:
 
-4. Check the versions that the printed results in this course come from:
+   | If you see | It means |
+   |---|---|
+   | `mod: no such module: dd103` | You ran `mod dd103` before `mod add dd103`. |
+   | `fatal: could not read Username for 'https://github.com'` | git could not read the repo anonymously and is asking you to log in. Check that you typed `dd103`. If you did, ask in [Discord](https://discord.gg/hrJnP5UsGz). Do not type your password. |
+
+   Anything else about Docker, the desktop, `.designinit` or `mod` is on IC101's
+   [Troubleshooting](https://uoftasic.com/ic101/#/reference/troubleshooting) page. If `mod`
+   won't work at all, `./scripts/add_module.sh dd103`, run on your laptop from your `workspace`
+   clone, clones the course into the same folder (IC101's
+   [What the smoke test checks](https://uoftasic.com/ic101/#/guide/smoke-test) describes it).
+   Labs 01 to 04 then run even without `.designinit`: each package names its own PDK and cell
+   library, so `make` in the package directory needs no environment setup.
+
+4. Check the versions that every printed result in this course was measured with:
 
    ```bash
    yosys -V
@@ -62,27 +75,17 @@ If you haven't set up the workbench, do
    ```
 
    You should see `Yosys 0.68 (git sha1 38e001a6f, Release, GNU /usr/bin/c++ 13.3.0)` and a
-   first line of `LibreLane v3.1.0.dev3`. If either is different, you are not on
+   first line of `LibreLane v3.1.0.dev3`. If either version number is different, you are not on
    `hpretl/iic-osic-tools:2026.08`; see
    [IC101: Launch the noVNC desktop](https://uoftasic.com/ic101/#/guide/launch-novnc) for the
-   image the `workspace` scripts pull. Later labs also print `iverilog -V` (`14.0 (devel)`),
-   `verilator --version` (`Verilator 5.050`), `nextpnr-ice40 --version`
-   (`nextpnr-0.11.1-9-gb17408e2`) and `surfer --version` (`surfer 0.7.0`).
+   image the `workspace` scripts pull. You don't need to check the others now; later labs print
+   `iverilog -V` (`14.0 (devel)`), `verilator --version` (`Verilator 5.050`),
+   `nextpnr-ice40 --version` (`nextpnr-0.11.1-9-gb17408e2`) and `surfer --version`
+   (`surfer 0.7.0`).
 
 5. List the lab packages with `ls labs/`.
 
-| If you see | It means |
-|---|---|
-| `mod: no such module: dd103` | You ran `mod dd103` before `mod add dd103`. |
-| `fatal: could not read Username for 'https://github.com'` | git could not read the repo anonymously and is asking you to log in. Check the spelling first. If it is right, ask in [Discord](https://discord.gg/hrJnP5UsGz). Do not type your password. |
-
-Anything else about Docker, the desktop, `.designinit` or `mod` is on IC101's
-[Troubleshooting](https://uoftasic.com/ic101/#/reference/troubleshooting) page. If you can't get
-`mod` working, Labs 01 to 04 still run: each package names its own PDK and cell library, so
-`make` in the package directory works without any environment setup.
-
-You should see `ls labs/` list the five lab packages, `lab-01-one-adder-two-targets` through
-`lab-05-elevator`.
+You should see the five lab packages, `lab-01-one-adder-two-targets` through `lab-05-elevator`.
 
 ## Part 2: Run both flows
 
@@ -100,13 +103,14 @@ adder shipped in `src/`. You'll run your own in Part 8.
 
 ## Part 3: The FPGA flow
 
-What did the FPGA flow build, and does its output grow with your design?
+What did the FPGA flow build, and what does its report measure?
 
-On an FPGA the cells already exist in silicon. An iCE40 `SB_LUT4` is four inputs, sixteen bits
-of configuration memory and a multiplexer. It can be any 4-input Boolean function, chosen when
+On an FPGA the cells already exist in silicon. This flow targets a Lattice iCE40 UP5K, whose
+`SB_LUT4` is four inputs, sixteen bits of configuration memory and a multiplexer. It can be any 4-input Boolean function, chosen when
 the bitstream loads.
 
-1. Read the `=== ripple4 ===` block near the end of `results/fpga-synth.log`:
+1. Open `results/fpga-synth.log` and find the `=== ripple4 ===` block near the end. It should
+   match this:
 
    ```
    === ripple4 ===
@@ -124,12 +128,12 @@ the bitstream loads.
            8   SB_LUT4
    ```
 
-   `$scopeinfo` is not hardware. `synth_ice40` flattened your four `fulladder` instances into
-   one module and left one `$scopeinfo` marker per dissolved instance, so it can still tell you
+   `$scopeinfo` is not hardware. `ripple4` is built from four `fulladder` instances, one per bit
+   slice; `synth_ice40` flattened them into one module and left one `$scopeinfo` marker per dissolved instance, so it can still tell you
    which slice a cell came from. `write_verilog` does not emit them. Eight `SB_LUT4` is the
    real answer.
 
-2. Read the placement report from `nextpnr-ice40` in `results/fpga-pnr.log`:
+2. Find the placement report from `nextpnr-ice40` in `results/fpga-pnr.log`:
 
    ```
    Info: Device utilisation:
@@ -232,7 +236,7 @@ does not; its logic is built from LUTs that can each be any 4-input function.
    ```
 
    You did not break anything. ABC maps combinational logic only; flip-flops are handled by a
-   separate pass called `dfflibmap`, which you'll meet in Lab 02. Your adder has no flip-flops,
+   separate pass called `dfflibmap`, which you'll use in Part 7 and meet properly in Lab 02. Your adder has no flip-flops,
    so ABC skipping every flop in the library costs you nothing.
 
 You should see a chip area of `110.105600` µm² and no denominator anywhere.
@@ -249,8 +253,8 @@ millimetre, so `110.105600 µm²` is a price.
 
 ## Part 5: Fill in the table
 
-1. Run `make table`, which reprints the `YOUR NUMBERS` summary, and copy the numbers into this
-   table by hand. Typing them is the exercise.
+1. Run `make table`, which reprints the `YOUR NUMBERS` summary, and copy what it prints into
+   this table by hand, on paper or in your own notes. Typing it is the exercise.
    For "cells reported", say whether your number includes the `$scopeinfo` markers.
 
    | | iCE40 UP5K (FPGA) | SKY130 (ASIC) |
@@ -263,7 +267,7 @@ millimetre, so `110.105600 µm²` is a price.
    | size of that file | | |
 
    This lab doesn't produce the ASIC handover file, a GDSII layout; you'll make one in Lab 05.
-   Write down its name and leave its size blank.
+   Write GDSII in that row and leave its size blank.
 
 You should see two columns whose rows do not share units. There is no conversion factor between
 `10/5280` and `110.1056 µm²`: "it fits" is an FPGA answer, and "it costs this much silicon" is an
@@ -292,14 +296,13 @@ Can you get the adder's area from the area of one full adder?
 2. Multiply by four to get the area you would predict for `ripple4` from one adder alone, and
    write it down.
 
-3. Compare your prediction with the area you measured in Part 4, and look at the two cell lists
-   to see where the difference came from.
+3. Compare your prediction with the area you measured in Part 4, and look at the two cell lists.
+   Then open `asic.ys`, the script `make asic` runs, and read the command just before `abc`.
 
 You should see a prediction of $4 \times 33.7824 = 135.1296\ \mu\text{m}^2$ against a
 measured 110.1056 µm²: the chained adder is 18.5 % smaller than your prediction.
 
-Where did the difference come from, and what in `asic.ys`, the script `make asic` runs, made it
-possible?
+Where did the difference come from, and what in `asic.ys` made it possible?
 
 <details>
 <summary>Answer</summary>
