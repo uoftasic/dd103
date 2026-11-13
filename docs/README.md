@@ -70,6 +70,8 @@ them through:
 - [The synthesizable subset](reference/synthesizable-subset.md)
 - [When Yosys says syntax error](reference/yosys-syntax-errors.md)
 - [OpenLane, OpenLane 2, LibreLane](reference/the-name-history.md)
+- [Troubleshooting](reference/troubleshooting.md): tool messages in the labs that aren't your
+  design's fault
 
 If you get stuck, ask in the [team Discord](https://discord.gg/hrJnP5UsGz). See
 [Getting help](guide/getting-started.md#getting-help) for what to include in your question.

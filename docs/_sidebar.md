@@ -24,6 +24,7 @@
   - [The synthesizable subset](reference/synthesizable-subset.md)
   - [When Yosys says syntax error](reference/yosys-syntax-errors.md)
   - [OpenLane, OpenLane 2, LibreLane](reference/the-name-history.md)
+  - [Troubleshooting](reference/troubleshooting.md)
 - **Repo**
   - [Lab packages](https://github.com/uoftasic/dd103/tree/main/labs)
   - [Scripts](https://github.com/uoftasic/dd103/tree/main/scripts)
