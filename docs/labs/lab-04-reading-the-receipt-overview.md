@@ -513,7 +513,7 @@ from [Carry delay and static timing](guide/the-carry-has-to-walk.md) on `src/rip
    NETLIST=results/gates64.v sta -exit scripts/timing.tcl | grep "data arrival"
    ```
 
-   You should see `24.996   data arrival time`.
+   You should see `24.996   data arrival time`. How close was your prediction?
 
    <details>
    <summary>Answer</summary>
