@@ -268,7 +268,7 @@ What does `stat` report for latches that never get mapped to a library cell?
 
 You should see the two `$_DLATCH_N_` still in the mapped netlist,
 `Area for cell type $_DLATCH_N_ is unknown!`, a chip area of `21.270400`, and `0.00%`
-sequential.
+sequential. How does that compare with your step 2 number, and why?
 
 <details>
 <summary>Answer</summary>
@@ -416,8 +416,7 @@ Why do Verilator, Yosys and Icarus all say nothing about `add8.sv`?
 <summary>Answer</summary>
 
 Because nothing in `add8.sv` is inconsistent. It declares an eight-bit `sum`, so the carry is
-never computed:
-not truncated, never built. Widening `sum` to `[8:0]`, as `add9.sv` does, costs one
+never computed: not truncated, never built. Widening `sum` to `[8:0]`, as `add9.sv` does, costs one
 `sky130_fd_sc_hd__maj3_1`, 10.01 µm², and gets you `300`.
 
 </details>
