@@ -29,7 +29,8 @@ uses LibreLane and does need the full workbench.
 
 ## What you'll do
 
-DD102 ended with a 4-bit ripple adder you wrote yourself. DD103 starts from that file. You'll:
+DD102 ended with a 4-bit ripple adder you wrote yourself. DD103 starts from the same adder.
+You'll:
 
 1. Run one `ripple4.sv` through two synthesis flows and get two different pieces of hardware
 2. See your RTL as a diagram, then see the same design as named standard cells from SKY130,
@@ -42,9 +43,9 @@ DD102 ended with a 4-bit ripple adder you wrote yourself. DD103 starts from that
 
 ![The Lab 02 counter hardened to GDSII and opened in KLayout: the die outline, the standard-cell rows filling the core, the routing on top, and the sky130A layer list on the right](assets/img/dd103-klayout-counter-gds.png)
 
-*The four-bit counter from Lab 02, after LibreLane at `FP_CORE_UTIL: 30`. It is 35.5 µm by
-46.3 µm with 98 cell instances, opened in KLayout with the SKY130 layer palette. The cell list
-on the left is every standard cell it is made of.*
+*The four-bit counter you'll synthesize in Lab 02, taken through LibreLane at `FP_CORE_UTIL: 30`
+(Lab 05 explains the setting). It is 35.5 µm by 46.3 µm with 98 cell instances, opened in KLayout
+with the SKY130 layer palette. The cell list on the left is every standard cell it is made of.*
 
 ## Course path
 
@@ -58,7 +59,7 @@ commands to run. A Do row is one lab, where you run everything.
 | 3 | Read | [FPGA and ASIC targets](guide/warehouse-and-empty-lot.md) · [What synthesis does](guide/synthesis-is-translation.md) · [Standard cells](guide/standard-cells-are-real.md) | 1.5 h |
 | 4 | Do | [Lab 02: RTL becomes gates](labs/lab-02-rtl-becomes-gates-overview.md). Draw a full adder before and after it becomes SKY130 cells, watch each synthesis pass change a counter, and open one cell in the library. | 2.5 h |
 | 5 | Read | [Synthesizable SystemVerilog](guide/the-hardware-dialect.md) · [Inferred latches](guide/the-latch-you-didnt-ask-for.md) · [Blocking and non-blocking assignments](guide/blocking-vs-nonblocking.md) | 1.5 h |
-| 6 | Do | [Lab 03: Three ways to lose a latch](labs/lab-03-three-ways-to-lose-a-latch-overview.md). Synthesize and lint one incomplete `case` under five headers, and count the flip-flops that `=` and `<=` build. | 2.5 h |
+| 6 | Do | [Lab 03: Three ways to lose a latch](labs/lab-03-three-ways-to-lose-a-latch-overview.md). Synthesize and lint one incomplete `case` written five ways, and count the flip-flops that `=` and `<=` build. | 2.5 h |
 | 7 | Read | [Reading the `stat` report](guide/reading-stat.md) · [Carry delay and static timing](guide/the-carry-has-to-walk.md) | 1 h |
 | 8 | Do | [Lab 04: Reading the receipt](labs/lab-04-reading-the-receipt-overview.md). Predict flip-flop counts, areas and delays before the tools report them, and work out why your predictions miss. | 3 h |
 | 9 | Read | [Writing a state machine](guide/state-machine-is-a-table.md) · [From netlist to layout](guide/from-gates-to-geometry.md) | 1 h |
