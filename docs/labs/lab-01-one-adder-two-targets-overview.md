@@ -188,8 +188,9 @@ the bitstream loads.
 
    No: `results/ripple4.bin` is still 104,090 bytes. It is not a description of your adder. It
    configures every LUT, every routing switch and every I/O buffer on the entire UP5K, including
-   every logic cell you left empty (5,270 of them with the whole `ripple4`). A GDSII is the
-   opposite: it describes only what you built, and it grows when your design does.
+   every logic cell you left empty (5,270 of them with the whole `ripple4`). A GDSII, the layout
+   file an ASIC flow hands over, is the opposite: it describes only what you built, and it grows
+   when your design does.
 
    </details>
 
@@ -269,8 +270,8 @@ millimetre, so `110.105600 µm²` is a price.
 How do the two targets' answers to "how big is it?" compare?
 
 1. Run `make table`, which reprints the `YOUR NUMBERS` summary. Copy its numbers into this table
-   by hand, on paper or in your own notes, and fill the other rows from Parts 3 and 4. Typing
-   them is the exercise.
+   by hand, on paper or in your own notes, and fill the other rows from Parts 3 and 4. Copying
+   them yourself is the exercise.
    For "cells reported", say whether your number includes the `$scopeinfo` markers.
 
    | | iCE40 UP5K (FPGA) | SKY130 (ASIC) |
@@ -404,7 +405,12 @@ counted in the lab's time.
 
 2. Run `make` and compare its `YOUR NUMBERS` summary with your Part 5 table.
 
-3. Put the shipped adder back with `git checkout src/ripple4.sv`.
+3. Put the shipped adder back and rebuild, so `make table` shows the shipped numbers again:
+
+   ```bash
+   git checkout src/ripple4.sv
+   make
+   ```
 
 If you wrote the carry differently, your numbers will differ. That is a result, not an error:
 two adders that simulate identically can synthesize to different cells. Write down what you got.
