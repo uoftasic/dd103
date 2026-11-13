@@ -23,6 +23,7 @@
 - **Reference**
   - [The synthesizable subset](reference/synthesizable-subset.md)
   - [When Yosys says syntax error](reference/yosys-syntax-errors.md)
+  - [Looking things up in the SKY130 library](reference/sky130-library-lookups.md)
   - [OpenLane, OpenLane 2, LibreLane](reference/the-name-history.md)
   - [Troubleshooting](reference/troubleshooting.md)
 - **Repo**
