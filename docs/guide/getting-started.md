@@ -1,8 +1,8 @@
 # Getting started
 
 This page explains the environment DD103 runs in and the setup traps worth knowing about
-before you hit them. You'll do the actual setup in
-[Lab 01, Part 1](labs/lab-01-one-adder-two-targets-overview.md#part-1-set-up-the-workbench).
+before you hit them. You'll load the course in
+[Lab 01, Part 1](labs/lab-01-one-adder-two-targets-overview.md#part-1-load-the-course).
 
 You already did the hard part in [IC101](https://uoftasic.com/ic101/): Docker is installed,
 the `workspace` repo is cloned, and the noVNC desktop comes up in your browser. DD103 installs
