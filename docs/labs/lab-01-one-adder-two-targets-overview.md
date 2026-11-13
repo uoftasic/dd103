@@ -90,6 +90,8 @@ You should see the five lab packages, `lab-01-one-adder-two-targets` through `la
 
 ## Part 2: Run both flows
 
+Do both flows run on your workbench?
+
 1. Go to the lab package and run both flows:
 
    ```bash
@@ -168,8 +170,9 @@ the bitstream loads.
    ```
 
    Yosys warns `Wire ripple4.\sum [3] is used but has no driver.`, and the same for `sum [2]`,
-   `sum [1]` and `c [4]`, because you deleted the adders that drove them; with `c [4]` gone,
-   `cout` is undriven too, so only `sum[0]` is left to compute. The synthesis report now shows
+   `sum [1]` and `c [4]`, because you deleted the adders that drove them. With `c [4]` gone,
+   `cout` is undriven too, and Yosys warns about `\cout` as well, so only `sum[0]` is left to
+   compute. The synthesis report now shows
    `1   SB_LUT4`, and the placement report `ICESTORM_LC:       3/   5280`.
 
    Did the bitstream shrink? Compare the size `make fpga` printed with your guess.
@@ -257,6 +260,8 @@ millimetre, so `110.105600 µm²` is a price.
 
 ## Part 5: Fill in the table
 
+How do the two targets' answers to "how big is it?" compare?
+
 1. Run `make table`, which reprints the `YOUR NUMBERS` summary. Copy its numbers into this table
    by hand, on paper or in your own notes, and fill the other rows from Parts 3 and 4. Typing
    them is the exercise.
@@ -275,8 +280,7 @@ millimetre, so `110.105600 µm²` is a price.
    Write GDSII in that row and leave its size blank.
 
 You should see two columns whose rows do not share units. There is no conversion factor between
-`10/5280` and `110.1056 µm²`: "it fits" is an FPGA answer, and "it costs this much silicon" is an
-ASIC answer.
+`10/5280` and `110.1056 µm²`.
 
 ## Part 6: Predict the 4-bit area
 
@@ -378,8 +382,8 @@ covers this, and how real chips use a memory macro instead.
 
 ## Part 8: Your own adder (optional)
 
-Not counted in the lab's time. Run your DD102 adder through both flows and compare it with the
-shipped one.
+Does the adder you wrote in DD102 build the same hardware as the shipped one? This part is not
+counted in the lab's time.
 
 1. Your `workspace` folder on your laptop is mounted at `/foss/designs` in the container, so put
    your DD102 `ripple4.sv` somewhere inside the `workspace` folder, then copy it from there:
