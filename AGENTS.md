@@ -44,13 +44,44 @@ Lab IDs: `lab-NN-short-name` (for example `lab-02-rtl-becomes-gates`).
    - `src/`: HDL / Python / entry points
    - `data/`: small inputs (large binaries → Git LFS or external)
    - `requirements.txt` or tool notes when needed
-2. Add `docs/labs/<lab-id>-overview.md` with: what you'll build or measure (2–3 lines), before you
-   start (guide pages to read first, setup), a time estimate, numbered parts with numbered steps,
-   each part ending in a concrete "you should see" check, and a finishing section (how to check
-   you're done, what to submit if anything).
+2. Add `docs/labs/<lab-id>-overview.md`, titled `# Lab NN: Title`, with:
+   - what you'll build or measure (2–3 lines), before you start (guide pages to read first,
+     setup) and a time estimate;
+   - numbered parts with numbered steps, each part opening with the one question it answers and
+     ending in a concrete "you should see" check. Keep a part to about eight steps; move
+     look-ups that don't answer its question to Going further;
+   - at least one required part where the student produces something: edits a file, writes a
+     test, or writes a number down before checking it;
+   - questions at the step where they arise, with the answer in a collapsed block directly under
+     the question (`<details>`, then `<summary>Answer</summary>`, a blank line, the answer, a
+     blank line, `</details>`). Where a student can reasonably predict a result, ask for the
+     prediction before the command that prints it;
+   - optional parts at the end, marked "(optional)" in the header and left out of the time
+     estimate;
+   - a Finishing section with three parts in this order: **You're done when** (one checkable
+     line tied to the student's own work, not the shipped `PASS`), **Questions** (each with a
+     collapsed answer or a pointer to the step that answers it) and **Submit** (what to submit,
+     or "Nothing to submit."). Then Going further (optional), and a last line that starts
+     "Next on the [Course path](README.md#course-path):".
+
+   Lab 01's Part 1 is "Load the course": link IC101 Lab 03 for the workbench, then load
+   `.designinit`, run `mod add <course>`, check the tool versions the printed results depend on,
+   and list only the troubleshooting rows specific to this course. Aim for at most about 2,500
+   words; troubleshooting entries and other look-up material go on a `docs/reference/` page,
+   linked from the step where they come up.
 3. Add a Do row to the Course path in `docs/README.md`, and link the writeup from
-   `docs/_sidebar.md` in the same position (and from `_navbar.md` only if it belongs in the top
-   nav).
+   `docs/_sidebar.md` in the same position, as `Lab NN: Title` (and from `_navbar.md` only if it
+   belongs in the top nav). Every Course path table uses the same format:
+
+   ```
+   | # | | What | Time |
+   |---|---|---|---|
+   | 1 | Read | [Page](guide/page.md) · [Page](guide/page.md) | 45 min |
+   | 2 | Do | [Lab 01: Title](labs/lab-01-...-overview.md). One sentence on what you'll do. | 1.5 h |
+   ```
+
+   Read and Do are plain text, every Do row ends with one sentence on what you'll do, and the row
+   times add up to the total on the home page.
 4. Cross-link: writeup → GitHub `labs/<lab-id>/`; package README → `docs/labs/<lab-id>-overview.md`.
 
 Writeups are where students do things; packages execute. Don't paste long HDL into Docsify pages;
