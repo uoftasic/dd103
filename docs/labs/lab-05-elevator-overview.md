@@ -5,7 +5,7 @@ You'll finish a four-floor elevator controller from a state table and take it al
 picture. You start from `src/elevator.sv`, a working three-state elevator that is a bad elevator
 in two specific ways. Fixing those two things is the design half of the lab.
 
-Time: about 4–5 hours.
+Time: about 4–5 hours, not counting Going further.
 
 Package: [`labs/lab-05-elevator/`](https://github.com/uoftasic/dd103/tree/main/labs/lab-05-elevator)
 
@@ -30,7 +30,8 @@ LIB=/foss/pdks/sky130A/libs.ref/sky130_fd_sc_hd/lib/sky130_fd_sc_hd__tt_025C_1v8
 
 ## Part 1: Warm up on the vending machine
 
-The vending machine from [Writing a state machine](guide/state-machine-is-a-table.md) ships in
+How many flip-flops does Yosys build for a three-bit state register, and what happens when a
+state machine's `always_comb` is incomplete? The vending machine from [Writing a state machine](guide/state-machine-is-a-table.md) ships in
 `examples/vending.sv`.
 
 1. Synthesize it:
@@ -78,8 +79,16 @@ The vending machine from [Writing a state machine](guide/state-machine-is-a-tabl
              dfflibmap -liberty $LIB; abc -liberty $LIB; opt_clean; stat -liberty $LIB"
    ```
 
-   You should see three `sky130_fd_sc_hd__dfrtp_1`. Compare the area with the one-hot run in
-   step 1.
+   You should see three `sky130_fd_sc_hd__dfrtp_1` and a chip area of `187.680000`. Compare the
+   area with the one-hot run in step 1.
+
+   <details>
+   <summary>Answer</summary>
+
+   Binary is smaller here: 187.68 µm² against the one-hot run's 231.472. It has three flip-flops
+   instead of six.
+
+   </details>
 
 5. Lint it:
 
@@ -91,7 +100,8 @@ The vending machine from [Writing a state machine](guide/state-machine-is-a-tabl
 
 6. Break it on purpose. In `vending.sv`, delete the three default assignments at the top of the
    `always_comb` (`next = state;`, `dispense = 1'b0;`, `refund = 1'b0;`) and the
-   `default: next = IDLE;` line. Then run `synth` and the linter again:
+   `default: next = IDLE;` line. Write down what you expect Yosys and Verilator to say, then run
+   `synth` and the linter again:
 
    ```bash
    yosys -p "read_verilog -sv vending.sv; synth -top vending" 2>&1 | grep -B1 ERROR
@@ -107,17 +117,11 @@ The vending machine from [Writing a state machine](guide/state-machine-is-a-tabl
    cd ..
    ```
 
-7. Optional: write `tb_vending.sv` yourself. Hold `rst_n` low for two cycles, pulse `nickel` or
-   `dime` for one cycle at a time, and `$display` whenever `dispense` goes high. Run it with
-   `iverilog -g2012 -o ../results/tb_vending.vvp tb_vending.sv vending.sv` and
-   `vvp ../results/tb_vending.vvp` from `examples/`. Two dimes and four nickels should each
-   dispense with `refund=0`, and a nickel then two dimes should dispense with `refund=1`.
-
 You should be back in `labs/lab-05-elevator` with `vending.sv` unchanged.
 
 ## Part 2: The skeleton
 
-The elevator is a Moore machine with three things to remember:
+What does the shipped elevator do, and which checks does it fail? The elevator is a Moore machine with three things to remember:
 
 | Register | Width | What it holds |
 |---|---|---|
@@ -152,6 +156,12 @@ argues with it.
    make sim
    ```
 
+2. Before you edit anything, keep a copy of the skeleton for Part 5:
+
+   ```bash
+   cp src/elevator.sv results/elevator_skeleton.sv
+   ```
+
 You should see lint exit 0 on code you did not write, then six checks, three of which fail:
 
 ```
@@ -176,12 +186,12 @@ make: *** [Makefile:32: sim] Error 1
 
 The skeleton lints clean, synthesizes, and hardens to a valid chip. Every tool check passes, and
 it still strands people on floor 3. The only thing that caught it was a test that describes what
-the machine is for. Before you edit anything, keep a copy of the skeleton for Part 5:
-`cp src/elevator.sv results/elevator_skeleton.sv`.
+the machine is for.
 
 ## Part 3: The call queue (TODO 1)
 
-Right now the priority encoder reads `call` directly. If you press a button and let go while the
+How does the elevator remember a call after the button is released? Right now the priority
+encoder reads `call` directly. If you press a button and let go while the
 machine is busy, nobody comes.
 
 1. Declare `logic [3:0] pending;` and reset it to `4'd0`.
@@ -197,12 +207,21 @@ machine is busy, nobody comes.
 
 You should see T3 and the second half of T5 pass.
 
-Two things want to write `pending`: the buttons setting bits and the doors clearing one. Written as
-two separate `if` statements in the same `always_ff`, the last one wins, and a press that lands on
-the same tick as a service is lost. With one register and one assignment, both effects live in the
-expression. Every status register in every chip is written this way.
+Two things want to write `pending`: the buttons setting bits and the doors clearing one. Why does
+step 4 give it one assignment instead of two `if` statements?
+
+<details>
+<summary>Answer</summary>
+
+Written as two separate `if` statements in the same `always_ff`, the last one wins, and a press
+that lands on the same tick as a service is lost. With one register and one assignment, both
+effects live in the expression. Every status register in every chip is written this way.
+
+</details>
 
 ## Part 4: A fifth state and a timer (TODO 2 and 3)
+
+How do you hold the doors open for a fixed number of ticks?
 
 1. Add `DWELL` and `DOOR_SHUT` to the `typedef enum`.
 2. Declare `logic [3:0] dwell;`.
@@ -231,34 +250,29 @@ T4  tap call[0] and time the doors
 ALL CHECKS PASSED
 ```
 
-It is six ticks, not four: one tick in `DOOR_OPEN` plus five in `DWELL` while the counter goes 4,
-3, 2, 1, 0. Notice that no decision lives in the `always_ff`; it reads two wires the `always_comb`
-already worked out. When the machine misbehaves, you have exactly one block to look at, the one
-with the `case` in it.
+`DWELL_TICKS` is 4, but the doors stayed open for six ticks. Where do the six come from?
 
-> You may hit either of these errors, from tools that disagree with each other. Neither is a bug in
-> your logic.
->
-> Icarus rejects an enum assigned through a ternary:
->
-> ```
-> src/elevator.sv:89: error: This assignment requires an explicit cast.
-> ```
->
-> That is `next = (a == b) ? DOORS : MOVING;`. Verilator accepts it and `iverilog -g2012` does not.
-> Write it as `if`/`else` and both are happy.
->
-> If you write a comment that starts with the word `verilator`, Verilator reads it as a directive
-> aimed at itself:
->
-> ```
-> %Error-BADVLTPRAGMA: solutions/elevator.sv:12:1: Unknown verilator comment:
->                      '/*verilator --lint-only -Wall -> exit 0*/'
-> ```
+<details>
+<summary>Answer</summary>
+
+One tick in `DOOR_OPEN` plus five in `DWELL` while the counter goes 4, 3, 2, 1, 0.
+
+</details>
+
+Notice that no decision lives in the `always_ff`; it reads two wires the `always_comb` already
+worked out. When the machine misbehaves, you have exactly one block to look at, the one with the
+`case` in it.
+
+If Icarus says `This assignment requires an explicit cast.` or Verilator stops on a comment with
+`%Error-BADVLTPRAGMA`, neither is a bug in your logic: see
+[Troubleshooting](reference/troubleshooting.md#icarus-wants-an-explicit-cast).
 
 ## Part 5: Compare the receipts
 
-1. Run `make synth` on your finished design:
+What did the call queue, the timer and two more states cost in silicon?
+
+1. The skeleton has 7 flip-flops. Write down how many you expect your finished design to have.
+   Then run `make synth` on it:
 
    ```
    === elevator ===
@@ -282,12 +296,25 @@ with the `case` in it.
 | flip-flops | 7 | 17 |
 | sequential share | 46.08 % | 55.72 % |
 
-You should see that eight extra flip-flops, four for `pending` and four for `dwell`, roughly
-doubled the chip. Seventeen flops are 22 % of the cells and 55.72 % of the area. A `dfrtp_1` costs
-25.02 µm² and a `nand2_1` costs 3.75, so state is the expensive part. That is why engineers argue
-about minimizing states, and you now have your own number for it.
+You should see that the finished design is roughly twice the skeleton. Where did the ten extra
+flip-flops come from?
+
+<details>
+<summary>Answer</summary>
+
+Eight are `pending` and `dwell`, four bits each. The other two come from the state machine: with
+`-nofsm`, which stops Yosys making the state register one-hot (see Going further), the finished
+design has 15.
+
+Seventeen flops are 22 % of the cells and 55.72 % of the area. A `dfrtp_1` costs 25.02 µm² and a
+`nand2_1` costs 3.75, so state is the expensive part. That is why engineers argue about
+minimizing states, and you now have your own number for it.
+
+</details>
 
 ## Part 6: The RTL view
+
+Which diagram of the finished design is worth drawing?
 
 1. Run `make show`, then open `results/elevator_rtl.svg` in the browser or with `xdg-open`.
 2. Search the SVG for your own signal names: `floor`, `target`, `pending`, `dwell`, `state`,
@@ -296,15 +323,15 @@ about minimizing states, and you now have your own number for it.
 You should see a wide strip, 6503 × 1566 pt for the finished design, with your names on the wires
 and five register boxes for your five multi-bit state elements.
 
-Do not run `show` on the gate netlist. Measured on this design, the gate-level diagram comes out
-883 × 9018 pt, a vertical ribbon ten times taller than it is wide with 76 unlabelled boxes in it.
-The readable gate view in [Lab 02](labs/lab-02-rtl-becomes-gates-overview.md) was a two-cell full
-adder, which is about the size where `show` stops helping. Once the design is mapped to cells, you
-look at it as a layout, which is Part 9.
+Do not run `show` on the gate netlist. Measured on this design, it comes out 883 × 9018 pt, a
+vertical ribbon ten times taller than it is wide with 76 unlabelled boxes in it; the readable
+gate view in [Lab 02](labs/lab-02-rtl-becomes-gates-overview.md) was a two-cell full adder. Once
+the design is mapped to cells, you look at it as a layout, which is Part 9.
 
 ## Part 7: RTL to GDSII
 
-`config.json` is already written. Read it before you run it:
+What does it take to turn your elevator into a layout, and how do you know it built the chip you
+meant? `config.json` is already written. Read it before you run it:
 
 ```json
 {
@@ -362,10 +389,9 @@ Three things in it to notice:
    On a 6-core laptop with 7.5 GB of RAM this took 59 seconds of wall-clock time and peaked at
    525 MB. If yours takes noticeably longer, your design got bigger, not broken.
 
-   A dozen `WARNING` lines follow. They are normal on a design with no SDC file and no power source
-   location: `'PNR_SDC_FILE' is not defined`, `found 2 floating nets`,
-   `LEF58_ENCLOSURE with no CUTCLASS is not supported`. None of them is a failure. The three ✅
-   lines are the results that matter, and Part 8 checks them properly.
+   A dozen `WARNING` lines follow. They are normal, and
+   [Troubleshooting](reference/troubleshooting.md#warning-lines-after-make-harden) lists them. The
+   three ✅ lines are the results that matter, and Part 8 checks them properly.
 
 2. Confirm you built the chip you meant to:
 
@@ -377,12 +403,13 @@ Three things in it to notice:
 You should see a liberty path under `/foss/pdks/sky130A/libs.ref/sky130_fd_sc_hd/lib/` and
 `"PDK": "sky130A",`. If the path says `ihp-sg13g2`, your `PDK` key is not being read.
 
-> Re-running with the same tag does not start over. LibreLane prints
-> `INFO Using existing run at 'v1'` and appends stages 78, 79, 80… onto the finished run, which is
-> confusing and doubles the disk use. Use a new tag every time: `make harden TAG=v2`. Don't reach
-> for `--overwrite`; it crashes with a Python traceback when `runs/` does not exist yet.
+> Use a new tag every time you harden: `make harden TAG=v2`. Re-running with the same tag
+> appends onto the finished run instead of starting over; see
+> [Troubleshooting](reference/troubleshooting.md#re-running-make-harden-with-the-same-tag).
 
 ## Part 8: The report card
+
+Is the chip clean, and what is on it besides your logic?
 
 1. Print the metrics:
 
@@ -435,11 +462,15 @@ You should see a liberty path under `/foss/pdks/sky130A/libs.ref/sky130_fd_sc_hd
    `design__instance__count`: every instance on the die is a SKY130 cell. A count of `0` would mean
    you hardened a different technology.
 
-Three of the metrics need explaining.
+Three of the metrics need explaining. Answer each from your own run.
 
-`design__instance__count__stdcell` is 148, where Yosys said 76. The extra instances are real cells
-the flow added after synthesis: a clock tree, hold-fix delay cells and antenna diodes. The logs
-show what was inserted:
+`design__instance__count__stdcell` is 148, where Yosys said 76. What are the other 72?
+
+<details>
+<summary>Answer</summary>
+
+Real cells the flow added after synthesis: a clock tree, hold-fix delay cells and antenna
+diodes. The logs show what was inserted:
 
 ```
 [INFO CTS-0018]     Created 3 clock buffers.
@@ -453,12 +484,26 @@ The fix is to slow the path down on purpose, which is why the layout contains 32
 buffers costing 320.31 µm², and why `timing__hold__ws` came out at +0.108 ns: just positive,
 because that is what the resizer aims for.
 
-`timing__setup__ws` is +11.66 ns on a 20 ns clock. Your longest path takes about 8.3 ns, so this
-elevator would run at roughly 120 MHz. It has 11.66 ns of headroom it isn't using, which you could
-spend on more floors or a smarter scheduler.
+</details>
 
-The finished layout contains 481 physical cells. `metrics.json` counts 148 of them as standard-cell
-instances, and only 118 of those compute anything:
+`timing__setup__ws` is +11.66 ns on a 20 ns clock. Roughly how fast could this elevator run?
+
+<details>
+<summary>Answer</summary>
+
+Your longest path takes about 8.3 ns, so this elevator would run at roughly 120 MHz. It has
+11.66 ns of headroom it isn't using, which you could spend on more floors or a smarter
+scheduler.
+
+</details>
+
+The finished layout contains 481 physical cells, and `metrics.json` counts 148 of them as
+standard-cell instances. How many of the 481 compute anything?
+
+<details>
+<summary>Answer</summary>
+
+Only 118 of the 148 do:
 
 | | count | what it is |
 |---|---|---|
@@ -475,9 +520,12 @@ make the silicon manufacturable, not to make the elevator work. That is normal, 
 area number from `stat` always underestimates the rectangle you end up paying for: 765.73 µm² of
 cells landed in a 4553.88 µm² die.
 
+</details>
+
 ## Part 9: The layout
 
-The flow already rendered it, with no screenshot or X server needed.
+What does your chip look like, and which file is the deliverable? The flow already rendered it,
+with no screenshot or X server needed.
 
 1. Find the render, then open it in the noVNC desktop's browser or with `xdg-open`:
 
@@ -509,7 +557,13 @@ else would build on, the abstract view someone else would place next to their bl
 
 ## Finishing
 
-You are done when this table is filled in from your own run:
+### You're done when
+
+`make sim` prints `ALL CHECKS PASSED` for your `src/elevator.sv`, and `make metrics` on your
+hardened run shows 0 for all four error counts, positive setup and hold slack, and a synthesis
+log that names `sky130_fd_sc_hd`, not `sg13g2`.
+
+Fill in this table from your own run to keep a record:
 
 | | Your number | Ours |
 |---|---|---|
@@ -525,21 +579,35 @@ You are done when this table is filled in from your own run:
 | wall-clock time for `make harden` | | 59 s |
 | `runs/<tag>/final/gds/elevator.gds` exists | | 420,588 bytes |
 
-Your numbers will not match ours exactly, and shouldn't: a different call-scheduling rule or one
-extra state moves everything. These must match:
-
-- all six checks pass
-- the four error counts are zero
-- setup and hold slack are both positive
-- the synthesis log names `sky130_fd_sc_hd`, not `sg13g2`
-
 If you are within about 20 % on cells and area, you built the same kind of thing we did. When all
 six of your own checks pass, compare your design with the
 [reference implementation](https://github.com/uoftasic/dd103/tree/main/labs/lab-05-elevator/solutions).
-Keep two files from this lab: `elevator.sv` and `runs/<tag>/final/metrics.json`.
 
-## Going further
+### Questions
 
+1. Your numbers won't match ours exactly. Why not, and which ones have to?
+
+   <details>
+   <summary>Answer</summary>
+
+   A different call-scheduling rule or one extra state moves everything, so they shouldn't. These
+   must match: all six checks pass, the four error counts are zero, setup and hold slack are both
+   positive, and the synthesis log names `sky130_fd_sc_hd`, not `sg13g2`.
+
+   </details>
+
+### Submit
+
+Nothing to submit. Keep two files from this lab: `elevator.sv` and
+`runs/<tag>/final/metrics.json`.
+
+## Going further (optional)
+
+- Write `tb_vending.sv` for the Part 1 vending machine yourself. Hold `rst_n` low for two
+  cycles, pulse `nickel` or `dime` for one cycle at a time, and `$display` whenever `dispense` goes high. Run it with
+  `iverilog -g2012 -o ../results/tb_vending.vvp tb_vending.sv vending.sv` and
+  `vvp ../results/tb_vending.vvp` from `examples/`. Two dimes and four nickels should each
+  dispense with `refund=0`, and a nickel then two dimes should dispense with `refund=1`.
 - Delete a state. Merge `DOOR_SHUT` into `DWELL` and re-run `make synth`. You lose a state and
   gain a condition. Write down whether you expect the chip to shrink before you look.
 - Argue with the scheduler. Lowest-pending-floor-first means somebody on floor 3 waits forever
@@ -560,6 +628,6 @@ Keep two files from this lab: `elevator.sv` and `runs/<tag>/final/metrics.json`.
 - Compare with someone else. Two people who both passed all six checks will have different cell
   counts, die sizes and slack. Find out which of your two decisions caused the biggest gap.
 
-That is the end of DD103.
+Next on the [Course path](README.md#course-path): this was the last row, and the end of DD103.
 [DD104: Pre-Silicon Verification](https://uoftasic.com/dd104/) opens by putting your numbers next to
 an 8-bit CPU's, a few thousand cells against your 76, and asking you to find the bugs in it.
