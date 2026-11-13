@@ -1,11 +1,13 @@
 # Lab 01: One adder, two targets
 
 You'll load DD103 into your workbench (the IIC-OSIC-TOOLS container desktop you run from the
-`workspace` repo), then run your DD102 ripple-carry adder through two synthesis flows, one for
-an iCE40 FPGA and one for SKY130 standard cells, and write down what each one built. You'll
-finish by sending a 2 KB memory to both targets.
+`workspace` repo), then run a 4-bit ripple-carry adder through two synthesis flows, one for an
+iCE40 FPGA and one for SKY130 standard cells, and write down what each one built. Along the way
+you'll predict three numbers before the tools print them, and finish by sending a 2 KB memory to
+both targets.
 
-Time: about 1.5 hours. The tools themselves run in seconds.
+Time: about 1.5 hours. The tools themselves run in seconds. The optional Part 8 and Going further
+are not counted.
 
 Package: [`labs/lab-01-one-adder-two-targets/`](https://github.com/uoftasic/dd103/tree/main/labs/lab-01-one-adder-two-targets)
 
@@ -13,7 +15,8 @@ Package: [`labs/lab-01-one-adder-two-targets/`](https://github.com/uoftasic/dd10
 
 - [IC101](https://uoftasic.com/ic101/) is complete: the noVNC desktop opens and you can get a
   terminal on it.
-- [DD102](https://uoftasic.com/dd102/) is complete, and you have a `ripple4.sv` you wrote.
+- [DD102](https://uoftasic.com/dd102/) is complete. If you have the `ripple4.sv` you wrote
+  there, you can run it in the optional Part 8.
 - Read [Getting started](guide/getting-started.md).
 
 ## Part 1: Load the course
@@ -83,31 +86,21 @@ You should see `ls labs/` list the five lab packages, `lab-01-one-adder-two-targ
 
 ## Part 2: Run both flows
 
-1. Go to the lab package and, optionally but recommended, drop in your own adder. Your
-   `workspace` folder on your laptop is mounted at `/foss/designs` in the container, so first put
-   your DD102 `ripple4.sv` somewhere inside the `workspace` folder, then copy it from there:
+1. Go to the lab package and run both flows:
 
    ```bash
    cd labs/lab-01-one-adder-two-targets
-   cp /foss/designs/path/to/your/ripple4.sv src/ripple4.sv
-   ```
-
-   Keep the module named `ripple4` with ports `a`, `b`, `cin`, `sum`, `cout`. If it
-   instantiates a `fulladder`, keep that in `src/fulladder.sv`. The package README covers
-   other file layouts. The numbers in this writeup come from the shipped adder, so with your
-   own expect different ones; `git checkout src/ripple4.sv` puts the shipped one back.
-
-2. Run both flows:
-
-   ```bash
    make
    ```
 
 You should see `make` finish in a couple of seconds with a `YOUR NUMBERS` summary at the end
-and no red. `make` already ran both flows. Parts 3 and 4 look at each flow's output in turn;
-`make fpga` and `make asic` re-run one flow each if you want to watch it again.
+and no red. `make` already ran both flows; Parts 3 and 4 look at each flow's output in turn.
+`make fpga` and `make asic` re-run one flow each. Every number in this writeup comes from the
+adder shipped in `src/`. You'll run your own in Part 8.
 
 ## Part 3: The FPGA flow
+
+What did the FPGA flow build, and does its output grow with your design?
 
 On an FPGA the cells already exist in silicon. An iCE40 `SB_LUT4` is four inputs, sixteen bits
 of configuration memory and a multiplexer. It can be any 4-input Boolean function, chosen when
@@ -149,10 +142,54 @@ the bitstream loads.
    [FPGA and ASIC targets](guide/warehouse-and-empty-lot.md) explains. `icepack` then turns the
    placed design into the bitstream `results/ripple4.bin`, 104,090 bytes.
 
-You should see logic-cell and I/O counts that are each out of a fixed total: `10/5280`, `14/39`. An FPGA design does not get bigger; it gets closer to not fitting. "Does it fit?" is
-the question you'll be asked about an FPGA design, and this report answers it.
+   What does the `/5280` tell you that a cell count alone doesn't?
+
+   <details>
+   <summary>Answer</summary>
+
+   Every count is out of a fixed total. An FPGA design does not get bigger; it gets closer to not
+   fitting. "Does it fit?" is the question you'll be asked about an FPGA design, and this report
+   answers it.
+
+   </details>
+
+3. Write down how big you expect `results/ripple4.bin` to be if the design had one full adder
+   instead of four. Then open `src/ripple4.sv`, change `i < 4` to `i < 1` in the `generate`
+   loop, and rebuild only the FPGA side:
+
+   ```bash
+   make fpga
+   ```
+
+   Yosys warns `Wire ripple4.\sum [3] is used but has no driver.`, and the same for `sum [2]`,
+   `sum [1]` and `c [4]`, because you deleted the adders that drove them. The synthesis report
+   now shows `1   SB_LUT4`, and the placement report `ICESTORM_LC:       3/   5280`.
+
+   Did the bitstream shrink? Compare the size `make fpga` printed with your guess.
+
+   <details>
+   <summary>Answer</summary>
+
+   No: `results/ripple4.bin` is still 104,090 bytes. It is not a description of your adder. It
+   configures every LUT, every routing switch and every I/O buffer on the entire UP5K, including
+   every logic cell you left empty (5,270 of them with the whole `ripple4`). A GDSII is the
+   opposite: it describes only what you built, and it grows when your design does.
+
+   </details>
+
+4. Put the shipped adder back and rebuild, so Part 5 reads the right logs:
+
+   ```bash
+   git checkout src/ripple4.sv
+   make fpga
+   ```
+
+You should see `8   SB_LUT4` in `results/fpga-synth.log` again, `10/   5280` and `14/     39` in
+`results/fpga-pnr.log`, and a 104,090-byte `results/ripple4.bin`.
 
 ## Part 4: The ASIC flow
+
+What did the ASIC flow build, and what does its "how big" number measure?
 
 On an ASIC the cells are shapes that will be manufactured. `sky130_fd_sc_hd__maj3_1` is a fixed
 arrangement of fourteen transistors that computes "at least two of these three inputs are
@@ -198,9 +235,17 @@ does not; its logic is built from LUTs that can each be any 4-input function.
    separate pass called `dfflibmap`, which you'll meet in Lab 02. Your adder has no flip-flops,
    so ABC skipping every flop in the library costs you nothing.
 
-You should see a chip area of `110.105600` µm² and no denominator anywhere. An ASIC design
-cannot fail to fit. It just costs more silicon, and silicon is sold by the square millimetre,
-so `110.105600 µm²` is a price.
+You should see a chip area of `110.105600` µm² and no denominator anywhere.
+
+Why is there no denominator, the way there was on the FPGA side?
+
+<details>
+<summary>Answer</summary>
+
+An ASIC design cannot fail to fit. It just costs more silicon, and silicon is sold by the square
+millimetre, so `110.105600 µm²` is a price.
+
+</details>
 
 ## Part 5: Fill in the table
 
@@ -221,10 +266,12 @@ so `110.105600 µm²` is a price.
    Write down its name and leave its size blank.
 
 You should see two columns whose rows do not share units. There is no conversion factor between
-`10/5280` and `110.1056 µm²`. "It fits" is an FPGA answer; "it costs this much silicon" is an
+`10/5280` and `110.1056 µm²`: "it fits" is an FPGA answer, and "it costs this much silicon" is an
 ASIC answer.
 
 ## Part 6: Predict the 4-bit area
+
+Can you get the adder's area from the area of one full adder?
 
 1. Synthesize one full adder on its own and read its area:
 
@@ -245,21 +292,32 @@ ASIC answer.
 2. Multiply by four to get the area you would predict for `ripple4` from one adder alone, and
    write it down.
 
-3. Compare your prediction with the area you measured in Part 4, and look at the cell mix to see
-   where the difference came from.
+3. Compare your prediction with the area you measured in Part 4, and look at the two cell lists
+   to see where the difference came from.
 
 You should see a prediction of $4 \times 33.7824 = 135.1296\ \mu\text{m}^2$ against a
-measured 110.1056 µm²: the chained adder is 18.5 % smaller than your prediction. Alone, the sum
-becomes one `xor3_1` (23.773 µm²). In the chain, ABC used two `xnor2_1` (17.517 µm²) per slice
-instead, because in context it can share the intermediate $a \oplus b$ term across the carry
-path. `asic.ys`, the script `make asic` runs, has a `flatten` before `abc`. It dissolves the four
+measured 110.1056 µm²: the chained adder is 18.5 % smaller than your prediction.
+
+Where did the difference come from, and what in `asic.ys`, the script `make asic` runs, made it
+possible?
+
+<details>
+<summary>Answer</summary>
+
+Alone, the sum becomes one `xor3_1` (23.773 µm²). In the chain, ABC used two `xnor2_1`
+(17.517 µm²) per slice instead, because in context it can share the intermediate $a \oplus b$
+term across the carry path. `asic.ys` has a `flatten` before `abc`. It dissolves the four
 `fulladder` instances, and that is what let ABC see across the module boundary you drew.
 
 A block costs less in context than it does alone. This is why you can't answer "how big is my
 design?" with a spreadsheet of sub-block areas, and why every area figure in a datasheet is for
 a whole block. You'll take this gap apart in Lab 04.
 
+</details>
+
 ## Part 7: A memory on both targets
+
+How does each target build 2 KB of memory?
 
 The memory is a 2 KB array in `examples/mem.sv`:
 
@@ -271,15 +329,16 @@ always_ff @(posedge clk) begin
 end
 ```
 
-1. Send it to the FPGA:
+1. Send it to the FPGA, and read the last `=== mem ===` block:
 
    ```bash
    yosys -p "read_verilog -sv examples/mem.sv; synth_ice40 -top mem; stat"
    ```
 
-   Read the last `=== mem ===` block.
+2. Work out how many bits the array holds, and write down how many flip-flops you expect
+   SKY130 to need for it.
 
-2. Send the same file to SKY130, using the `LIB` you set in Part 6 (set it again if you opened
+3. Send the same file to SKY130, using the `LIB` you set in Part 6 (set it again if you opened
    a new terminal). This takes about twelve seconds, because there are twenty-seven thousand
    cells to map:
 
@@ -288,41 +347,78 @@ end
              dfflibmap -liberty $LIB; abc -liberty $LIB; opt_clean; stat -liberty $LIB"
    ```
 
-3. Compare the two. Divide the SKY130 flip-flop count (the `sky130_fd_sc_hd__edfxtp_1` cells,
-   flip-flops with an enable) by the number of bits in the array.
+4. Divide the SKY130 flip-flop count (the `sky130_fd_sc_hd__edfxtp_1` cells, flip-flops with an
+   enable) by the number of bits in the array.
 
 You should see four `SB_RAM40_4K` block RAMs on the FPGA side, and on the SKY130 side
 16,384 `sky130_fd_sc_hd__edfxtp_1` and 2,748 `sky130_fd_sc_hd__mux4_2` among 27,684 cells, and a
-chip area of `606554.233600` µm². 16,384 is exactly 2048 × 8: one flip-flop for every bit. The
-reading after this lab, [FPGA and ASIC targets](guide/warehouse-and-empty-lot.md), explains why.
+chip area of `606554.233600` µm². 16,384 is exactly 2048 × 8: one flip-flop for every bit.
+
+Why did the FPGA need four block RAMs where SKY130 needed a flip-flop for every bit?
+
+<details>
+<summary>Answer</summary>
+
+The FPGA already had block RAM on the die, and the four `SB_RAM40_4K` are that dedicated memory
+hardware. SKY130 has to build every bit out of flip-flops, plus multiplexers to pick which one you
+meant. The reading after this lab, [FPGA and ASIC targets](guide/warehouse-and-empty-lot.md),
+covers this, and how real chips use a memory macro instead.
+
+</details>
+
+## Part 8: Your own adder (optional)
+
+Not counted in the lab's time. Run your DD102 adder through both flows and compare it with the
+shipped one.
+
+1. Your `workspace` folder on your laptop is mounted at `/foss/designs` in the container, so put
+   your DD102 `ripple4.sv` somewhere inside the `workspace` folder, then copy it from there:
+
+   ```bash
+   cp /foss/designs/path/to/your/ripple4.sv src/ripple4.sv
+   ```
+
+   Keep the module named `ripple4` with ports `a`, `b`, `cin`, `sum`, `cout`. If it
+   instantiates a `fulladder`, keep that in `src/fulladder.sv`. The package README covers
+   other file layouts.
+
+2. Run `make` and compare its `YOUR NUMBERS` summary with your Part 5 table.
+
+3. Put the shipped adder back with `git checkout src/ripple4.sv`.
+
+If you wrote the carry differently, your numbers will differ. That is a result, not an error:
+two adders that simulate identically can synthesize to different cells. Write down what you got.
 
 ## Finishing
 
-With the shipped adder, you are done when all of these are true:
+### You're done when
 
-| Check | Expected |
-|---|---|
-| `grep SB_LUT4 results/fpga-synth.log` | `8   SB_LUT4` |
-| `grep ICESTORM_LC results/fpga-pnr.log` | `10/   5280     0%` |
-| `stat -c %s results/ripple4.bin` (the shell's `stat`, not Yosys's) | `104090` |
-| `grep "Chip area" results/asic.log` | `110.105600` |
-| `grep sky130 results/asic.log \| tail -2` | 4 × `maj3_1`, 8 × `xnor2_1` |
-| Your filled-in table | six rows, two columns, no shared units |
-| Part 6, your prediction | $4 \times 33.7824 = 135.1296$ µm² |
-| Part 7, SKY130 flip-flops for `mem.sv` | 16,384 `sky130_fd_sc_hd__edfxtp_1` |
+Your Part 5 table is filled in, and your predictions from Part 3 (the bitstream size), Part 6
+(the 4-bit area) and Part 7 (the flip-flop count) each have the tool's number written next to
+them.
 
-If you brought your own `ripple4.sv` and wrote the carry differently, your numbers will differ.
-That is a result, not an error: two adders that simulate identically can synthesize to
-different cells. Write down what you got.
+To check your run of the shipped adder against ours, `make table` reprints your numbers, and
+the "You should see" line at the end of each part has ours.
 
-## Going further
+### Questions
 
-- Delete three of your four full adders and rebuild the bitstream with `make fpga`
-  (`git checkout src/ripple4.sv` restores the file afterwards). `results/ripple4.bin` stays
-  at 104,090 bytes. It is not a description of your adder. It configures every LUT, every
-  routing switch and every I/O buffer on the entire UP5K, including every logic cell you left
-  empty (5,270 of them with the whole `ripple4`). A GDSII is the opposite: it describes only what you built, and it grows when your
-  design does.
+1. Someone asks how big your adder is. What do you tell them for each target?
+
+   <details>
+   <summary>Answer</summary>
+
+   For the iCE40, 10 of 5280 logic cells: the answer is whether it fits. For SKY130,
+   110.1056 µm² of silicon: the answer is what it costs. See Parts 3 and 4. Part 6 is why you
+   can't get that area by adding up the areas of the parts.
+
+   </details>
+
+### Submit
+
+Nothing to submit.
+
+## Going further (optional)
+
 - Search `results/asic.log` for this line from `abc`:
 
   ```
@@ -336,6 +432,8 @@ different cells. Write down what you got.
   exists. Nobody hand-picks cells on a real design, but "the tool's answer" and "the best
   answer" can differ.
 
-Next: read [FPGA and ASIC targets](guide/warehouse-and-empty-lot.md), then
+Next on the [Course path](README.md#course-path): read
+[FPGA and ASIC targets](guide/warehouse-and-empty-lot.md),
 [What synthesis does](guide/synthesis-is-translation.md) and
-[Standard cells](guide/standard-cells-are-real.md) before Lab 02.
+[Standard cells](guide/standard-cells-are-real.md), then do
+[Lab 02: RTL becomes gates](labs/lab-02-rtl-becomes-gates-overview.md).
