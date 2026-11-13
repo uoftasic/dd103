@@ -1,12 +1,11 @@
 # Lab 01: One adder, two targets
 
-You'll set up DD103 in your workbench (the IIC-OSIC-TOOLS container desktop you run from the
+You'll load DD103 into your workbench (the IIC-OSIC-TOOLS container desktop you run from the
 `workspace` repo), then run your DD102 ripple-carry adder through two synthesis flows, one for
 an iCE40 FPGA and one for SKY130 standard cells, and write down what each one built. You'll
 finish by sending a 2 KB memory to both targets.
 
-Time: about 1.5 hours. The tools themselves run in seconds; most of the time is setup and
-reading output.
+Time: about 1.5 hours. The tools themselves run in seconds.
 
 Package: [`labs/lab-01-one-adder-two-targets/`](https://github.com/uoftasic/dd103/tree/main/labs/lab-01-one-adder-two-targets)
 
@@ -17,127 +16,70 @@ Package: [`labs/lab-01-one-adder-two-targets/`](https://github.com/uoftasic/dd10
 - [DD102](https://uoftasic.com/dd102/) is complete, and you have a `ripple4.sv` you wrote.
 - Read [Getting started](guide/getting-started.md).
 
-## Part 1: Set up the workbench
+## Part 1: Load the course
 
-1. On your own machine, in your `workspace` clone, start the desktop:
+If you haven't set up the workbench, do
+[IC101 Lab 03](https://uoftasic.com/ic101/#/labs/lab-03-launch-the-workbench-overview) first.
 
-   ```bash
-   cd workspace
-   ./scripts/start_vnc.sh          # Windows: scripts\start_vnc.bat
-   ```
+1. Start the desktop from your `workspace` clone (`./scripts/start_vnc.sh`, or
+   `scripts\start_vnc.bat` on Windows), open http://localhost/ and open a terminal on the
+   desktop. Type every command from here on in that terminal, not on your laptop. Maximize the
+   window: LibreLane, which you'll use in Lab 05, wraps its log to the terminal width.
 
-2. Open http://localhost/ and open a terminal on that desktop, the same one you used for the
-   IC101 smoke test. Every command from here on is typed in that terminal, not on your laptop.
-   Maximize the terminal window. LibreLane, which you'll use in Lab 05, wraps its log to the
-   terminal width.
-
-3. Load the environment. Do this in every new terminal.
+2. Load the environment and check the two technology variables. Repeat this step in every new
+   terminal, because exports last only for the terminal you type them in.
 
    ```bash
    . /foss/designs/common/.designinit
-   ```
-
-   ```
-   ASIC-EDU: PDK=sky130A  PDK_ROOT=/foss/pdks  designs=/foss/designs
-             run 'mod' to list course modules, or 'mod <name>' to enter one.
-   ```
-
-4. Check the two technology variables:
-
-   ```bash
-   echo $PDK
-   echo $STD_CELL_LIBRARY
-   ```
-
-   `PDK` must say `sky130A`. If it says `ihp-sg13g2`, the image's own default, step 3 did not
-   run in this terminal, so run it again. `STD_CELL_LIBRARY` may say `sky130_fd_sc_hd` or the
-   image's default, `sg13g2_stdcell`. Whatever it says, run these two lines. The first sets the
-   SKY130 cell library. The second tells LibreLane the terminal is 200 columns wide, which does
-   the same job as maximizing the window:
-
-   ```bash
-   export STD_CELL_LIBRARY=sky130_fd_sc_hd
+   echo $PDK $STD_CELL_LIBRARY
    export COLUMNS=200
    ```
 
-   Exports last only for the terminal you type them in, so repeat steps 3 and 4 in every new
-   terminal.
+   You should see the `ASIC-EDU: PDK=sky130A ...` banner, then `sky130A sky130_fd_sc_hd`. If the
+   first word is `ihp-sg13g2`, the image's own default, `.designinit` didn't run in this
+   terminal; run it again. If the second word is anything else (the image's default is
+   `sg13g2_stdcell`), run `export STD_CELL_LIBRARY=sky130_fd_sc_hd`. `COLUMNS=200` tells LibreLane the terminal is 200
+   columns wide, which does the same job as maximizing the window.
 
-5. Get the course files. `mod add` is needed only the first time:
+3. Get the course files. `mod add` is needed only the first time; after that, `mod dd103` takes
+   you there.
 
    ```bash
    mod add dd103      # first time only: clones github.com/uoftasic/dd103
-   mod dd103          # every time after that
    ```
 
-   ```
-   Cloning https://github.com/uoftasic/dd103.git
-        into /foss/designs/modules/dd103
-   Cloning into '/foss/designs/modules/dd103'...
-   OK  module ready: /foss/designs/modules/dd103
-       run: mod dd103
-   cwd: /foss/designs/modules/dd103
-   ```
+   You should see `OK  module ready: /foss/designs/modules/dd103` and then
+   `cwd: /foss/designs/modules/dd103`: `mod add` also moves you into the module.
 
-   `mod add` also moves you into the module, which is what the `cwd:` line shows. In later
-   sessions, `mod dd103` takes you there. `mod` with no arguments lists what you already have:
-
-   ```
-   Available modules:
-   dd103
-   ic101_setup
-   ```
-
-   If something goes wrong here, it is probably one of these:
-
-   | What you see | What it means |
-   |---|---|
-   | `bash: mod: command not found` | You did not run step 3 in this terminal. Every new terminal starts clean. |
-   | `mod: no such module: dd103` | You ran `mod dd103` before `mod add dd103`. |
-   | `fatal: could not read Username for 'https://github.com'` | git could not read the repo anonymously and is asking you to log in. Check the spelling first. If it is right, ask in [Discord](https://discord.gg/hrJnP5UsGz). Do not type your password. |
-
-6. Check your versions:
+4. Check the versions that the printed results in this course come from:
 
    ```bash
    yosys -V
    librelane --version
    ```
 
-   ```
-   Yosys 0.68 (git sha1 38e001a6f, Release, GNU /usr/bin/c++ 13.3.0)
-   ```
+   You should see `Yosys 0.68 (git sha1 38e001a6f, Release, GNU /usr/bin/c++ 13.3.0)` and a
+   first line of `LibreLane v3.1.0.dev3`. If either is different, you are not on
+   `hpretl/iic-osic-tools:2026.08`; see
+   [IC101: Launch the noVNC desktop](https://uoftasic.com/ic101/#/guide/launch-novnc) for the
+   image the `workspace` scripts pull. Later labs also print `iverilog -V` (`14.0 (devel)`),
+   `verilator --version` (`Verilator 5.050`), `nextpnr-ice40 --version`
+   (`nextpnr-0.11.1-9-gb17408e2`) and `surfer --version` (`surfer 0.7.0`).
 
-   ```
-   LibreLane v3.1.0.dev3
+5. List the lab packages with `ls labs/`.
 
-   Copyright ©2025-2026 LibreLane Contributors
+| If you see | It means |
+|---|---|
+| `mod: no such module: dd103` | You ran `mod dd103` before `mod add dd103`. |
+| `fatal: could not read Username for 'https://github.com'` | git could not read the repo anonymously and is asking you to log in. Check the spelling first. If it is right, ask in [Discord](https://discord.gg/hrJnP5UsGz). Do not type your password. |
 
-   Adapted from OpenLane 2.0
-   Copyright ©2020-2025 Efabless Corporation
-   ```
+Anything else about Docker, the desktop, `.designinit` or `mod` is on IC101's
+[Troubleshooting](https://uoftasic.com/ic101/#/reference/troubleshooting) page. If you can't get
+`mod` working, Labs 01 to 04 still run: each package names its own PDK and cell library, so
+`make` in the package directory works without any environment setup.
 
-   `0.68` and `3.1.0.dev3` are the numbers that matter. If either is different, you are not on
-   `hpretl/iic-osic-tools:2026.08`; see [IC101: Launch the noVNC desktop](https://uoftasic.com/ic101/#/guide/launch-novnc)
-   for the image the `workspace` scripts pull. The rest of the toolchain, if you want to check
-   it:
-
-   | Tool | Command | Expect |
-   |---|---|---|
-   | Yosys | `yosys -V` | `Yosys 0.68` |
-   | LibreLane | `librelane --version` | `LibreLane v3.1.0.dev3` |
-   | Icarus Verilog | `iverilog -V` | `14.0 (devel)` |
-   | Verilator | `verilator --version` | `Verilator 5.050` |
-   | Surfer | `surfer --version` | `surfer 0.7.0` |
-   | nextpnr | `nextpnr-ice40 --version` | `nextpnr-0.11.1-9-gb17408e2` |
-
-7. From `/foss/designs/modules/dd103`, list the lab packages:
-
-   ```bash
-   ls labs/
-   ```
-
-You should see `Yosys 0.68` from `yosys -V`, and `ls labs/` should list the five lab packages,
-`lab-01-one-adder-two-targets` through `lab-05-elevator`.
+You should see `ls labs/` list the five lab packages, `lab-01-one-adder-two-targets` through
+`lab-05-elevator`.
 
 ## Part 2: Run both flows
 
