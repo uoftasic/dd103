@@ -2,10 +2,10 @@
 
 Lab 01 told you your adder became `4 × maj3_1 + 8 × xnor2_1`, but a list of cell names doesn't
 show what is wired to what. In this lab you draw one full adder twice, once in your words and
-once in SKY130's, then watch `synth` work on a counter pass by pass and open the cell library
-those names come from.
+once in SKY130's, rewrite one line of it and predict what changes, then watch `synth` work on a
+counter pass by pass and open the cell library those names come from.
 
-Time: about 2.5 hours.
+Time: about 2.5 hours, not counting Going further.
 
 Package: [`labs/lab-02-rtl-becomes-gates/`](https://github.com/uoftasic/dd103/tree/main/labs/lab-02-rtl-becomes-gates)
 
@@ -29,6 +29,9 @@ cd labs/lab-02-rtl-becomes-gates
 
 ## Part 1: Two pictures of a full adder
 
+What does one full adder look like before and after it is mapped to SKY130 cells, and which of
+your operators became which cell?
+
 Yosys keeps one design in memory and rewrites it in place. `show` draws whatever is in memory at
 that moment, so running it at two different points gives two views of the same design:
 
@@ -43,7 +46,8 @@ a design that does have flops gives a broken area number, as you'll see in Part 
 `abc -liberty` covers everything combinational with cells from the liberty file, optimizing for
 area.
 
-1. Run the script. It takes under two seconds.
+1. Run the script. It takes about a second and peaks around 64 MB; Yosys prints its own `time:`
+   and `MEM:` on the last line of `results/show.log`.
 
    ```bash
    make
@@ -55,7 +59,7 @@ area.
    ![The full adder after proc; opt — five generic operator boxes](../assets/img/lab02-fulladder-rtl.svg)
 
    The octagons `a`, `b`, `cin`, `sum` and `cout` are your ports. The boxes are `$2 $xor`,
-   `$3 $and`, `$4 $xor`, `$5 $and` and `$6 $or`, one for each operator in these two lines:
+   `$3 $and`, `$4 $xor`, `$5 $and` and `$6 $or`, from these two lines:
 
    ```systemverilog
    assign sum  = a ^ b ^ cin;
@@ -63,9 +67,15 @@ area.
    ```
 
    The source has six operators: two `^` in the first line, and one `&`, one `|`, one `&` and
-   one `^` in the second. There are five boxes because `opt` noticed that `a ^ b` appears in
-   both lines and computed it once. Follow the fan-out from `$4 $xor`: one output, two
-   destinations. The black dot is the sharing.
+   one `^` in the second. Why are there only five boxes? Follow the fan-out from `$4 $xor`.
+
+   <details>
+   <summary>Answer</summary>
+
+   `opt` noticed that `a ^ b` appears in both lines and computed it once. `$4 $xor` has one
+   output and two destinations; the black dot is the sharing.
+
+   </details>
 
    This is the last picture in the flow that is still about your source code. If your RTL is
    wrong, this is where you can still see it.
@@ -95,7 +105,10 @@ area.
    The left picture describes behaviour; the right picture is a bill of materials for
    something a foundry will etch. Synthesis turns one into the other.
 
-4. Work out which boxes became which cell. There is no box-for-box mapping:
+4. Work out which boxes became which cell. There is no box-for-box mapping.
+
+   <details>
+   <summary>Answer</summary>
 
    - `sum = a ^ b ^ cin`, a three-input XOR, became one `xor3_1`. SKY130 has a 3-input XOR
      cell, so the two `$xor` boxes collapsed into it.
@@ -103,40 +116,53 @@ area.
      the majority function: true exactly when at least two of $a$, $b$, $c_{\text{in}}$ are
      true. ABC worked that out from the truth table and found a single cell for it.
 
-   Synthesis works from what your logic computes, not from how you wrote it. Rewriting `cout`
-   as `(a & b) | (b & cin) | (a & cin)` gives the identical netlist; try it. The reverse also
-   holds: you can't read a gate netlist and recover the RTL you wrote.
+   </details>
 
-You should see `results/rtl.svg` with five operator boxes and `results/gates.svg` with
+5. In `src/fulladder.sv`, rewrite the carry as the majority function written out:
+
+   ```systemverilog
+   assign cout = (a & b) | (b & cin) | (a & cin);
+   ```
+
+   Before you run anything, write down how many boxes you expect in `results/rtl.svg` and which
+   cells you expect in `results/gates.svg`. Then run `make` and open both pictures again.
+
+   You should see seven boxes in `results/rtl.svg` (three `$and`, two `$or`, two `$xor`), and the
+   same two cells in `results/gates.svg`, `sky130_fd_sc_hd__maj3_1` and
+   `sky130_fd_sc_hd__xor3_1`, with `Chip area for module '\fulladder': 33.782400`.
+
+   Why did one picture change and the other not?
+
+   <details>
+   <summary>Answer</summary>
+
+   The RTL view draws your operators, so a different spelling gives different boxes. Synthesis
+   works from what your logic computes, not from how you wrote it, and both lines compute the
+   majority function. The reverse also holds: you can't read a gate netlist and recover the RTL
+   you wrote.
+
+   </details>
+
+6. Put the shipped file back and rebuild:
+
+   ```bash
+   git checkout src/fulladder.sv
+   make
+   ```
+
+You should see `results/rtl.svg` with five operator boxes again, `results/gates.svg` with
 `sky130_fd_sc_hd__maj3_1` and `sky130_fd_sc_hd__xor3_1`, and `Chip area ... 33.782400` in
-`results/show.log`.
-
-If `show` fails with this error:
-
-```
-ERROR: For formats different than 'ps' or 'dot' only one module must be selected.
-```
-
-the `show` line is missing its module name. `show -format svg` draws exactly one module, so both
-scripts end their `show` line with one. The error is confusing because the line that produced it
-looks like it selected nothing at all.
-
-Do not use `sak-v2svg.sh`. It is on your `PATH`, its help text looks official, and it does not
-work in this image:
-
-```
-$ sak-v2svg.sh results/fulladder_sky130.v out.svg
-[ERROR] Netlistsvg could not be found!
-```
-
-It wraps `netlistsvg`, which is not installed in the workbench and can't be, because `npm` is
-not in the image. `show` is built into Yosys and is what this lab uses.
+`results/show.log`. If `show` fails, or you're tempted by a script called `sak-v2svg.sh`, see
+[Troubleshooting](reference/troubleshooting.md).
 
 ## Part 2: Diagram size limits
 
-Diagrams have a size limit, and it is better to meet it here than during the capstone.
+How big can a gate diagram get before it stops helping? It is better to find out here than
+during the capstone.
 
-1. Run the same two `show` calls on `ripple4`, four full adders instead of one:
+1. `make bigger` runs the same two `show` calls on `ripple4`, four full adders instead of one.
+   Before you run it, write down how many times bigger you expect the gate view's canvas to be.
+   Then run it:
 
    ```bash
    make bigger
@@ -176,22 +202,16 @@ gate schematics.
 
 ## Part 3: Watch synth work on a counter
 
-This part runs the walkthrough from [What synthesis does](guide/synthesis-is-translation.md) on
-`src/counter.sv`. Set the liberty path first; every command below uses it.
+Which pass turns the counter's flip-flops into SKY130 cells, which pass maps its logic, and what
+happens to the area when one of them is missing? This part runs the walkthrough from
+[What synthesis does](guide/synthesis-is-translation.md) on `src/counter.sv`. Set the liberty
+path first; every command below uses it.
 
 ```bash
 LIB=/foss/pdks/sky130A/libs.ref/sky130_fd_sc_hd/lib/sky130_fd_sc_hd__tt_025C_1v80.lib
 ```
 
-1. Run the full ASIC flow on the counter and count the lines it prints:
-
-   ```bash
-   yosys -p "read_verilog -sv src/counter.sv; synth -top counter;
-             dfflibmap -liberty $LIB; abc -liberty $LIB; opt_clean;
-             stat -liberty $LIB" 2>&1 | wc -l
-   ```
-
-2. Run it again, keeping only the numbered top-level steps:
+1. Run the full ASIC flow on the counter, keeping only the numbered top-level steps:
 
    ```bash
    yosys -p "read_verilog -sv src/counter.sv; synth -top counter;
@@ -202,16 +222,7 @@ LIB=/foss/pdks/sky130A/libs.ref/sky130_fd_sc_hd/lib/sky130_fd_sc_hd__tt_025C_1v8
    You should see six lines, from `1. Executing Verilog-2005 frontend: src/counter.sv` to
    `6. Printing statistics.`
 
-3. List the sub-passes that `synth` ran:
-
-   ```bash
-   yosys -p "read_verilog -sv src/counter.sv; synth -top counter" 2>&1 | grep -E '^2\.[0-9]+\. '
-   ```
-
-   You should see 26 lines, from `2.1. Executing HIERARCHY pass` to `2.26. Executing CHECK pass`.
-   Count how many are some form of `OPT`.
-
-4. Stop after each of the first four passes and count cells:
+2. Stop after each of the first four passes and count cells:
 
    ```bash
    for S in "hierarchy -top counter" \
@@ -224,10 +235,18 @@ LIB=/foss/pdks/sky130A/libs.ref/sky130_fd_sc_hd/lib/sky130_fd_sc_hd__tt_025C_1v8
    ```
 
    You should see 2, 5, 2 and then 48 cells. Find the `$adffe` after `opt` and the four
-   `$_DFFE_PN0P_` after `techmap`, and say in one sentence what `opt` did between the second and
-   third blocks.
+   `$_DFFE_PN0P_` after `techmap`. What did `opt` do between the second and third blocks?
 
-5. See the two mappers split the work:
+   <details>
+   <summary>Answer</summary>
+
+   It noticed that a mux feeding a flip-flop's D input, choosing between the flop's own output
+   and a new value, is an enable, and folded the `$mux`, `$not`, `$logic_not` and `$adff` into a
+   single `$adffe`: one flip-flop with a built-in enable pin.
+
+   </details>
+
+3. See the two mappers split the work:
 
    ```bash
    yosys -p "read_verilog -sv src/counter.sv; synth -top counter;
@@ -238,7 +257,7 @@ LIB=/foss/pdks/sky130A/libs.ref/sky130_fd_sc_hd/lib/sky130_fd_sc_hd__tt_025C_1v8
    You should see `mapped 4 $_DFF_PN0_ cells to \sky130_fd_sc_hd__dfrtp_1 cells.` from
    `dfflibmap`, then six `ABC RESULTS` lines from `abc`, none of them a flip-flop.
 
-6. See which flip-flop shapes the library has:
+4. See which flip-flop shapes the library has:
 
    ```bash
    yosys -p "read_verilog -sv src/counter.sv; synth -top counter;
@@ -249,7 +268,18 @@ LIB=/foss/pdks/sky130A/libs.ref/sky130_fd_sc_hd/lib/sky130_fd_sc_hd__tt_025C_1v8
    `unmapped dff cell: $_DFFE_PN_`. Write down why the counter ended up with plain `dfrtp_1`
    flops and extra logic for the enable.
 
-7. Delete `dfflibmap` from the flow and check the exit status:
+   <details>
+   <summary>Answer</summary>
+
+   The counter needs both an enable and an asynchronous reset, and no single SKY130 cell
+   provides both: `edfxtp_1` has no reset pin. So `dfflibmap` used the reset flop and the
+   enable was rebuilt out of logic. The library made that decision, not your code.
+
+   </details>
+
+5. Write down what you expect if you delete `dfflibmap` from the flow: an error, or a number,
+   and if a number, bigger or smaller than the full flow's `148.892800`? Then run it and check
+   the exit status:
 
    ```bash
    yosys -p "read_verilog -sv src/counter.sv; synth -top counter;
@@ -258,17 +288,20 @@ LIB=/foss/pdks/sky130A/libs.ref/sky130_fd_sc_hd/lib/sky130_fd_sc_hd__tt_025C_1v8
 
    You should see `exit=0`, four `$_DFFE_PN0P_` still in the cell list,
    `Area for cell type $_DFFE_PN0P_ is unknown!`, a chip area of `37.536000` and `0.00%`
-   sequential. Compare with `148.892800` from the full flow.
+   sequential. Why is the area smaller, and which lines would warn you on a design you didn't
+   know?
 
-8. Look at what the `abc` inside `synth` produced, before any liberty file was involved:
+   <details>
+   <summary>Answer</summary>
 
-   ```bash
-   yosys -p "read_verilog -sv src/counter.sv; synth -top counter" 2>&1 | grep 'ABC RESULTS'
-   ```
+   ABC maps combinational logic only, so the four flip-flops stay generic `$_DFFE_PN0P_`. SKY130
+   has no cell by that name, so `stat` can't price them and leaves them out of the total. The
+   warnings are `Area for cell type … is unknown!` and `0.00%` sequential on a design with a
+   clock.
 
-   You should see generic `AND`, `NAND`, `NOT`, `XNOR` and `XOR` counts, six gates in all.
+   </details>
 
-9. Put a `stat` between `dfflibmap` and `abc`:
+6. Put a `stat` between `dfflibmap` and `abc`:
 
    ```bash
    yosys -p "read_verilog -sv src/counter.sv; synth -top counter;
@@ -276,12 +309,25 @@ LIB=/foss/pdks/sky130A/libs.ref/sky130_fd_sc_hd/lib/sky130_fd_sc_hd__tt_025C_1v8
    ```
 
 You should see 14 cells: four `sky130_fd_sc_hd__dfrtp_1` next to ten generic gates, with
-`100.096000 (100.00%)` sequential. This is the mirror image of step 7.
+`100.096000 (100.00%)` sequential. This is the mirror image of step 5: only the flops have a
+price.
 
 ## Part 4: Open the cell library
 
-This part opens the files [Standard cells](guide/standard-cells-are-real.md) describes. Set three
-paths first:
+Where does the library keep each fact about one cell, `maj3_1`: what it computes, how big it is,
+what transistors it has, what it looks like and how fast it is? This part opens the files
+[Standard cells](guide/standard-cells-are-real.md) describes. Fill in this table as you go:
+
+| Fact about `maj3_1` | File | What it says |
+|---|---|---|
+| function | | |
+| area | | |
+| outline | | |
+| transistors | | |
+| drawing | | |
+| timing | | |
+
+Set three paths first:
 
 ```bash
 LIB=/foss/pdks/sky130A/libs.ref/sky130_fd_sc_hd/lib/sky130_fd_sc_hd__tt_025C_1v80.lib
@@ -297,20 +343,9 @@ LEF=$REF/lef/sky130_fd_sc_hd.lef
    grep -c '^    cell (' $LIB
    ```
 
-   You should see `13M`, `173157` lines and `428` cells. `ls /foss/pdks/sky130A/libs.ref/` shows
-   the sibling libraries, including `sky130_sram_macros`, `sky130_fd_io` and `sky130_fd_pr`.
+   You should see `13M`, `173157` lines and `428` cells.
 
-2. List only the cells the counter used:
-
-   ```bash
-   yosys -p "read_verilog -sv src/counter.sv; synth -top counter;
-             dfflibmap -liberty $LIB; abc -liberty $LIB; opt_clean;
-             stat -liberty $LIB" 2>&1 | awk '/^6\. Printing statistics/,0' | grep sky130
-   ```
-
-   You should see seven distinct cell types.
-
-3. Read the `maj3_1` entry:
+2. Read the `maj3_1` entry:
 
    ```bash
    awk '/cell \("sky130_fd_sc_hd__maj3_1"\)/,/^    }$/' $LIB | wc -l
@@ -321,7 +356,7 @@ LEF=$REF/lef/sky130_fd_sc_hd.lef
    You should see `350`, then `area : 10.009600000;`, three input pins, one output pin `X`, and
    `function : "(A&B) | (A&C) | (B&C)";`.
 
-4. Find the same cell as a rectangle in the LEF file:
+3. Find the same cell as a rectangle in the LEF file:
 
    ```bash
    grep -A5 '^MACRO sky130_fd_sc_hd__maj3_1$' $LEF
@@ -329,23 +364,14 @@ LEF=$REF/lef/sky130_fd_sc_hd.lef
 
    You should see `SIZE 3.680 BY 2.720 ;`. Multiply it out and compare with the liberty area.
 
-5. Check the row height and width grid for the whole library:
+   <details>
+   <summary>Answer</summary>
 
-   ```bash
-   grep '^  SIZE' $LEF | awk '{print $4}' | sort | uniq -c
-   grep '^  SIZE' $LEF | awk '{print $2}' | sort -g -u | head -4
-   ```
+   $3.680 \times 2.720 = 10.0096$, the liberty area exactly.
 
-   You should see `430 2.720` and `7 5.440`, then widths `0.460`, `0.920`, `1.380`, `1.840`.
-   For comparison, the high-voltage family uses a taller row:
+   </details>
 
-   ```bash
-   grep '^  SIZE' /foss/pdks/sky130A/libs.ref/sky130_fd_sc_hvl/lef/*.lef | awk '{print $4}' | sort | uniq -c
-   ```
-
-   You should see `61 4.070` and `8 8.140`: the high-voltage row is 4.070 µm tall.
-
-6. Count the transistors in the cell:
+4. Count the transistors in the cell:
 
    ```bash
    awk '/^\.SUBCKT sky130_fd_sc_hd__maj3_1 /,/^\.ENDS/' $REF/cdl/sky130_fd_sc_hd.cdl | head -6
@@ -354,7 +380,7 @@ LEF=$REF/lef/sky130_fd_sc_hd.lef
 
    You should see the `.SUBCKT` line with pins `A B C VGND VNB VPB VPWR X`, then `14`.
 
-7. Measure the layout file:
+5. Measure the layout file:
 
    ```bash
    ls -lh $REF/mag/sky130_fd_sc_hd__maj3_1.mag
@@ -364,7 +390,7 @@ LEF=$REF/lef/sky130_fd_sc_hd.lef
 
    You should see a 7.4K file, `267` rectangles, and sixteen section names from `nwell` to `end`.
 
-8. Open the cell in Magic. Copy it out of the PDK first: the PDK tree is read-only, and Magic dims
+6. Open the cell in Magic. Copy it out of the PDK first: the PDK tree is read-only, and Magic dims
    every layer of a cell it can't edit.
 
    ```bash
@@ -377,61 +403,39 @@ LEF=$REF/lef/sky130_fd_sc_hd.lef
    see the picture in [Standard cells](guide/standard-cells-are-real.md#transistors-and-layout):
    two power rails, fourteen poly stripes crossing diffusion, and pins `A`, `B`, `C` and `X`.
 
-9. Count the timing tables:
+7. Count the timing tables:
 
    ```bash
    awk '/cell \("sky130_fd_sc_hd__maj3_1"\)/,/^    }$/' $LIB | grep -c 'values('
    grep -c 'values(' $LIB
    ```
 
-   You should see `24` for `maj3_1` and `11101` for the whole library.
+You should see `24` for `maj3_1` and `11101` for the whole library, and a table with a file in
+every row.
 
-10. Compare the three `maj3` drive strengths:
+<details>
+<summary>Answer: the table</summary>
 
-    ```bash
-    for C in maj3_1 maj3_2 maj3_4; do
-      echo -n "$C: "
-      awk "/^\.SUBCKT sky130_fd_sc_hd__$C /,/^\.ENDS/" $REF/cdl/sky130_fd_sc_hd.cdl \
-        | grep -o 'w=[0-9.]*' | sort | uniq -c | tr '\n' ' '
-      echo
-    done
-    grep 'cell_footprint :' $LIB | sort -u | wc -l
-    ```
+| Fact about `maj3_1` | File | What it says |
+|---|---|---|
+| function | liberty, `sky130_fd_sc_hd__tt_025C_1v80.lib` | `(A&B) \| (A&C) \| (B&C)` |
+| area | liberty | `10.009600000` |
+| outline | LEF, `sky130_fd_sc_hd.lef` | `SIZE 3.680 BY 2.720` |
+| transistors | CDL, `sky130_fd_sc_hd.cdl` | 14 |
+| drawing | `mag/sky130_fd_sc_hd__maj3_1.mag` | 267 rectangles |
+| timing | liberty | 24 tables |
 
-    You should see fourteen transistors in each variant, with wider channels as the suffix goes
-    up, and then `143` distinct footprints.
-
-11. Look up the full-adder cell:
-
-    ```bash
-    awk '/cell \("sky130_fd_sc_hd__fa_1"\)/,/^    }$/' $LIB \
-      | grep -E '^        area :|^            function :' | grep -v power_down
-    ```
-
-    You should see `area : 20.019200000;` and two `function` lines, one for `COUT` and one for
-    `SUM`.
-
-12. Check the process corners:
-
-    ```bash
-    ls $REF/lib/*.lib | wc -l
-    grep -m3 -E 'nom_temperature|nom_voltage|nom_process' $LIB
-    ```
-
-    You should see `18`, then `nom_process : 1.0000000000;`, `nom_temperature : 25.000000000;`
-    and `nom_voltage : 1.8000000000;`.
-
-13. Find the smallest and largest cells:
-
-    ```bash
-    awk '/^    cell \(/{n=$0} /^        area :/{print $3, n}' $LIB | sort -g | head -3
-    awk '/^    cell \(/{n=$0} /^        area :/{print $3, n}' $LIB | sort -g | tail -3
-    ```
-
-You should see `sky130_fd_sc_hd__diode_2` at 2.5024 µm² at the bottom and
-`sky130_fd_sc_hd__lpflow_isobufsrc_16` at 45.0432 µm² at the top.
+</details>
 
 ## Finishing
+
+### You're done when
+
+Your Part 1 prediction for the rewritten `cout` and your Part 3 prediction for leaving out
+`dfflibmap` each have the tool's answer written next to them, and your Part 4 table names a file
+for every fact.
+
+To check your run against ours:
 
 | Check | Expected |
 |---|---|
@@ -440,17 +444,71 @@ You should see `sky130_fd_sc_hd__diode_2` at 2.5024 µm² at the bottom and
 | `grep -c '\$xor' results/rtl.dot` | 2 |
 | `grep "Chip area" results/show.log` | `33.782400` |
 | `make sizes` after `make bigger` | four SVGs, the largest 3189 pt wide |
-| Part 3, step 7 | `exit=0` and a chip area of `37.536000` |
+| Part 3, step 5 | `exit=0` and a chip area of `37.536000` |
 | Part 4, step 1 | `428` cells |
 
-`make` takes about 1 second and peaks around 64 MB; Yosys prints its own `time:` and `MEM:` on
-the last line of `results/show.log`. If Yosys takes minutes, you are synthesizing something
-other than a full adder.
+If Yosys takes minutes on `make`, you are synthesizing something other than a full adder.
 
-You should be able to say in one sentence each what `dfflibmap` and `abc` did, and point at a
-wire in `results/gates.svg` and name the line of SystemVerilog it came from.
+### Questions
 
-## Going further
+1. In one sentence each, what did `dfflibmap` and `abc` do?
+
+   <details>
+   <summary>Answer</summary>
+
+   `dfflibmap` replaced the generic flip-flops with named library flops (the counter's four
+   became `sky130_fd_sc_hd__dfrtp_1`), and `abc` replaced everything combinational with named
+   cells from the liberty file. See Part 3, step 3.
+
+   </details>
+
+2. Point at a wire in `results/gates.svg` and name the line of SystemVerilog it came from.
+
+   <details>
+   <summary>Answer</summary>
+
+   The wire out of `xor3_1` to `sum` comes from `assign sum = a ^ b ^ cin;`, and the wire out
+   of `maj3_1` to `cout` comes from the `assign cout` line. See Part 1, step 4.
+
+   </details>
+
+### Submit
+
+Nothing to submit.
+
+## Going further (optional)
+
+More of `synth`, from Part 3, with `LIB` set as in that part:
+
+- Count every line the full flow prints:
+
+  ```bash
+  yosys -p "read_verilog -sv src/counter.sv; synth -top counter;
+            dfflibmap -liberty $LIB; abc -liberty $LIB; opt_clean;
+            stat -liberty $LIB" 2>&1 | wc -l
+  ```
+
+- List the sub-passes `synth` runs, and count how many are some form of `OPT`:
+
+  ```bash
+  yosys -p "read_verilog -sv src/counter.sv; synth -top counter" 2>&1 | grep -E '^2\.[0-9]+\. '
+  ```
+
+  You should see 26 lines, from `2.1. Executing HIERARCHY pass` to `2.26. Executing CHECK pass`.
+- See what the `abc` inside `synth` produced, before any liberty file was involved:
+
+  ```bash
+  yosys -p "read_verilog -sv src/counter.sv; synth -top counter" 2>&1 | grep 'ABC RESULTS'
+  ```
+
+  You should see generic `AND`, `NAND`, `NOT`, `XNOR` and `XOR` counts, six gates in all.
+
+More of the library, from Part 4: [Looking things up in the SKY130
+library](reference/sky130-library-lookups.md) has the commands for the row-height grid, the
+`maj3` drive strengths, the `fa_1` full-adder cell, the 18 process corners, the smallest and
+largest cells, and the seven cell types the counter used.
+
+Diagrams:
 
 - Both scripts open with this line:
 
@@ -466,6 +524,8 @@ wire in `results/gates.svg` and name the line of SystemVerilog it came from.
 - For a raster image for slides, `make png` runs `cairosvg` (2.9.0, in the image) at 1200 px
   wide. Prefer the SVG for anything you'll zoom into.
 
-Next: read [Synthesizable SystemVerilog](guide/the-hardware-dialect.md),
+Next on the [Course path](README.md#course-path): read
+[Synthesizable SystemVerilog](guide/the-hardware-dialect.md),
 [Inferred latches](guide/the-latch-you-didnt-ask-for.md) and
-[Blocking and non-blocking assignments](guide/blocking-vs-nonblocking.md) before Lab 03.
+[Blocking and non-blocking assignments](guide/blocking-vs-nonblocking.md), then do
+[Lab 03: Three ways to lose a latch](labs/lab-03-three-ways-to-lose-a-latch-overview.md).
