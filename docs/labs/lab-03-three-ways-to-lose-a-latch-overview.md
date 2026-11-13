@@ -1,9 +1,9 @@
 # Lab 03: Three ways to lose a latch
 
 You'll feed Yosys simulation-only code and watch its three reactions, then take one `case`
-statement with a branch missing through four module headers and get four different outcomes,
-only one of which involves the tool telling you. You'll finish by counting flip-flops to settle
-`=` against `<=`, and by finding a bug that lint does not catch.
+statement with a branch missing through five module headers and record what each tool says about
+each one. You'll finish by counting flip-flops to settle `=` against `<=`, and by finding a bug
+that lint does not catch. Most parts ask you to write down a prediction before you run anything.
 
 Time: about 2.5 hours.
 
@@ -28,11 +28,13 @@ LIB=/foss/pdks/sky130A/libs.ref/sky130_fd_sc_hd/lib/sky130_fd_sc_hd__tt_025C_1v8
 The design under test from Part 2 on is a battery meter: a 2-bit `level` in, a 4-bit `bar` out,
 three cases written and `2'b11` missing. `src/bar_comb.sv`, `src/bar_star.sv`,
 `src/bar_unique.sv` and `src/bar_fixed.sv` differ only in their header line and, for
-`bar_fixed`, one `default:`.
+`bar_fixed`, one `default:`. `src/bar_latch.sv` has the same `case` under `always_latch`.
 
 `make` runs Parts 2 to 4 and 6 to 8 in about 2 seconds. Each part below names its own target.
 
 ## Part 1: Code that does not become hardware
+
+What does Yosys do with code that only makes sense to a simulator?
 
 1. Simulate the register and its testbench together:
 
@@ -43,7 +45,12 @@ three cases written and `2'b11` missing. `src/bar_comb.sv`, `src/bar_star.sv`,
    You should see four `captured d =` lines and `final q = 9`. The testbench uses `#5`,
    `$display` and `$finish`; none of them describes hardware.
 
-2. Run the three Yosys reactions. Note each exit code.
+2. Step 3 runs Yosys on three files from
+   [Synthesizable SystemVerilog](guide/the-hardware-dialect.md): a function that uses `return`, a
+   `#5` delay, and a `unique case` with no `default:`. Write down which of the three you expect to
+   exit 0.
+
+3. Run the three, noting each exit code:
 
    ```bash
    cd src
@@ -65,10 +72,18 @@ three cases written and `2'b11` missing. `src/bar_comb.sv`, `src/bar_star.sv`,
    You should see `exit=1`, then `exit=0`, then `exit=0`. The first stops at
    `u_return_id.sv:5: ERROR: syntax error, unexpected TOK_ID`. The second prints a module whose
    whole body is `assign q = d;`; your `#5` is gone. The third prints two `assign` lines of
-   logic you never wrote. Two of the three exit codes are zero, and only reading the netlist
-   catches those two.
+   logic you never wrote. How would you have caught the second and third without reading the
+   netlist?
 
-3. Map the `$display` example to SKY130:
+   <details>
+   <summary>Answer</summary>
+
+   You wouldn't have. Two of the three exit codes are zero, and only reading the netlist catches
+   those two.
+
+   </details>
+
+4. Map the `$display` example to SKY130:
 
    ```bash
    yosys -p "read_verilog -sv examples/t_display.sv; synth -top t_display;
@@ -78,7 +93,7 @@ three cases written and `2'b11` missing. `src/bar_comb.sv`, `src/bar_star.sv`,
    You should see 5 cells: one `$print` and four `sky130_fd_sc_hd__dfxtp_1`, with
    `Area for cell type $print is unknown!` and a chip area of `80.076800`.
 
-4. Compile the same file with Icarus:
+5. Compile the same file with Icarus:
 
    ```bash
    iverilog -g2012 -o results/t_display.vvp examples/t_display.sv
@@ -87,7 +102,7 @@ three cases written and `2'b11` missing. `src/bar_comb.sv`, `src/bar_star.sv`,
    You should see
    `examples/t_display.sv:21: warning: System task ($display) cannot be synthesized in an always_ff process.`
 
-5. See what `initial` becomes:
+6. See what `initial` becomes:
 
    ```bash
    yosys -p "read_verilog -sv examples/t_initial.sv; synth -top t_initial" 2>&1 | grep -A2 'PROC_INIT pass'
@@ -100,42 +115,82 @@ You should see `Set init value: \count = 4'0000` from the first command and
 `(* init = 4'h0 *)` two lines above `output [3:0] count;` from the second: an attribute on the
 port, and no reset logic.
 
-## Part 2: Four headers, one `case`
+What value does this counter hold when a SKY130 chip powers up?
 
-1. Synthesize the battery meter under all four headers:
+<details>
+<summary>Answer</summary>
+
+Whatever the transistors settle to. The attribute is effectively a comment: on an FPGA the
+bitstream honours it, but on an ASIC not one gate of reset logic was built. If you want a reset,
+build one in an `always_ff`, out of gates.
+
+</details>
+
+## Part 2: Five headers, one `case`
+
+Which of five headers on the same incomplete `case` does Yosys complain about, and what does it
+build for each?
+
+1. Read the header line of each of the five `bar_*.sv` files and write down which ones you expect
+   Yosys to stop on with an error, and which ones you expect to build a latch.
+
+2. Synthesize the battery meter under the first four headers:
 
    ```bash
    make latch
    ```
 
-2. Convince yourself nothing else changed between the first two files:
+   You should see four blocks and four different messages from the same Yosys pass:
+
+   ```
+   --- bar_comb (exit 1) ---
+   ERROR: Latch inferred for signal `\bar_comb.\bar' from always_comb process ...
+   --- bar_star (exit 0) ---
+   Latch inferred for signal `\bar_star.\bar' from process ...
+           2   $_DLATCH_N_
+   --- bar_unique (exit 0) ---
+   No latch inferred for signal `\bar_unique.\bar' from process ...
+           2 cells
+   --- bar_fixed (exit 0) ---
+   No latch inferred for signal `\bar_fixed.\bar' from process ...
+           2 cells
+   ```
+
+3. Convince yourself nothing else changed between the first two files:
 
    ```bash
    diff src/bar_comb.sv src/bar_star.sv
    ```
 
-You should see four blocks and four different messages from the same Yosys pass:
+4. Synthesize the fifth, `always_latch`, version:
 
-```
---- bar_comb (exit 1) ---
-ERROR: Latch inferred for signal `\bar_comb.\bar' from always_comb process ...
---- bar_star (exit 0) ---
-Latch inferred for signal `\bar_star.\bar' from process ...
-        2   $_DLATCH_N_
---- bar_unique (exit 0) ---
-No latch inferred for signal `\bar_unique.\bar' from process ...
-        2 cells
---- bar_fixed (exit 0) ---
-No latch inferred for signal `\bar_fixed.\bar' from process ...
-        2 cells
-```
+   ```bash
+   yosys -p "read_verilog -sv src/bar_latch.sv; synth -top bar_latch; stat" > results/bar_latch.log 2>&1; echo "exit=$?"
+   grep -E 'atch inferred|DLATCH' results/bar_latch.log
+   ```
 
-Three of the four exited 0. Fill in the first four rows of the table in
-[Finishing](#finishing) now, quoting the line the tool printed.
+   You should see `exit=0`, three `Warning: Latch inferred for signal` lines for `\bar_latch.\bar`,
+   and `2   $_DLATCH_N_`: the same two latches as `bar_star`. Yosys builds them and exits 0
+   because this time you asked for them.
+
+5. Fill in this table from your own terminal, in the tool's words rather than yours:
+
+   | Header | Exit code | What Yosys built | The line the tool printed |
+   |---|---|---|---|
+   | `always_comb`, no `default:` | | | |
+   | `always @*`, no `default:` | | | |
+   | `always_comb unique case` | | | |
+   | `always_comb` with `default:` | | | |
+   | `always_latch` | | | |
+
+You should see exactly one `exit 1`, for `bar_comb`; the other four exited 0.
 
 ## Part 3: Make the latch misbehave
 
-1. Run the simulation. The testbench walks `level` through `0, 1, 2, 3, 0`.
+What does the latched design output when you drive the branch nobody wrote?
+
+1. The testbench walks `level` through `0, 1, 2, 3, 0`. Write down what you expect `bar_star` to
+   show at `level = 3`. Then run the simulation:
 
    ```bash
    make sim
@@ -152,16 +207,25 @@ level   bar_star   bar_fixed
    00       0001        0001
 ```
 
-At `level = 3` the latched design shows `0111`, the reading from the line above. A test that
-never drives `level = 3` passes. A test that drives it after `2'b10` sees a plausible wrong answer
-rather than an `X`.
+Why does `bar_star` show `0111` at `level = 3`, and why is that worse than an `X`?
+
+<details>
+<summary>Answer</summary>
+
+`0111` is the reading from the line above: the latch holds the last value it was given. A test
+that never drives `level = 3` passes. A test that drives it after `2'b10` sees a plausible wrong
+answer rather than an `X`.
+
+</details>
 
 ## Part 4: The `unique` netlist
 
-The second half of `make sim` synthesizes `bar_unique.sv` and simulates the netlist, not the
-source.
+What did `unique` turn the missing branch into? The second half of `make sim` synthesizes
+`bar_unique.sv` and simulates the netlist, not the source.
 
-1. Read the second table `make sim` printed, then open `results/bar_unique_net.v`.
+1. Read the second table `make sim` printed, and write down what `bar_unique` outputs at
+   `level = 2'b11`.
+2. Open `results/bar_unique_net.v` and find the line that drives `bar[3]`.
 
 You should see:
 
@@ -173,11 +237,21 @@ level   bar (synthesized)
    11       0001
 ```
 
-and, in the netlist, `assign { bar[3], bar[0] } = 2'h1;`, which ties `bar[3]` to constant 0. The
-top LED is not driven by anything, so a full battery displays as empty. Yosys reported "No latch
-inferred", and that was true. Write down what `bar_unique` outputs at `level = 2'b11`.
+and, in the netlist, `assign { bar[3], bar[0] } = 2'h1;`. Yosys reported "No latch inferred".
+Was that true, and what does a full battery look like?
+
+<details>
+<summary>Answer</summary>
+
+It was true. That line ties `bar[3]` to constant 0, so the top LED is not driven by anything and
+a full battery displays as empty. `unique` told Yosys the listed cases are the only ones that
+can happen, so `2'b11` became a don't-care and the optimizer output whatever was cheapest.
+
+</details>
 
 ## Part 5: Latch area on SKY130
+
+What does `stat` report for latches that never get mapped to a library cell?
 
 1. Map the `always @*` version all the way to SKY130 cells:
 
@@ -186,13 +260,24 @@ inferred", and that was true. Write down what `bar_unique` outputs at `level = 2
              abc -liberty $LIB; opt_clean; stat -liberty $LIB"
    ```
 
-2. Compare the result with the real latch cell `sky130_fd_sc_hd__dlxtp_1`, 15.0144 µm² each.
+2. The real latch cell is `sky130_fd_sc_hd__dlxtp_1`, 15.0144 µm² each. Work out what two of
+   them would cost and compare it with the chip area `stat` reports.
 
 You should see the two `$_DLATCH_N_` still in the mapped netlist,
 `Area for cell type $_DLATCH_N_ is unknown!`, a chip area of `21.270400`, and `0.00%`
-sequential. Two real latches alone would be 30.03 µm².
+sequential.
+
+<details>
+<summary>Answer</summary>
+
+Two real latches alone would be 30.03 µm², more than the whole reported area. The latches
+stayed generic `$_DLATCH_N_`, which has no liberty entry, so `stat` counted them as zero.
+
+</details>
 
 ## Part 6: The lint gate
+
+Which of the five files does Verilator flag, and does `unique` fool it?
 
 1. Lint the first file on its own:
 
@@ -203,20 +288,45 @@ sequential. Two real latches alone would be 30.03 µm².
    You should see `%Warning-CASEINCOMPLETE` with `(example pattern 0x3)`, then `%Warning-LATCH`,
    then `%Error: Exiting due to 2 warning(s)`.
 
-2. Lint all four:
+2. Lint the four from `make latch`:
 
    ```bash
    make lint
    ```
 
-You should see `bar_comb`, `bar_star` and `bar_unique` each produce `%Warning-CASEINCOMPLETE` and
-`%Warning-LATCH` and exit 1, while `bar_fixed` prints a verilation report and `clean (exit 0)`.
-Unlike Yosys, Verilator is not fooled by `unique`. From here on, `verilator --lint-only -Wall`
+   You should see `bar_comb`, `bar_star` and `bar_unique` each produce `%Warning-CASEINCOMPLETE`
+   and `%Warning-LATCH` and exit 1, while `bar_fixed` prints a verilation report and
+   `clean (exit 0)`. Unlike Yosys, Verilator is not fooled by `unique`.
+
+3. Lint the `always_latch` version:
+
+   ```bash
+   verilator --lint-only -Wall src/bar_latch.sv
+   ```
+
+   You should see `%Warning-CASEINCOMPLETE` with `(example pattern 0x3)`, no `%Warning-LATCH`, and
+   `%Error: Exiting due to 1 warning(s)`. Why did one warning go and the other stay?
+
+   <details>
+   <summary>Answer</summary>
+
+   `LATCH` warns about a latch you didn't declare; its own message suggests `always_latch` for
+   intentional latches, and here you declared one. The `case` is still incomplete, so
+   `CASEINCOMPLETE` stays.
+
+   </details>
+
+You should see exactly one clean file, `bar_fixed`. From here on, `verilator --lint-only -Wall`
 returning 0 is the precondition for running synthesis at all. It takes 4 ms.
 
 ## Part 7: Blocking and non-blocking
 
-1. Count flip-flops:
+How many flip-flops do three `<=` statements build, compared with the same three statements
+written with `=`?
+
+1. `src/shift_nb.sv` uses `<=`; `src/shift_b.sv` and `src/shift_b_rev.sv` contain the same three
+   blocking assignments in different orders. Write down how many flip-flops you expect each of
+   the three to synthesize to. Then count them:
 
    ```bash
    make flops
@@ -230,8 +340,7 @@ returning 0 is the precondition for running synthesis at all. It takes 4 ms.
    shift_b_rev          3   60.058   sky130_fd_sc_hd__dfxtp_1
    ```
 
-   followed by the shift-register simulation. `shift_b` and `shift_b_rev` contain the same
-   three blocking assignments in different orders.
+   followed by the shift-register simulation.
 
 2. Write the `=` version back out as Verilog, then the `<=` version:
 
@@ -261,7 +370,7 @@ returning 0 is the precondition for running synthesis at all. It takes 4 ms.
 
    You should see `3   60.058   sky130_fd_sc_hd__dfxtp_1` for every ordering. Do the same to
    `src/shift_b.sv` and watch the count move between 1 and 3. Put both files back the way they
-   were when you finish.
+   were when you finish (`git checkout src/shift_nb.sv src/shift_b.sv`).
 
 5. Look at the mirror-image mistake, `<=` inside `always_comb`:
 
@@ -276,7 +385,10 @@ You should see identical `assign` lines for `comb_b` and `comb_nb`, then a simul
 
 ## Part 8: The bug lint misses
 
-1. Run the width experiment:
+Where does the carry go when two 8-bit numbers are added into an 8-bit `sum`?
+
+1. `src/add8.sv` declares an eight-bit `sum`. Write down what you expect `200 + 100` to print.
+   Then run the width experiment:
 
    ```bash
    make width
@@ -291,25 +403,25 @@ add8.sv: LINT CLEAN (exit 0)
 ```
 
 then the `add9` run giving `205.196800` and `200 + 100 = 300`, and finally a
-`%Warning-WIDTHTRUNC` for `add_trunc.sv`. `add8.sv` declares an eight-bit `sum`, so the carry is
-never computed: not truncated, never built. Verilator, Yosys and Icarus all say nothing, because
-nothing is inconsistent. Widening `sum` to `[8:0]` costs one `sky130_fd_sc_hd__maj3_1`,
-10.01 µm², and gets you `300`.
+`%Warning-WIDTHTRUNC` for `add_trunc.sv`.
+
+Why do Verilator, Yosys and Icarus all say nothing about `add8.sv`?
+
+<details>
+<summary>Answer</summary>
+
+Nothing is inconsistent. `add8.sv` declares an eight-bit `sum`, so the carry is never computed:
+not truncated, never built. Widening `sum` to `[8:0]`, as `add9.sv` does, costs one
+`sky130_fd_sc_hd__maj3_1`, 10.01 µm², and gets you `300`.
+
+</details>
 
 ## Finishing
 
-The lab is done when this table is filled in from your own terminal, in the tool's words rather
-than yours:
+### You're done when
 
-| Header | Exit code | What Yosys built | The line the tool printed |
-|---|---|---|---|
-| `always_comb`, no `default:` | | | |
-| `always @*`, no `default:` | | | |
-| `always_comb unique case` | | | |
-| `always_comb` with `default:` | | | |
-| `always_latch` (see Going further) | | | |
-
-and each of these has one number:
+Your Part 2 table is filled in for all five headers, and each row of this table has one number
+from your own terminal:
 
 | Question | Your answer |
 |---|---|
@@ -320,21 +432,32 @@ and each of these has one number:
 | Area `add8` reports, and what `200 + 100` gives | |
 | Extra area buying the ninth bit | |
 
-Check that your run matched ours:
+To check your run against ours:
 
 - `make` completes in about 2 seconds and never stops on an error
 - `make latch` shows exactly one `exit 1`, and it is `bar_comb`
 - `make lint` shows exactly one clean file, and it is `bar_fixed`
 - `results/bar_star.log` contains `$_DLATCH_N_`; `results/bar_fixed.log` does not
 
-You should also be able to explain why `unique` makes an error go away without making the design
-correct.
+### Questions
 
-## Going further
+1. Why does `unique` make an error go away without making the design correct?
 
-- Synthesize `src/bar_latch.sv`, the same incomplete `case` under `always_latch`. Yosys builds the
-  same two latches and exits 0, because this time you asked for them. Verilator drops its `LATCH`
-  warning and keeps `CASEINCOMPLETE`.
+   <details>
+   <summary>Answer</summary>
 
-Next: read [Reading the `stat` report](guide/reading-stat.md) and
-[Carry delay and static timing](guide/the-carry-has-to-walk.md) before Lab 04.
+   `unique` is a promise that the cases you listed are the only ones that can happen. Yosys
+   believes it, so it infers no latch and reports none (Part 2), and builds whatever is cheapest
+   for `2'b11`: a dead top LED (Part 4). Verilator checks the cases itself and still flags the
+   file (Part 6).
+
+   </details>
+
+### Submit
+
+Nothing to submit.
+
+Next on the [Course path](README.md#course-path): read
+[Reading the `stat` report](guide/reading-stat.md) and
+[Carry delay and static timing](guide/the-carry-has-to-walk.md), then do
+[Lab 04: Reading the receipt](labs/lab-04-reading-the-receipt-overview.md).
