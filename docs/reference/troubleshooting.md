@@ -50,7 +50,7 @@ not a bug in your logic.
 
 ## Verilator reads your comment as a directive
 
-**Symptom:** Verilator stops on a comment:
+**Symptom:** In Lab 05, Verilator stops on a comment:
 
 ```
 %Error-BADVLTPRAGMA: solutions/elevator.sv:12:1: Unknown verilator comment:
