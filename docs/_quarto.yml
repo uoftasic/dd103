@@ -1,0 +1,143 @@
+# Quarto build of the DD103 docs (replacing Docsify's index.html,
+# _sidebar.md and _navbar.md).
+#
+#   quarto preview docs          # live site at http://localhost:4200
+#   quarto render docs           # site in docs/_site, with a PDF of every page
+#   quarto render docs --profile pdf --to typst
+#                                # the whole course as one PDF in docs/_book
+#
+# The sidebar follows the Course path order on the home page.
+
+project:
+  type: website
+  output-dir: _site
+  resources:
+    - assets/img/carry-travels.web.mp4
+    - assets/img/rtl-to-cells.web.mp4
+
+website:
+  title: "DD103 — RTL on FPGAs & ASICs"
+  description: "SystemVerilog in depth, and how the same RTL lowers differently to FPGA and ASIC."
+  site-url: https://uoftasic.com/dd103/
+  repo-url: https://github.com/uoftasic/dd103
+  repo-subdir: docs
+  repo-actions: [issue]
+  search: true
+  page-navigation: true
+  navbar:
+    left:
+      - text: "Guide"
+        href: guide/getting-started.md
+      - text: "Labs"
+        href: labs/lab-01-one-adder-two-targets-overview.md
+    right:
+      - text: Course PDF
+        icon: file-pdf
+        href: dd103-course.pdf
+      - icon: discord
+        href: https://discord.gg/hrJnP5UsGz
+        aria-label: Discord
+      - icon: github
+        href: https://github.com/uoftasic/dd103
+        aria-label: GitHub
+  sidebar:
+    style: docked
+    contents:
+      - text: "Home"
+        href: index.md
+      - section: "1–2. Start"
+        contents:
+          - text: "Getting started"
+            href: guide/getting-started.md
+          - text: "Lab 01: One adder, two targets"
+            href: labs/lab-01-one-adder-two-targets-overview.md
+      - section: "3–4. What synthesis builds"
+        contents:
+          - text: "FPGA and ASIC targets"
+            href: guide/warehouse-and-empty-lot.md
+          - text: "What synthesis does"
+            href: guide/synthesis-is-translation.md
+          - text: "Standard cells"
+            href: guide/standard-cells-are-real.md
+          - text: "Lab 02: RTL becomes gates"
+            href: labs/lab-02-rtl-becomes-gates-overview.md
+      - section: "5–6. The traps"
+        contents:
+          - text: "Synthesizable SystemVerilog"
+            href: guide/the-hardware-dialect.md
+          - text: "Inferred latches"
+            href: guide/the-latch-you-didnt-ask-for.md
+          - text: "Blocking and non-blocking assignments"
+            href: guide/blocking-vs-nonblocking.md
+          - text: "Lab 03: Three ways to lose a latch"
+            href: labs/lab-03-three-ways-to-lose-a-latch-overview.md
+      - section: "7–8. Area and timing"
+        contents:
+          - text: "Reading the `stat` report"
+            href: guide/reading-stat.md
+          - text: "Carry delay and static timing"
+            href: guide/the-carry-has-to-walk.md
+          - text: "Lab 04: Reading the receipt"
+            href: labs/lab-04-reading-the-receipt-overview.md
+      - section: "9–10. Capstone"
+        contents:
+          - text: "Writing a state machine"
+            href: guide/state-machine-is-a-table.md
+          - text: "From netlist to layout"
+            href: guide/from-gates-to-geometry.md
+          - text: "Lab 05: Elevator to GDSII"
+            href: labs/lab-05-elevator-overview.md
+      - section: "Reference"
+        contents:
+          - text: "The synthesizable subset"
+            href: reference/synthesizable-subset.md
+          - text: "When Yosys says syntax error"
+            href: reference/yosys-syntax-errors.md
+          - text: "Looking things up in the SKY130 library"
+            href: reference/sky130-library-lookups.md
+          - text: "OpenLane, OpenLane 2, LibreLane"
+            href: reference/the-name-history.md
+          - text: "Troubleshooting"
+            href: reference/troubleshooting.md
+      - section: "Repo"
+        contents:
+          - text: "Lab packages"
+            href: https://github.com/uoftasic/dd103/tree/main/labs
+          - text: "Scripts"
+            href: https://github.com/uoftasic/dd103/tree/main/scripts
+
+filters:
+  - _filters/course.lua
+
+# Collapsed answers move to the end of each page in PDFs; set this to
+# "inline" to print them where they sit instead.
+answers-in-pdf: end
+
+format:
+  html:
+    theme:
+      light: [cosmo, _light.scss]
+      dark: [darkly, _dark.scss]
+    css: _styles.css
+    # Keeps old Docsify links (.../dd103/#/labs/...) working.
+    include-in-header: _docsify-redirect.html
+    toc: true
+    toc-depth: 3
+    code-copy: true
+    lightbox: auto
+    html-math-method:
+      method: mathjax
+      url: "https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-chtml-full.js"
+    # Listing html first stops Quarto adding a second "Typst" link.
+    format-links:
+      - html
+      - format: typst
+        text: PDF
+        icon: file-pdf
+  typst:
+    papersize: us-letter
+    margin:
+      x: 0.9in
+      y: 0.9in
+    fontsize: 10.5pt
+    toc: false
