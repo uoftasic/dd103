@@ -4,14 +4,15 @@ This page is a lookup table for one question: can you use a given construct in c
 synthesize, and if you can't, what happens when you try? Find your construct, read the result, and
 get back to your design.
 
-We ran every row ourselves, with the same command each time:
+We ran every row ourselves, with this command unless the row says otherwise:
 
 ```bash
 yosys -p "read_verilog -sv f.sv; synth -top f; stat"
 ```
 
 The runs used Yosys 0.68 (`git sha1 38e001a6f`) in `hpretl/iic-osic-tools:2026.08`. The cell
-counts are generic Yosys gates from `synth`, before any technology mapping. We give them so that
+counts are generic Yosys gates from `synth`, before any technology mapping; the `initial` and
+`$display` rows also quote what was left after mapping to SKY130. We give the counts so that
 you can check your own run against them, and so that you can see when a construct costs more
 hardware than you expected.
 
@@ -35,7 +36,8 @@ Yosys 0.68 (git sha1 38e001a6f, Release, GNU /usr/bin/c++ 13.3.0)
 | **Hard error** | Yosys stops with exit code 1, and the row quotes the error text |
 | **Vanishes** | Yosys accepts it and throws it away, with zero warnings |
 
-The middle two rows are the ones that cost people days.
+The fine-print and vanishing results are the ones that cost people days, because in both cases
+the run finishes without an error.
 
 ## The table
 

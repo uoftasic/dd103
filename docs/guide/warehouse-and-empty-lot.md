@@ -132,8 +132,8 @@ On the FPGA it becomes:
 The four `SB_RAM40_4K` are block RAMs, dedicated memory hardware that was already sitting on
 the die whether you used it or not, and with them the whole memory comes to 54 cells.
 
-On SKY130, with the same `synth` / `dfflibmap` / `abc` / `stat -liberty` flow, `yosys` takes about
-twelve seconds, because it has twenty-seven thousand cells to map:
+On SKY130, with the same `synth` / `dfflibmap` / `abc` / `stat -liberty` flow (the run that took
+about twelve seconds in Lab 01, because it had twenty-seven thousand cells to map), it becomes:
 
 ```
 === mem ===
@@ -143,11 +143,11 @@ twelve seconds, because it has twenty-seven thousand cells to map:
    Chip area for module '\mem': 606554.233600
 ```
 
-16,384 is exactly 2048 × 8, so there is one physical flip-flop for every bit you asked for, plus
-2,748 multiplexers to pick out the one you meant. The whole memory takes 0.61 mm² of silicon,
-about 5,500 times the 110 µm² of your adder. The source file is the same in both runs. The
-difference is that the FPGA already had block RAM on the die, while on SKY130 every bit has to be
-built out of flip-flops.
+As you worked out in Lab 01, 16,384 is exactly 2048 × 8, so there is one physical flip-flop for
+every bit you asked for, plus 2,748 multiplexers to pick out the one you meant. The whole memory
+takes 0.61 mm² of silicon, about 5,500 times the 110 µm² of your adder. The source file is the
+same in both runs; the FPGA could use block RAM that was already on the die, while on SKY130
+every bit has to be built out of flip-flops.
 
 On a real chip you would fix this by instantiating a macro, which is a memory block designed and
 characterised separately and then placed in your floorplan as a fixed rectangle. Macros are out

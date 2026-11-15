@@ -312,8 +312,9 @@ Every lab in this course checks your work without an instructor, and this sectio
 }
 ```
 
-We cut eleven more cell types and eight more `num_*` keys from both objects to make it fit. The
-full file is `results/blinker.json` once you have run `make` in Lab 04. Four keys carry
+To make it fit, we cut eleven of the receipt's fifteen cell types from the module object and
+thirteen from the design object, and eight more `num_*` keys from both. The full file is
+`results/blinker.json` once you have run `make` in Lab 04. Four keys carry
 everything the text receipt showed you:
 
 | Key | What it is |

@@ -245,9 +245,10 @@ LIB=/foss/pdks/sky130A/libs.ref/sky130_fd_sc_hd/lib/sky130_fd_sc_hd__tt_025C_1v8
    <details>
    <summary>Answer</summary>
 
-   It noticed that a mux feeding a flip-flop's D input, choosing between the flop's own output
-   and a new value, is an enable, and folded the `$mux`, `$not`, `$logic_not` and `$adff` into a
-   single `$adffe`: one flip-flop with a built-in enable pin.
+   It recognised the idiom that [What synthesis does](../guide/synthesis-is-translation.md#how-the-design-changes-shape)
+   describes: a mux on a flip-flop's D input that chooses between the flop's own output and a new
+   value is an enable. So it folded the `$mux`, `$not`, `$logic_not` and `$adff` into a single
+   `$adffe`, one flip-flop with a built-in enable pin.
 
    </details>
 

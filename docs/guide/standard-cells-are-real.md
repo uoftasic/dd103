@@ -29,9 +29,11 @@ two cells out of this catalogue, and then works out what those two cells cost in
 </video>
 
 In the last third, the animation chains four of those adders together and asks you for the total
-area. Write your answer down before it shows you the real one. Your answer will be wrong (we set
-the question up that way on purpose), and the size of the gap between your number and the real
-one is the most useful thing on this page.
+area. Write your answer down before it shows you the real one. You met this question in
+[Lab 01, Part 6](../labs/lab-01-one-adder-two-targets-overview.md#part-6-predict-the-4-bit-area),
+and if you answer it the same way, by multiplying one adder by four, your answer will be wrong
+(we set the question up that way on purpose). The size of the gap between your number and the
+real one is the most useful thing on this page.
 
 ## The size of the library
 

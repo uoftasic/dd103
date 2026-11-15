@@ -64,7 +64,8 @@ The tool in your workbench is OpenSTA, at `/foss/tools/bin/sta`, version `3.1.0`
 > ```
 >
 > The Yosys command is also the first thing a web search turns up. The tool you want is `sta`,
-> the same one LibreLane calls later in the course.
+> which is OpenSTA, the same timing analyser LibreLane uses later in the course (LibreLane runs
+> its own pinned build of it, `sta-librelane`).
 
 ### The gate-level netlist
 
