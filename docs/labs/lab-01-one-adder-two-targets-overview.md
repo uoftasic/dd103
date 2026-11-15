@@ -157,8 +157,9 @@ bitstream loads.
    There are 11 logic cells for 9 LUTs because the packer in `nextpnr` adds two cells of its
    own, `$PACKER_GND` and `$PACKER_VCC`. Some LUT inputs in the design are tied to a constant,
    and the chip has no wire that is permanently 0 or permanently 1, so the packer makes the
-   constants out of logic cells. (Add `--verbose` to the `nextpnr-ice40` command and the packer lists both by
-   name.) [FPGA and ASIC targets](../guide/warehouse-and-empty-lot.md), the reading after this
+   constants out of logic cells. (If you run the `nextpnr-ice40` line from the `Makefile`
+   yourself with `--verbose` added, the packer lists both by name.)
+   [FPGA and ASIC targets](../guide/warehouse-and-empty-lot.md), the reading after this
    lab, comes back to this. After placement, `icepack` turns the placed design into the
    bitstream `results/ripple4.bin`, which is 104,090 bytes.
 
