@@ -15,7 +15,7 @@
 // -----------------------------------------------------------------------------
 
 module elevator #(
-    // How many ticks the doors stay open. TODO(4) is where you use it.
+    // How many ticks the doors stay open. TODO(3) is where you use it.
     //
     // The lint_off is here only because nothing references DWELL_TICKS yet, and
     // `verilator --lint-only -Wall` treats an unused parameter as an error. Once

@@ -1,7 +1,7 @@
 // -----------------------------------------------------------------------------
 // tb_elevator.sv  --  DD103 Lab 05
 //
-// Six checks. The shipped skeleton passes three and fails three -- those three
+// Eight checks. The shipped skeleton passes five and fails three -- those three
 // failures ARE the assignment. When every line says PASS you are done with the
 // RTL half of the lab and can start hardening.
 //

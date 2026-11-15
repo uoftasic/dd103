@@ -3,7 +3,7 @@
 # (Verilator 5.050, Icarus 14.0, Yosys 0.68, LibreLane 3.1.0.dev3).
 #
 #   make lint     verilator --lint-only -Wall            ~0.01 s
-#   make sim      iverilog + vvp, six checks             ~0.1 s
+#   make sim      iverilog + vvp, eight checks           ~0.1 s
 #   make synth    yosys -> sky130 cells, read the receipt ~0.5 s
 #   make harden   librelane config.json -> GDSII         ~2 min
 #   make show     the RTL diagram (NOT the gate diagram — see the writeup)
@@ -24,7 +24,7 @@ lint:
 	verilator --lint-only -Wall src/elevator.sv
 	@echo "   lint clean (exit 0)"
 
-## sim — six checks. The shipped skeleton fails three of them on purpose.
+## sim — eight checks. The shipped skeleton fails three of them on purpose.
 sim: | $(RES)
 	@echo "== iverilog + vvp =="
 	iverilog -g2012 -o $(RES)/tb.vvp src/tb_elevator.sv src/elevator.sv

@@ -30,7 +30,7 @@ Open the SVGs in the noVNC desktop's file manager, or with
 
 | File | What it is |
 |---|---|
-| `src/fulladder.sv` | The module `make` draws: one bit of the DD102 adder, written with five operators. |
+| `src/fulladder.sv` | The module `make` draws: one bit of the DD102 adder, written with six operators, which the RTL view draws as five boxes because `a ^ b` is shared. |
 | `src/ripple4.sv` | Four of them in a chain. Used by `make bigger` only. |
 | `src/counter.sv` | Not built by `make`. The 4-bit counter used in Part 3 of the writeup and in [What synthesis does](../../docs/guide/synthesis-is-translation.md). |
 | `src/alu.sv` | Not built by `make`, and deliberately unreadable by Yosys's built-in parser. The worked example in [When Yosys says syntax error](../../docs/reference/yosys-syntax-errors.md). Verilator lints it clean; `yosys` stops at `alu.sv:7`. |
