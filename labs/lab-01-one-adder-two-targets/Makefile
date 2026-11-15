@@ -1,5 +1,5 @@
 # Lab 01 — One adder, two targets
-# Runs inside hpretl/iic-osic-tools:2026.08 (Yosys 0.68, nextpnr-ice40 0.10).
+# Runs inside hpretl/iic-osic-tools:2026.08 (Yosys 0.68, nextpnr-ice40 0.11.1).
 #
 #   make          both flows, then the side-by-side summary
 #   make fpga     yosys synth_ice40 -> nextpnr-ice40 -> icepack

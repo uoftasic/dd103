@@ -58,7 +58,7 @@ ERROR: Module `\fulladder' referenced in module `\ripple4' in cell `\slice[3].fa
 ## Reference numbers (Yosys 0.68, sky130A, iCE40 UP5K)
 
 ```
-FPGA  8 × SB_LUT4  →  10 / 5280 ICESTORM_LC  →  104,090-byte bitstream
+FPGA  9 × SB_LUT4  →  11 / 5280 ICESTORM_LC  →  104,090-byte bitstream
 ASIC  4 × sky130_fd_sc_hd__maj3_1 + 8 × sky130_fd_sc_hd__xnor2_1
       = 12 cells, 110.1056 µm²
 ```

@@ -128,35 +128,38 @@ bitstream loads.
 
            +----------Local Count, excluding submodules.
            | 
-          29 wires
-          48 wire bits
-          29 public wires
-          48 public wire bits
+          28 wires
+          47 wire bits
+          28 public wires
+          47 public wire bits
            5 ports
           14 port bits
-          12 cells
+          13 cells
            4   $scopeinfo
-           8   SB_LUT4
+           9   SB_LUT4
    ```
 
    The `$scopeinfo` cells aren't hardware. `ripple4` is built from four `fulladder` instances,
    one per bit slice, and `synth_ice40` flattened them into one module. It left one `$scopeinfo`
    marker for each instance it dissolved, so that Yosys can still tell you which slice a cell
    came from, and `write_verilog` leaves them out of the netlist it writes. The hardware is the
-   eight `SB_LUT4`.
+   nine `SB_LUT4`.
 
 2. Find the placement report from `nextpnr-ice40` in `results/fpga-pnr.log`:
 
    ```
    Info: Device utilisation:
-   Info: 	         ICESTORM_LC:      10/   5280     0%
+   Info: 	         ICESTORM_LC:      11/   5280     0%
    Info: 	        ICESTORM_RAM:       0/     30     0%
    Info: 	               SB_IO:      14/     39    35%
    ```
 
-   There are 10 logic cells for 8 LUTs because placement packs LUTs together with carry logic;
-   [FPGA and ASIC targets](../guide/warehouse-and-empty-lot.md), the reading after this lab,
-   comes back to this. After placement, `icepack` turns the placed design into the
+   There are 11 logic cells for 9 LUTs because the packer in `nextpnr` adds two cells of its
+   own, `$PACKER_GND` and `$PACKER_VCC`. Some LUT inputs in the design are tied to a constant,
+   and the chip has no wire that is permanently 0 or permanently 1, so the packer makes the
+   constants out of logic cells. (Add `--verbose` to the `nextpnr-ice40` command and the packer lists both by
+   name.) [FPGA and ASIC targets](../guide/warehouse-and-empty-lot.md), the reading after this
+   lab, comes back to this. After placement, `icepack` turns the placed design into the
    bitstream `results/ripple4.bin`, which is 104,090 bytes.
 
    What does the `/5280` tell you that a cell count alone doesn't?
@@ -182,7 +185,8 @@ bitstream loads.
    `sum [2]`, `sum [1]` and `c [4]` (`c` is the carry chain between the slices), because you
    deleted the adders that drove them. With nothing driving `c [4]`, `cout` is undriven too, so
    Yosys warns about `\cout` as well, and only `sum[0]` is left to compute. The synthesis report
-   now shows `1   SB_LUT4`, and the placement report shows `ICESTORM_LC:       3/   5280`.
+   now shows `1   SB_LUT4`, and the placement report shows `ICESTORM_LC:       3/   5280`: the
+   one LUT plus the same two constant cells.
 
    Did the bitstream shrink? `make fpga` ends by printing `ls -l results/ripple4.bin`; compare
    that size with your guess.
@@ -192,7 +196,7 @@ bitstream loads.
 
    No, `results/ripple4.bin` is still 104,090 bytes. The bitstream doesn't describe your adder;
    it configures every LUT, every routing switch and every I/O buffer on the entire UP5K,
-   including every logic cell you left empty (5,270 of them with the whole `ripple4`), so its
+   including every logic cell you left empty (5,269 of them with the whole `ripple4`), so its
    size doesn't depend on your design. A GDSII, the layout file an ASIC flow hands over, works the
    other way: it describes only what you built, so it grows when your design does.
 
@@ -205,7 +209,7 @@ bitstream loads.
    make fpga
    ```
 
-You should see `8   SB_LUT4` in `results/fpga-synth.log` again, `10/   5280` and `14/     39` in
+You should see `9   SB_LUT4` in `results/fpga-synth.log` again, `11/   5280` and `14/     39` in
 `results/fpga-pnr.log`, and a 104,090-byte `results/ripple4.bin`.
 
 ## Part 4: The ASIC flow
@@ -294,7 +298,7 @@ How do the two targets' answers to "how big is it?" compare?
    Lab 05), so write GDSII in that row and leave its size blank.
 
 You should see two columns whose rows don't share units: there is no conversion factor between
-`10/5280` and `110.1056 µm²`.
+`11/5280` and `110.1056 µm²`.
 
 ## Part 6: Predict the 4-bit area
 
@@ -442,7 +446,7 @@ the "You should see" line at the end of each part has ours.
    <details>
    <summary>Answer</summary>
 
-   For the iCE40, it uses 10 of 5280 logic cells, which tells them whether it fits. For SKY130,
+   For the iCE40, it uses 11 of 5280 logic cells, which tells them whether it fits. For SKY130,
    it takes 110.1056 µm² of silicon, which tells them what it costs. Parts 3 and 4 cover these,
    and Part 6 shows why you can't get that area by adding up the areas of the parts.
 

@@ -7,7 +7,7 @@ analysis yourself in
 
 You know how big your adder is: [Reading the `stat` report](../guide/reading-stat.md) gave you 12
 cells and 110.11 µm², and [FPGA and ASIC targets](../guide/warehouse-and-empty-lot.md) gave you the
-same file as 8 LUTs on an FPGA. This page measures how fast it is, in nanoseconds.
+same file as 9 LUTs on an FPGA. This page measures how fast it is, in nanoseconds.
 
 ## Video: the carry travels
 
