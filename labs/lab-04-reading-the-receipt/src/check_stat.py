@@ -23,10 +23,10 @@ import sys
 # cell does not tell you that you failed.
 EXPECTED = {
     #  name          cells  flops    area     seq_area
-    "blinker":      (   27,     8,  316.55,   201.44),
+    "blinker":      (   28,     8,  316.55,   201.44),
     "blinker_nofsm":(   27,     6,  264.00,   150.14),
-    "explicit":     (   26,     6,  265.25,   150.14),
-    "fast":         (   46,     8,  380.36,   201.44),
+    "explicit":     (   25,     6,  262.75,   150.14),
+    "fast":         (   44,     8,  374.11,   201.44),
     "fulladder":    (    2,     0,   33.78,     0.00),
     "ripple4":      (   12,     0,  110.11,     0.00),
     "ripple4_hier": (    8,     0,  135.13,     0.00),

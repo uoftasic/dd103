@@ -105,12 +105,9 @@ How many flip-flops does a design with six bits of state get?
    It prints the receipt first:
 
    ```
-          27  316.554 cells
-           1    10.01   sky130_fd_sc_hd__a21bo_1
+          28  316.554 cells
            2   15.014   sky130_fd_sc_hd__a21o_1
-           1    8.758   sky130_fd_sc_hd__a31o_1
-           1    6.256   sky130_fd_sc_hd__and2_0
-           2    7.507   sky130_fd_sc_hd__clkinv_1
+           3   11.261   sky130_fd_sc_hd__clkinv_1
            7  175.168   sky130_fd_sc_hd__dfrtp_1
            1   26.275   sky130_fd_sc_hd__dfstp_2
            ...
@@ -190,7 +187,7 @@ work out the sequential total, and check it against the receipt's `201.443200`.
 
 $$7 \times 25.024 + 1 \times 26.2752 = 201.4432\ \mu\text{m}^2 \quad\text{of}\quad 316.5536$$
 
-So eight cells out of twenty-seven take up 63.64 % of the silicon, and the nineteen cells that
+So eight cells out of twenty-eight take up 63.64 % of the silicon, and the twenty cells that
 actually decide anything share the other 115.11 µm².
 
 </details>
@@ -219,16 +216,16 @@ glance:
 
 ```
 yosys scripts/broken.ys -> exit status 0   (yes. zero.)
-       25  102.598 cells
+       26  105.101 cells
    Area for cell type $_DFFE_PN0P_ is unknown!
    Area for cell type $_DFF_PN0_ is unknown!
    Area for cell type $_DFF_PN1_ is unknown!
-   Chip area for module '\blinker': 102.598400
+   Chip area for module '\blinker': 105.100800
      of which used for sequential elements: 0.000000 (0.00%)
 ```
 
-The receipt says 102.60 µm² instead of 316.55, and 0.00 % sequential for a design that is two
-thirds flip-flops. It's short by 213.96 µm², which is 68 % of the design, and yet the run exited
+The receipt says 105.10 µm² instead of 316.55, and 0.00 % sequential for a design that is two
+thirds flip-flops. It's short by 211.45 µm², which is 67 % of the design, and yet the run exited
 with status zero. Why?
 
 <details>
@@ -272,11 +269,11 @@ Which script gives "the" area of `blinker.sv`?
    ```
    file                            cells  flops   area (um^2)   seq %
    ------------------------------------------------------------------
-   blinker_explicit.json              26      6        265.25   56.6%
-   blinker_explicit_nodffe.json       29      8        332.82   60.5%
-   blinker.json                       27      8        316.55   63.6%
-   blinker_flat.json                  27      8        316.55   63.6%
-   blinker_fast.json                  46      8        380.36   53.0%
+   blinker_explicit.json              25      6        262.75   57.1%
+   blinker_explicit_nodffe.json       30      8        327.81   61.5%
+   blinker.json                       28      8        316.55   63.6%
+   blinker_flat.json                  28      8        316.55   63.6%
+   blinker_fast.json                  44      8        374.11   53.8%
    ```
 
 3. The hand-written `explicit.ys` ends up with only six flip-flops, so it lost the FSM somewhere.
@@ -297,7 +294,7 @@ Which script gives "the" area of `blinker.sv`?
    then no longer recognises `state` as a state register. `synth` runs `opt -nodffe -nosdff` at
    that point instead, so that this doesn't happen. Adding those two flags to that one line of
    `explicit.ys` brings the FSM back, and that's the `explicit_nodffe` row: the change on one
-   line is worth two flip-flops and 67 µm².
+   line is worth two flip-flops and 65.06 µm².
 
    </details>
 
@@ -310,7 +307,7 @@ Which script gives "the" area of `blinker.sv`?
    fast:     strash / dretime / map
    ```
 
-You should see five areas between 265 and 380 µm², which is a 43 % spread from a single source
+You should see five areas between 263 and 374 µm², which is a 42 % spread from a single source
 file that never changed. Which row is the area of `blinker.sv`?
 
 <details>
@@ -318,7 +315,7 @@ file that never changed. Which row is the area of `blinker.sv`?
 
 None of them is the one correct row. `-flatten` made no difference here because `blinker` has
 no submodules, but on `ripple4` in Part 5 flattening changes everything. The fast script runs
-three ABC commands instead of twelve, and it made the design about 20 % bigger, so you bought
+three ABC commands instead of twelve, and it made the design about 18 % bigger, so you bought
 synthesis runtime with silicon.
 
 The question "how big is it?" has no answer until you add "under which script?". LibreLane
@@ -430,7 +427,7 @@ shows what the file looks like.
 
    ```
    blinker.json
-     cells      : 27
+     cells      : 28
      flip-flops : 8
      area       : 316.55 um^2
      sequential : 201.44 um^2 (63.6%)
@@ -448,9 +445,9 @@ shows what the file looks like.
 
    ```
    blinker_broken.json
-     cells      : 25
+     cells      : 26
      flip-flops : 0
-     area       : 102.60 um^2
+     area       : 105.10 um^2
      sequential : 0.00 um^2 (0.0%)
      FAIL
        - unmapped cells in the netlist: $_DFFE_PN0P_, $_DFF_PN0_, $_DFF_PN1_
@@ -458,7 +455,7 @@ shows what the file looks like.
          Your area is too small by however much those cells were worth. Did you
          remember dfflibmap?
        - flip-flop count 0, expected exactly 8
-       - area 102.60 um^2, expected about 316.55 um^2
+       - area 105.10 um^2, expected about 316.55 um^2
        - sequential area 0.00 um^2, expected about 201.44
    ```
 
@@ -583,8 +580,8 @@ reference values to compare against.
 Answer each in one sentence, using your own numbers. The step in parentheses has the answer.
 
 1. Why does `blinker.sv` have eight flip-flops when you wrote six bits of state? (Part 2, step 4)
-2. What is wrong with `102.60 µm²`, and what in the output told you? (Part 3)
-3. Which of `265.25`, `316.55` and `380.36` is the area of `blinker.sv`? (Part 4)
+2. What is wrong with `105.10 µm²`, and what in the output told you? (Part 3)
+3. Which of `262.75`, `316.55` and `374.11` is the area of `blinker.sv`? (Part 4)
 4. Why is `ripple4` smaller than four `fulladder`s, and what makes it exactly `135.1296` again?
    (Part 5, steps 3 and 4)
 5. What is the worst path of your 4-bit adder at the typical corner, and what is the slack with
@@ -596,7 +593,7 @@ Answer each in one sentence, using your own numbers. The step in parentheses has
 
    No. `Chip area` is the sum of the standard-cell areas and nothing else. When LibreLane takes
    the same `blinker.sv` all the way to a layout, with the flow's default floorplan settings, it
-   reports 1929.33 µm² of die (38.89 × 49.61 µm) and 109 placed instances, against `stat`'s 27
+   reports 1929.33 µm² of die (38.89 × 49.61 µm) and 109 placed instances, against `stat`'s 28
    cells. The difference is made up of clock buffers, timing-repair buffers, well taps, filler
    and the empty space the router needs, while the 8 sequential cells are the same in both. So
    use `stat -liberty` to compare two versions of your own design, not to size a chip.
