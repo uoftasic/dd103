@@ -4,7 +4,8 @@ This page explains what a latch is, how an incomplete `always` block creates one
 designers avoid them. You'll reproduce every result here in
 [Lab 03](../labs/lab-03-three-ways-to-lose-a-latch-overview.md), Parts 2 to 6 and Part 8.
 
-Say you are building a battery meter: two bits in, four LEDs out. You write the obvious thing:
+Say you're building a battery meter with a two-bit input and four LEDs as outputs, and you write
+the obvious code:
 
 ```systemverilog
 always_comb begin
@@ -16,14 +17,15 @@ always_comb begin
 end
 ```
 
-That is three cases, and a 2-bit input has four values. You forgot `2'b11`, the full battery.
-Yosys does not say "you forgot a case". It says this:
+That's three cases, but a 2-bit input has four values, so you've forgotten `2'b11`, the full
+battery. Yosys doesn't tell you that you forgot a case; instead it prints this:
 
 ```
 ERROR: Latch inferred for signal `\bar_comb.\bar' from always_comb process `\bar_comb.$proc$bar_comb.sv:7$1'.
 ```
 
-and exits 1. The rest of this page explains where the word "latch" came from.
+and then exits with status 1. The rest of this page explains why the message talks about a latch
+when all you did was leave out a case.
 
 ## Missing assignments and memory
 
@@ -34,7 +36,7 @@ execute leaves the variable alone. `bar` keeps whatever it had.
 As a hardware request, "keep whatever it had" means remember the last value and keep driving it,
 for as long as `level` is 3, which might be forever. No combinational gate can do that, because a
 gate's output depends only on its inputs right now. If the output has to depend on something
-else, the only thing that can supply it is memory. So Yosys builds memory, and that memory is a
+else, the only thing that can supply it is memory. So Yosys builds memory, in the form of a
 latch.
 
 ## Simulating the latch
@@ -51,19 +53,20 @@ level   bar_star   bar_fixed
    00       0001        0001
 ```
 
-Look at row four. The full battery reads `0111`, three bars, because `0111` is what the meter
-was showing one line earlier, at `level = 2'b10`. The circuit is replaying an old value rather
-than computing a new one.
+Look at the fourth row: the full battery reads `0111`, three bars, because `0111` is what the
+meter was showing on the line before, at `level = 2'b10`. The circuit is replaying an old value
+rather than computing a new one.
 
-Then `level` drops back to `2'b00` and the display corrects itself. So the bug is intermittent,
-depends on the input history, and is invisible to any test that never drives `level = 3`.
+When `level` drops back to `2'b00`, the display corrects itself. That makes the bug intermittent:
+whether you see it depends on the input history, and a test that never drives `level = 3` will
+never show it at all.
 
 ## Latches and flip-flops
 
 A flip-flop is like a door on a timer. It opens for an instant on the rising edge of the clock,
 whatever is standing there walks through, and it shuts. Because everyone agrees on when it opens,
-a timing tool can ask one clean question: did the data arrive before the clock edge? That
-question is what timing analysis means, and it is why chips work.
+a timing tool can ask one clean question: did the data arrive before the clock edge? Asking that
+question is what timing analysis is, and it's what makes chips work.
 
 A latch is like a door propped open by a lever. While the lever (the enable) is up, the door
 stays open and anything that comes near flows straight through to the output. When the lever
@@ -79,11 +82,11 @@ always @*
 ```
 
 `_0_` is `level[1] & level[0]`, true exactly when `level` is 3. So the door is open whenever
-`level` is not 3 and shut when it is. You never wrote an enable or chose that expression; it is
-left over from which branches you happened to type.
+`level` is not 3 and shut when it is. You never wrote an enable or chose that expression; it's
+what is left over from the branches you happened to type.
 
-Nobody writes a timing constraint for that door, because nobody knows it exists. A latch like
-this is memory that nobody timed, and that is why designers are afraid of them.
+Nobody writes a timing constraint for that door, because nobody knows it exists, so a latch like
+this is memory that nobody has timed, which is why designers are afraid of latches.
 
 ## Three headers
 
@@ -113,23 +116,23 @@ No latch inferred for signal `\bar_fixed.\bar' from process `\bar_fixed.$proc$ba
         1   $_OR_
 ```
 
-All four messages come from the same Yosys pass, `PROC_DLATCH`. Read side by side, the wording
-shows what happened in each case.
+All four messages come from the same Yosys pass, `PROC_DLATCH`, and if you read them side by
+side, the differences in wording tell you what happened to each file.
 
 With `always_comb`, Yosys stops. The message starts with `ERROR:` and says "from always_comb
-process". You promised combinational logic, the code described sequential logic, and the tool
-caught it. Exit code 1, no netlist, no harm done.
+process": you promised combinational logic, the code described sequential logic, and the tool
+caught the mismatch. It exits with code 1 and writes no netlist, so no harm is done.
 
-With `always @*`, Yosys builds the latch and carries on. The sentence is the same, but there is
-no `ERROR:`, no `always_comb`, and a cell name where the full stop was. Exit code 0. Two
-`$_DLATCH_N_` cells are now in your design, and the only sign is one line out of the 629 that
-run printed. `always @*` and `always_comb` describe the same circuit to a simulator; only
-`always_comb` makes a promise the synthesizer can check. In this course you never write
-`always @*`.
+With `always @*`, Yosys builds the latch and carries on. The sentence is the same, but it has no
+`ERROR:` and no `always_comb`, there is a cell name where the full stop was, and the exit code
+is 0. Your design now has two `$_DLATCH_N_` cells in it, and the only sign of them is one line
+out of the 629 lines printed by that run. To a simulator, `always @*` and `always_comb` describe
+the same circuit, but only `always_comb` makes a promise that the synthesizer can check, which is
+why in this course you never write `always @*`.
 
-With `always_comb` and `unique case`, the latch disappears and so does your fourth LED. The third
-message says "No latch inferred": no error, no warning, just a statement that there was nothing
-to worry about. The result is two cells, smaller than the correct version.
+With `always_comb` and `unique case`, the latch disappears, but so does your fourth LED. The third
+message says "No latch inferred", with no error and no warning, just a statement that there was
+nothing to worry about. The result is two cells, which is smaller than the correct version.
 
 ## `unique` and don't-care outputs
 
@@ -154,18 +157,18 @@ level   bar (synthesized)
    11       0001
 ```
 
-A full battery displays as empty. This time the reading isn't stale. It is wrong, generated by
-two gates working exactly as built.
+A full battery now displays as empty. The latched version showed a stale reading; this one is
+simply wrong, and it comes from two gates working exactly as they were built.
 
 > Style guides do recommend `unique`, and their reason is real: to a simulator, `unique` is a
-> runtime assertion that complains if no branch matches. To a synthesizer it is a permission
-> slip. Same keyword, opposite job.
+> runtime assertion that complains if no branch matches. To a synthesizer, though, it's a
+> permission slip, so the same keyword does opposite jobs in the two tools.
 >
-> This course does not use `unique`. At this stage you have one synthesizer and no
-> constrained-random regression suite to fire that assertion. Trading a check that runs every
-> time you type `make` for one that runs only if a test happens to hit the missing case is a bad
-> trade. Write the `default:` instead. It costs one line and the synthesizer enforces it every
-> time.
+> This course doesn't use `unique`, because at this stage you have one synthesizer and no
+> constrained-random regression suite to fire that assertion. Using it would trade a check that
+> runs every time you type `make` for one that runs only if a test happens to hit the missing
+> case, and that's a bad trade. Write the `default:` instead: it costs one line, and the
+> synthesizer enforces it every time.
 
 ## Fixing the latch
 
@@ -181,8 +184,8 @@ always_comb begin
 end
 ```
 
-Either half alone removes the latch. Do both anyway. The unconditional assignment at the top
-still protects you if you later add an `if` that forgets its `else`, and the `default:` still
+Either half on its own removes the latch, but do both anyway. The unconditional assignment at the
+top still protects you if you later add an `if` that forgets its `else`, and the `default:` still
 protects you if someone widens `level` to three bits.
 
 `bar_fixed.sv` in the lab does only the second half, and that is already enough:
@@ -194,9 +197,9 @@ No latch inferred for signal `\bar_fixed.\bar' …
         1   $_OR_
 ```
 
-The correct circuit is two gates, three cells smaller than the latched one at 5, and it behaves
-correctly at all four inputs. Getting it right costs you nothing; the correct version is the
-smaller one.
+The correct circuit is two gates, three cells fewer than the five in the latched version, and it
+gives the right answer for all four inputs. So getting it right costs you nothing, because the
+correct version is also the smaller one.
 
 ## Latch area on SKY130
 
@@ -215,24 +218,23 @@ Here is the `always @*` version mapped all the way to SKY130 cells:
      of which used for sequential elements: 0.000000 (0.00%)
 ```
 
-Three things went wrong on that report.
+Three things are wrong in that report. First, the latches never became SKY130 cells.
+`dfflibmap` maps flip-flops, so it skipped both `$_DLATCH_N_` cells and left them as Yosys's own
+internal cell type, which means they're still in your technology-mapped netlist with a `$` in
+front of their name. As
+[What synthesis does](../guide/synthesis-is-translation.md#leaving-out-dfflibmap) explains, a `$_`
+name in a mapped netlist means that something didn't get built.
 
-The latches never became cells. `dfflibmap` maps flip-flops, so it skipped both `$_DLATCH_N_`
-and left them as Yosys's own internal cell type. They are still in your technology-mapped netlist
-with a `$` in front of their name. As in
-[What synthesis does](../guide/synthesis-is-translation.md#leaving-out-dfflibmap), a `$_` name in a
-mapped netlist means something did not get built.
+Second, the area is wrong, because `21.27 µm²` is the sum of only the three gates. SKY130 does
+have a real latch, `sky130_fd_sc_hd__dlxtp_1`, at 15.0144 µm², and two of those would come to
+30.03 µm², which is more than the number the tool printed for the entire module.
 
-The area is wrong. `21.27 µm²` is the sum of three gates. SKY130 does have a real latch,
-`sky130_fd_sc_hd__dlxtp_1`, at 15.0144 µm², and two of those would be 30.03 µm²: more than the
-number the tool printed for the entire module.
+The sequential percentage is worse still. It reads `0.00%` on a module where two of the five
+cells are memory, so the one number on the report that is supposed to tell you there is state in
+the design says there is none.
 
-The sequential percentage is worse: `0.00%`, on a module where two of the five cells are memory.
-The one number on the report that is supposed to tell you there is state in the design reads
-zero.
-
-Every later tool inherits that. Place-and-route can't place a cell it doesn't recognise, and
-static timing analysis can't constrain a path it never saw.
+Every tool later in the flow inherits these problems: place-and-route can't place a cell it
+doesn't recognise, and static timing analysis can't constrain a path it never saw.
 
 > If you really want a latch, and a handful of real designs do, the keyword is `always_latch`.
 > Yosys builds the same two `$_DLATCH_N_` cells and exits 0 without complaint, because you asked.
@@ -241,9 +243,9 @@ static timing analysis can't constrain a path it never saw.
 
 ## The lint gate
 
-Yosys catches the latch, but only at the end of a synthesis run, in a log, in its own vocabulary.
-Verilator, which is in your container, reads your source and reports problems in plain English
-before synthesis starts. On `bar_comb.sv`:
+Yosys does catch the latch, but only at the end of a synthesis run, in a log, and in its own
+vocabulary. Verilator, which is in your container, reads your source and reports problems in
+plain English before synthesis starts. On `bar_comb.sv`:
 
 ```
 %Warning-CASEINCOMPLETE: src/bar_comb.sv:8:9: Case values incompletely covered (example pattern 0x3)
@@ -272,19 +274,19 @@ Run on all four files, it gives:
 | `bar_unique.sv` | `CASEINCOMPLETE` + `LATCH`, exit 1 |
 | `bar_fixed.sv` | nothing, exit 0 |
 
-Verilator is not fooled by `unique`. Yosys said "No latch inferred" and handed you a circuit with
-a dead LED; Verilator, reading the same file, still points at line 7 and says
+Notice that `unique` doesn't fool Verilator. Yosys said "No latch inferred" and handed you a
+circuit with a dead LED, but Verilator, reading the same file, still points at line 7 and says
 `Latch inferred for signal 'bar'`. It checks the cases itself instead of taking `unique` at its
 word.
 
-For the rest of this track, lint clean before you synthesize. Verilator's exit code is 0 or it
-isn't, and `-Wall` makes warnings fatal. It runs in 4 milliseconds, so there is no reason to skip
-it.
+For the rest of this track, make sure your code lints clean before you synthesize it. The result
+is easy to read: `-Wall` makes warnings fatal, so Verilator exits with 0 when the file is clean
+and with something else when it isn't. It runs in 4 milliseconds, so there's no reason to skip it.
 
 ## Limits of lint
 
-Verilator is easy to over-trust, so here is its limit. This is an eight-bit adder with nothing
-missing, nothing conditional, no `case` and no `always` at all:
+Verilator is easy to over-trust, so here is an example of what it can't catch. This is an
+eight-bit adder with nothing missing, nothing conditional, no `case` and no `always` at all:
 
 ```systemverilog
 module add8 (
@@ -305,12 +307,14 @@ add8.sv: LINT CLEAN (exit 0)
 255 +   1 = 0
 ```
 
-200 + 100 = 44. Eight bits plus eight bits needs nine bits. Your `sum` is eight bits wide, so the
-ninth bit, the carry out, has nowhere to go, and Verilog's width rules evaluate the whole addition
-at eight bits. The carry is not truncated at the assignment; it is never computed. Yosys did not
-build it, so it does not appear in the netlist, the area, or anywhere else.
+The first line says 200 + 100 = 44. Adding eight bits to eight bits needs nine bits for the
+result, but your `sum` is eight bits wide, so the ninth bit, the carry out, has nowhere to go, and
+Verilog's width rules evaluate the whole addition at eight bits. That means the carry isn't
+truncated at the assignment; it's never computed at all. Yosys didn't build it, so it doesn't
+appear in the netlist, the area, or anywhere else.
 
-Verilator, Yosys and Icarus all said nothing. Every tool did exactly what you asked.
+Verilator, Yosys and Icarus all said nothing, because every one of them did exactly what you
+asked.
 
 The fix is one character in the port declaration:
 
@@ -324,8 +328,8 @@ output logic [8:0] sum
 ```
 
 and the chip area goes from `195.1872` to `205.1968 µm²`: one extra `sky130_fd_sc_hd__maj3_1`,
-10.01 µm², for the ninth bit of carry. That is what the missing answer was worth in silicon, and
-no tool would have told you.
+10.01 µm², for the ninth bit of carry. That's what the missing part of the answer was worth in
+silicon, and no tool would have told you it was missing.
 
 Verilator does catch width mismatches when there is one to catch. `src/add_trunc.sv` widens one
 operand and leaves the output alone, and that is the last thing `make width` prints:
@@ -338,11 +342,11 @@ assign sum = {1'b0, a} + b;    // sum is still [7:0]
 %Warning-WIDTHTRUNC: add_trunc.sv:6:16: Operator ASSIGNW expects 8 bits on the Assign RHS, but Assign RHS's ADD generates 9 bits.
 ```
 
-A width mismatch is visible in the text, and lint sees it. A width that is consistently too small
-everywhere has no mismatch for lint to find. It is a design decision, and only you know it was the
-wrong one.
+A width mismatch is visible in the text, so lint can see it. A width that is consistently too
+small everywhere has no mismatch for lint to find, because it's a design decision, and only you
+know that it was the wrong one.
 
-`make lint` returning 0 means no tool found anything to say about the file. It does not mean the
+When `make lint` returns 0, that means no tool found anything to say about the file, not that the
 circuit computes what you wanted. Lint is only a minimum check, which is why DD104 exists.
 
 ## Summary
@@ -351,9 +355,9 @@ circuit computes what you wanted. Lint is only a minimum check, which is why DD1
 |---|---|
 | A latch appears when | a combinational block can finish without assigning an output |
 | Because "leave it alone" means | remember, and remembering needs memory |
-| `always_comb` | errors. Use it, always |
-| `always @*` | builds the latch silently. Never write it |
-| `unique` without `default:` | turns the check off. Not used in this course |
+| `always_comb` | stops with an error, so always use it |
+| `always @*` | builds the latch without complaint, so never write it |
+| `unique` without `default:` | turns the check off, so this course doesn't use it |
 | The fix | default every output on entry; every `case` gets a `default:` |
 | Before every synthesis | `verilator --lint-only -Wall`, exit 0 |
 | And still | lint clean ≠ correct |
