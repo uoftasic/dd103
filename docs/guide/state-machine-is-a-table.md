@@ -2,7 +2,7 @@
 
 This page gives you a recipe for turning a state diagram into SystemVerilog, worked through on a
 vending machine. You'll synthesize the same vending machine and break it on purpose in
-[Lab 05, Part 1](labs/lab-05-elevator-overview.md#part-1-warm-up-on-the-vending-machine). The
+[Lab 05, Part 1](../labs/lab-05-elevator-overview.md#part-1-warm-up-on-the-vending-machine). The
 full source ships as
 [`labs/lab-05-elevator/examples/vending.sv`](https://github.com/uoftasic/dd103/blob/main/labs/lab-05-elevator/examples/vending.sv).
 
@@ -121,7 +121,7 @@ where you are unless something below says otherwise", which is why the `IDLE` br
 `else`.
 
 This is the difference between combinational logic and a latch.
-[Inferred latches](guide/the-latch-you-didnt-ask-for.md) covers what happens when you skip it, and
+[Inferred latches](../guide/the-latch-you-didnt-ask-for.md) covers what happens when you skip it, and
 the end of this page shows it on this machine.
 
 Compare the `case` branches against the table, line by line. The branches are the rows. If you
@@ -143,7 +143,7 @@ the reset state changes.
   the moment `rst_n` drops, without waiting for a clock edge. This is the shape LibreLane's default
   flow expects, and it is what the SKY130 cell `sky130_fd_sc_hd__dfrtp_1` (D flip-flop, reset,
   true output, positive edge) physically does.
-- Use `<=`, never `=`. [Blocking and non-blocking assignments](guide/blocking-vs-nonblocking.md)
+- Use `<=`, never `=`. [Blocking and non-blocking assignments](../guide/blocking-vs-nonblocking.md)
   settles that by counting flip-flops.
 - Nothing else goes in this block: no output logic, no `if (dime)`. If you want to add a line, it
   belongs in step 2.
@@ -272,7 +272,7 @@ Recoding FSM `$fsm$\state$114' from module `\vending' using `auto' encoding:
 
 ## Binary and one-hot encoding
 
-You met this pass in [Reading the `stat` report](guide/reading-stat.md), where it turned a 2-bit
+You met this pass in [Reading the `stat` report](../guide/reading-stat.md), where it turned a 2-bit
 state register into four flip-flops. With six states the trade is easier to price.
 
 Binary encoding is what you wrote: 6 states packed into $\lceil \log_2 6 \rceil = 3$ bits. That is
@@ -349,5 +349,5 @@ fastest tool in the container and the only one that quotes your own source back 
 
 The same four blocks work for six states or sixty.
 
-Next: [From netlist to layout](guide/from-gates-to-geometry.md), which takes this 231 µm² design
+Next: [From netlist to layout](../guide/from-gates-to-geometry.md), which takes this 231 µm² design
 through the stages that turn a `stat` receipt into a rectangle of silicon.

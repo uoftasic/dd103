@@ -11,11 +11,11 @@ Package: [`labs/lab-03-three-ways-to-lose-a-latch/`](https://github.com/uoftasic
 
 ## Before you start
 
-- [Lab 02](labs/lab-02-rtl-becomes-gates-overview.md) is complete, so `stat` output is familiar.
+- [Lab 02](../labs/lab-02-rtl-becomes-gates-overview.md) is complete, so `stat` output is familiar.
   `yosys -V` says `Yosys 0.68`.
-- Read [Synthesizable SystemVerilog](guide/the-hardware-dialect.md),
-  [Inferred latches](guide/the-latch-you-didnt-ask-for.md) and
-  [Blocking and non-blocking assignments](guide/blocking-vs-nonblocking.md).
+- Read [Synthesizable SystemVerilog](../guide/the-hardware-dialect.md),
+  [Inferred latches](../guide/the-latch-you-didnt-ask-for.md) and
+  [Blocking and non-blocking assignments](../guide/blocking-vs-nonblocking.md).
 
 Start every part from the package directory:
 
@@ -47,7 +47,7 @@ What does Yosys do with code that only makes sense to a simulator?
    `$display` and `$finish`; none of them describes hardware.
 
 2. Step 3 runs Yosys on three files from
-   [Synthesizable SystemVerilog](guide/the-hardware-dialect.md): a function that uses `return`, a
+   [Synthesizable SystemVerilog](../guide/the-hardware-dialect.md): a function that uses `return`, a
    `#5` delay, and a `unique case` with no `default:`. Write down which of the three you expect to
    exit 0.
 
@@ -462,7 +462,7 @@ To check your run against ours:
 
 Nothing to submit.
 
-Next on the [Course path](README.md#course-path): read
-[Reading the `stat` report](guide/reading-stat.md) and
-[Carry delay and static timing](guide/the-carry-has-to-walk.md), then do
-[Lab 04: Reading the receipt](labs/lab-04-reading-the-receipt-overview.md).
+Next on the [Course path](../index.md#course-path): read
+[Reading the `stat` report](../guide/reading-stat.md) and
+[Carry delay and static timing](../guide/the-carry-has-to-walk.md), then do
+[Lab 04: Reading the receipt](../labs/lab-04-reading-the-receipt-overview.md).

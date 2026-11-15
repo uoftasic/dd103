@@ -2,7 +2,7 @@
 
 This page explains why some legal SystemVerilog doesn't synthesize, and what Yosys does when it
 meets it. You'll run every example here in
-[Lab 03, Part 1](labs/lab-03-three-ways-to-lose-a-latch-overview.md#part-1-code-that-does-not-become-hardware).
+[Lab 03, Part 1](../labs/lab-03-three-ways-to-lose-a-latch-overview.md#part-1-code-that-does-not-become-hardware).
 
 You copy something out of a textbook. It is clearly SystemVerilog, and your simulator runs it.
 Yosys says:
@@ -283,22 +283,22 @@ learned. Commercial tools accept both. This is a missing feature, not physics, a
 ships two ways around it.
 
 Knowing which of the two you have hit is most of the triage skill.
-[When Yosys says syntax error](reference/yosys-syntax-errors.md) walks through it.
+[When Yosys says syntax error](../reference/yosys-syntax-errors.md) walks through it.
 
 Two exit codes in this page's examples are zero for designs that are wrong. A zero exit code
 means Yosys did not crash, and nothing more. The only thing that catches reactions two and three
-is reading the netlist that came out, which [Reading the `stat` report](guide/reading-stat.md)
+is reading the netlist that came out, which [Reading the `stat` report](../guide/reading-stat.md)
 trains you to do.
 
 ## Reference pages
 
 You'll come back to these rather than read them once:
 
-- [The synthesizable subset](reference/synthesizable-subset.md) covers every construct on this
+- [The synthesizable subset](../reference/synthesizable-subset.md) covers every construct on this
   page and a dozen more, with the exact `stat` output each one produces on Yosys 0.68. Look up
   your construct before you write it.
-- [When Yosys says syntax error](reference/yosys-syntax-errors.md) covers what to do when the
+- [When Yosys says syntax error](../reference/yosys-syntax-errors.md) covers what to do when the
   problem is the parser and not the physics, including the two workarounds already installed in
   your container.
 
-Next: [Inferred latches](guide/the-latch-you-didnt-ask-for.md).
+Next: [Inferred latches](../guide/the-latch-you-didnt-ask-for.md).

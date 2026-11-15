@@ -2,7 +2,7 @@
 
 This page explains what a latch is, how an incomplete `always` block creates one, and why
 designers avoid them. You'll reproduce every result here in
-[Lab 03](labs/lab-03-three-ways-to-lose-a-latch-overview.md), Parts 2 to 6 and Part 8.
+[Lab 03](../labs/lab-03-three-ways-to-lose-a-latch-overview.md), Parts 2 to 6 and Part 8.
 
 Say you are building a battery meter: two bits in, four LEDs out. You write the obvious thing:
 
@@ -220,7 +220,7 @@ Three things went wrong on that report.
 The latches never became cells. `dfflibmap` maps flip-flops, so it skipped both `$_DLATCH_N_`
 and left them as Yosys's own internal cell type. They are still in your technology-mapped netlist
 with a `$` in front of their name. As in
-[What synthesis does](guide/synthesis-is-translation.md#leaving-out-dfflibmap), a `$_` name in a
+[What synthesis does](../guide/synthesis-is-translation.md#leaving-out-dfflibmap), a `$_` name in a
 mapped netlist means something did not get built.
 
 The area is wrong. `21.27 µm²` is the sum of three gates. SKY130 does have a real latch,
@@ -358,5 +358,5 @@ circuit computes what you wanted. Lint is only a minimum check, which is why DD1
 | Before every synthesis | `verilator --lint-only -Wall`, exit 0 |
 | And still | lint clean ≠ correct |
 
-Next: [Blocking and non-blocking assignments](guide/blocking-vs-nonblocking.md), which counts
+Next: [Blocking and non-blocking assignments](../guide/blocking-vs-nonblocking.md), which counts
 what the tool builds for `=` and `<=`.

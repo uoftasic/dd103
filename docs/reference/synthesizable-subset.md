@@ -199,12 +199,12 @@ import pkg::* in a module header/body   // TOK_IMPORT
 
 That last group is a parser limitation, not a hardware one. The ideas are synthesizable and
 commercial tools accept them, and your container ships two ways around it:
-[When Yosys says syntax error](reference/yosys-syntax-errors.md).
+[When Yosys says syntax error](../reference/yosys-syntax-errors.md).
 
 ## Related
 
-- [Synthesizable SystemVerilog](guide/the-hardware-dialect.md): why this boundary exists
-- [Inferred latches](guide/the-latch-you-didnt-ask-for.md): the `unique` / `always @*` trap, with
+- [Synthesizable SystemVerilog](../guide/the-hardware-dialect.md): why this boundary exists
+- [Inferred latches](../guide/the-latch-you-didnt-ask-for.md): the `unique` / `always @*` trap, with
   a lab
-- [Reading the `stat` report](guide/reading-stat.md): how to check any of these numbers against
+- [Reading the `stat` report](../guide/reading-stat.md): how to check any of these numbers against
   your own run

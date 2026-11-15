@@ -11,11 +11,11 @@ Package: [`labs/lab-02-rtl-becomes-gates/`](https://github.com/uoftasic/dd103/tr
 
 ## Before you start
 
-- [Lab 01](labs/lab-01-one-adder-two-targets-overview.md) is complete, so you have run
+- [Lab 01](../labs/lab-01-one-adder-two-targets-overview.md) is complete, so you have run
   `abc -liberty` at least once and `yosys -V` says `Yosys 0.68`.
-- Read [FPGA and ASIC targets](guide/warehouse-and-empty-lot.md),
-  [What synthesis does](guide/synthesis-is-translation.md) and
-  [Standard cells](guide/standard-cells-are-real.md).
+- Read [FPGA and ASIC targets](../guide/warehouse-and-empty-lot.md),
+  [What synthesis does](../guide/synthesis-is-translation.md) and
+  [Standard cells](../guide/standard-cells-are-real.md).
 - You need a way to look at an SVG: the noVNC desktop's file manager, or
   `firefox results/*.svg &`.
 
@@ -155,7 +155,7 @@ area.
 You should see `results/rtl.svg` with five operator boxes again, `results/gates.svg` with
 `sky130_fd_sc_hd__maj3_1` and `sky130_fd_sc_hd__xor3_1`, and `Chip area ... 33.782400` in
 `results/show.log`. If `show` fails, or you try the image's `sak-v2svg.sh` script for diagrams,
-see [Troubleshooting](reference/troubleshooting.md).
+see [Troubleshooting](../reference/troubleshooting.md).
 
 ## Part 2: Diagram size limits
 
@@ -199,7 +199,7 @@ You should see that the gate view grew 52× in canvas area going from one adder 
 the RTL view stayed readable.
 
 For the rest of the course, draw the gate view of one small block only, and the RTL view of
-anything bigger. The elevator FSM in [Lab 05](labs/lab-05-elevator-overview.md) is 76 cells, and
+anything bigger. The elevator FSM in [Lab 05](../labs/lab-05-elevator-overview.md) is 76 cells, and
 its gate view comes out 883 × 9018 pt, so you'll draw its RTL instead. This limit does not go
 away with experience; it is why professional flows show you numbers and layouts rather than
 gate schematics.
@@ -208,7 +208,7 @@ gate schematics.
 
 Which pass turns the counter's flip-flops into SKY130 cells, which pass maps its logic, and what
 happens to the area when one of them is missing? This part runs the walkthrough from
-[What synthesis does](guide/synthesis-is-translation.md) on `src/counter.sv`, a 4-bit counter
+[What synthesis does](../guide/synthesis-is-translation.md) on `src/counter.sv`, a 4-bit counter
 with an enable and an asynchronous reset. Set the liberty path first; every command below uses
 it.
 
@@ -321,7 +321,7 @@ price.
 
 Where does the library keep each fact about one cell, `maj3_1`: what it computes, how big it is,
 what transistors it has, what it looks like and how fast it is? This part opens the files
-[Standard cells](guide/standard-cells-are-real.md) describes. Fill in this table as you go:
+[Standard cells](../guide/standard-cells-are-real.md) describes. Fill in this table as you go:
 
 | Fact about `maj3_1` | File | What it says |
 |---|---|---|
@@ -406,7 +406,7 @@ LEF=$REF/lef/sky130_fd_sc_hd.lef
 
    `magic130` is the alias `.designinit` sets up for `magic -d X11 -T sky130A`. Magic does not
    zoom to fit when it opens, so type `view` in its console to show the whole cell. You should
-   see the picture in [Standard cells](guide/standard-cells-are-real.md#transistors-and-layout):
+   see the picture in [Standard cells](../guide/standard-cells-are-real.md#transistors-and-layout):
    two power rails, fourteen poly stripes crossing diffusion, and pins `A`, `B`, `C` and `X`.
 
 7. Count the timing tables, each a grid of measured delays:
@@ -512,7 +512,7 @@ More of `synth`, from Part 3, with `LIB` set as in that part:
   You should see generic `AND`, `NAND`, `NOT`, `XNOR` and `XOR` counts, six gates in all.
 
 More of the library, from Part 4: [Looking things up in the SKY130
-library](reference/sky130-library-lookups.md) has the commands for the row-height grid, the
+library](../reference/sky130-library-lookups.md) has the commands for the row-height grid, the
 `maj3` drive strengths, the `fa_1` full-adder cell, the 18 process corners, the smallest and
 largest cells, and the seven cell types the counter used.
 
@@ -532,8 +532,8 @@ Diagrams:
 - For a raster image for slides, `make png` runs `cairosvg` (2.9.0, in the image) at 1200 px
   wide. Prefer the SVG for anything you'll zoom into.
 
-Next on the [Course path](README.md#course-path): read
-[Synthesizable SystemVerilog](guide/the-hardware-dialect.md),
-[Inferred latches](guide/the-latch-you-didnt-ask-for.md) and
-[Blocking and non-blocking assignments](guide/blocking-vs-nonblocking.md), then do
-[Lab 03: Three ways to lose a latch](labs/lab-03-three-ways-to-lose-a-latch-overview.md).
+Next on the [Course path](../index.md#course-path): read
+[Synthesizable SystemVerilog](../guide/the-hardware-dialect.md),
+[Inferred latches](../guide/the-latch-you-didnt-ask-for.md) and
+[Blocking and non-blocking assignments](../guide/blocking-vs-nonblocking.md), then do
+[Lab 03: Three ways to lose a latch](../labs/lab-03-three-ways-to-lose-a-latch-overview.md).

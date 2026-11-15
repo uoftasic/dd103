@@ -2,7 +2,7 @@
 
 This page explains what `=` and `<=` actually build, by counting flip-flops. You'll run every
 example here in
-[Lab 03, Part 7](labs/lab-03-three-ways-to-lose-a-latch-overview.md#part-7-blocking-and-non-blocking).
+[Lab 03, Part 7](../labs/lab-03-three-ways-to-lose-a-latch-overview.md#part-7-blocking-and-non-blocking).
 
 Every SystemVerilog resource you have met says the same two things: use `<=` in clocked blocks,
 and `=` in combinational ones. Most say it in bold, and almost none say what happens if you
@@ -213,7 +213,7 @@ place.
 ## Lint warnings for both mistakes
 
 Neither mistake reaches synthesis if you run the lint gate from
-[Inferred latches](guide/the-latch-you-didnt-ask-for.md) first. On `shift_b.sv`:
+[Inferred latches](../guide/the-latch-you-didnt-ask-for.md) first. On `shift_b.sv`:
 
 ```
 %Warning-BLKSEQ: src/shift_b.sv:9:11: Blocking assignment '=' in sequential logic process
@@ -270,5 +270,5 @@ can't remember, build both and count.
 The number of flip-flops in a design is its cost, its power and its latency. An operator that
 changes that number based on the order you typed lines in is not a style preference.
 
-Next: [Lab 03: Three ways to lose a latch](labs/lab-03-three-ways-to-lose-a-latch-overview.md),
+Next: [Lab 03: Three ways to lose a latch](../labs/lab-03-three-ways-to-lose-a-latch-overview.md),
 which has you produce both traps from these pages and fill in a table.

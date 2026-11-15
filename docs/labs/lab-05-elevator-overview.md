@@ -11,10 +11,10 @@ Package: [`labs/lab-05-elevator/`](https://github.com/uoftasic/dd103/tree/main/l
 
 ## Before you start
 
-- [Lab 04](labs/lab-04-reading-the-receipt-overview.md) is complete, so `stat -liberty` is
+- [Lab 04](../labs/lab-04-reading-the-receipt-overview.md) is complete, so `stat -liberty` is
   familiar.
-- Read [Writing a state machine](guide/state-machine-is-a-table.md) and
-  [From netlist to layout](guide/from-gates-to-geometry.md).
+- Read [Writing a state machine](../guide/state-machine-is-a-table.md) and
+  [From netlist to layout](../guide/from-gates-to-geometry.md).
 - Check your versions: `yosys -V` should say `Yosys 0.68` and `librelane --version` should say
   `LibreLane v3.1.0.dev3`.
 - Each LibreLane run directory is about 65 MB. Budget a few hundred megabytes and delete old run
@@ -31,7 +31,7 @@ LIB=/foss/pdks/sky130A/libs.ref/sky130_fd_sc_hd/lib/sky130_fd_sc_hd__tt_025C_1v8
 ## Part 1: Warm up on the vending machine
 
 How many flip-flops does Yosys build for a three-bit state register, and what happens when a
-state machine's `always_comb` is incomplete? The vending machine from [Writing a state machine](guide/state-machine-is-a-table.md) ships in
+state machine's `always_comb` is incomplete? The vending machine from [Writing a state machine](../guide/state-machine-is-a-table.md) ships in
 `examples/vending.sv`.
 
 1. Synthesize it:
@@ -276,7 +276,7 @@ worked out. When the machine misbehaves, you have exactly one block to look at, 
 
 If Icarus says `This assignment requires an explicit cast.` or Verilator stops on a comment with
 `%Error-BADVLTPRAGMA`, neither is a bug in your logic: see
-[Troubleshooting](reference/troubleshooting.md#icarus-wants-an-explicit-cast).
+[Troubleshooting](../reference/troubleshooting.md#icarus-wants-an-explicit-cast).
 
 ## Part 5: Compare the receipts
 
@@ -338,7 +338,7 @@ and five register boxes for your five multi-bit state elements.
 
 Do not run `show` on the gate netlist. Measured on this design, it comes out 883 × 9018 pt, a
 vertical ribbon ten times taller than it is wide with 76 unlabelled boxes in it; the readable
-gate view in [Lab 02](labs/lab-02-rtl-becomes-gates-overview.md) was a two-cell full adder. Once
+gate view in [Lab 02](../labs/lab-02-rtl-becomes-gates-overview.md) was a two-cell full adder. Once
 the design is mapped to cells, you look at it as a layout, which is Part 9.
 
 ## Part 7: RTL to GDSII
@@ -403,7 +403,7 @@ Three things in it to notice:
    525 MB. If yours takes noticeably longer, your design got bigger, not broken.
 
    A dozen `WARNING` lines follow. They are normal, and
-   [Troubleshooting](reference/troubleshooting.md#warning-lines-after-make-harden) lists them. The
+   [Troubleshooting](../reference/troubleshooting.md#warning-lines-after-make-harden) lists them. The
    three ✅ lines are the results that matter, and Part 8 checks them properly.
 
 2. Confirm you built the chip you meant to:
@@ -418,7 +418,7 @@ You should see a liberty path under `/foss/pdks/sky130A/libs.ref/sky130_fd_sc_hd
 
 > Use a new tag every time you harden: `make harden TAG=v2`. Re-running with the same tag
 > appends onto the finished run instead of starting over; see
-> [Troubleshooting](reference/troubleshooting.md#re-running-make-harden-with-the-same-tag).
+> [Troubleshooting](../reference/troubleshooting.md#re-running-make-harden-with-the-same-tag).
 
 ## Part 8: The report card
 
@@ -641,6 +641,6 @@ Nothing to submit. Keep two files from this lab: `elevator.sv` and
 - Compare with someone else. Two people who both passed all six checks will have different cell
   counts, die sizes and slack. Find out which of your two decisions caused the biggest gap.
 
-Next on the [Course path](README.md#course-path): this was the last row, and the end of DD103.
+Next on the [Course path](../index.md#course-path): this was the last row, and the end of DD103.
 [DD104: Pre-Silicon Verification](https://uoftasic.com/dd104/) opens by putting your numbers next to
 an 8-bit CPU's, a few thousand cells against your 76, and asking you to find the bugs in it.

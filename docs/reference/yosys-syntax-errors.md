@@ -52,7 +52,7 @@ verilator --lint-only --top alu alu.sv
 No errors, so the file is legal. Yosys has the gap, and Step 2 applies.
 
 If Verilator errors too, fix your code: find the row in
-[The synthesizable subset](reference/synthesizable-subset.md). This happens more often than
+[The synthesizable subset](../reference/synthesizable-subset.md). This happens more often than
 students expect:
 
 ```
@@ -340,7 +340,7 @@ That is a finished, clean chip layout from the file that could not get past line
    means the function. `TOK_REAL` means delete the `real`.
 2. Run Verilator: `verilator --lint-only --top NAME f.sv`. Clean means the problem is the Yosys
    parser; errors mean the problem is your code.
-3. Look up the construct in [The synthesizable subset](reference/synthesizable-subset.md). Some
+3. Look up the construct in [The synthesizable subset](../reference/synthesizable-subset.md). Some
    have a one-line fix worth taking, such as `pkg::NAME` instead of `import pkg::*`, or assigning
    to the function's own name instead of `return`.
 4. Otherwise, use `-m slang` with `read_slang`, or `sv2v f.sv > f.v`. Both are installed and both
@@ -355,14 +355,14 @@ nothing for physics limits. `read_slang` will happily parse `#5`, and Yosys will
 away without a word, because there is still no gate that waits.
 
 If the construct is in the "never in anything you will synthesize" list in
-[The synthesizable subset](reference/synthesizable-subset.md), no front end will help. Move it to
+[The synthesizable subset](../reference/synthesizable-subset.md), no front end will help. Move it to
 your testbench.
 
 ## Related
 
-- [Synthesizable SystemVerilog](guide/the-hardware-dialect.md): physics limits and parser gaps, at
+- [Synthesizable SystemVerilog](../guide/the-hardware-dialect.md): physics limits and parser gaps, at
   length
-- [The synthesizable subset](reference/synthesizable-subset.md): which of the two you are looking
+- [The synthesizable subset](../reference/synthesizable-subset.md): which of the two you are looking
   at, per construct
-- [From netlist to layout](guide/from-gates-to-geometry.md): the LibreLane `config.json` format,
+- [From netlist to layout](../guide/from-gates-to-geometry.md): the LibreLane `config.json` format,
   which is where you would add `USE_SLANG`
