@@ -3,10 +3,10 @@
 This page explains how fast your adder is, why the carry chain sets that speed, and how to read
 the timing report that decides whether a design works at a given clock. You'll run the timing
 analysis yourself in
-[Lab 04, Part 7](labs/lab-04-reading-the-receipt-overview.md#part-7-time-the-adder).
+[Lab 04, Part 7](../labs/lab-04-reading-the-receipt-overview.md#part-7-time-the-adder).
 
-You know how big your adder is: [Reading the `stat` report](guide/reading-stat.md) gave you 12
-cells and 110.11 µm², and [FPGA and ASIC targets](guide/warehouse-and-empty-lot.md) gave you the
+You know how big your adder is: [Reading the `stat` report](../guide/reading-stat.md) gave you 12
+cells and 110.11 µm², and [FPGA and ASIC targets](../guide/warehouse-and-empty-lot.md) gave you the
 same file as 8 LUTs on an FPGA. This page gets you its speed in nanoseconds.
 
 ## Video: the carry travels
@@ -17,9 +17,9 @@ number in it came out of the analysis on this page, run against the files the
 ships.
 
 <video controls loop muted playsinline preload="none"
-       poster="assets/img/carry-travels.poster.png"
+       poster="../assets/img/carry-travels.poster.png"
        style="width:100%;max-width:820px;border-radius:8px">
-  <source src="assets/img/carry-travels.web.mp4" type="video/mp4">
+  <source src="../assets/img/carry-travels.web.mp4" type="video/mp4">
 </video>
 
 The animation puts `1111 + 0001` into a four-bit adder and lets you watch the answer appear.
@@ -331,4 +331,4 @@ corner and reports the worst. A frequency quoted without its corner tells you ve
 2. A 4-bit adder runs with a 1.6 ns clock. Is the slack positive or negative, and by how much?
 3. Why does the registered 8-bit adder have six `maj3_1` on its critical path instead of eight?
 
-Next: [Lab 04: Reading the receipt](labs/lab-04-reading-the-receipt-overview.md).
+Next: [Lab 04: Reading the receipt](../labs/lab-04-reading-the-receipt-overview.md).

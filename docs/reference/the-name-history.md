@@ -48,7 +48,7 @@ The command is `librelane`, and that is the only correct answer for this course.
 
 ## The version banner
 
-Run the version check from [Lab 01, Part 1](labs/lab-01-one-adder-two-targets-overview.md) and
+Run the version check from [Lab 01, Part 1](../labs/lab-01-one-adder-two-targets-overview.md) and
 read the whole output, not just the first line:
 
 ```bash
@@ -159,7 +159,7 @@ librelane --run-example spm
 _tkinter.TclError: no files matched glob pattern "/foss/pdks/sky130A/libs.ref/sg13g2_stdcell/lef/*.lef"
 ```
 
-That is the `STD_CELL_LIBRARY` trap from [Getting started](guide/getting-started.md): the image
+That is the `STD_CELL_LIBRARY` trap from [Getting started](../guide/getting-started.md): the image
 defaults the cell library to IHP's while the PDK is SKY130, and LibreLane's own example does not
 pin it. With `export STD_CELL_LIBRARY=sky130_fd_sc_hd` set, the same command runs the full flow
 and writes `spm/runs/*/final/gds/spm.gds`.
@@ -204,6 +204,6 @@ explaining what a clock tree is still applies today. Only the name you type at t
 When a page on the internet disagrees with your terminal, trust the terminal: it is describing the
 program you have.
 
-See also: [Lab 01, Part 1](labs/lab-01-one-adder-two-targets-overview.md) for the version check,
-and [From netlist to layout](guide/from-gates-to-geometry.md) for what LibreLane does across those
+See also: [Lab 01, Part 1](../labs/lab-01-one-adder-two-targets-overview.md) for the version check,
+and [From netlist to layout](../guide/from-gates-to-geometry.md) for what LibreLane does across those
 stages.

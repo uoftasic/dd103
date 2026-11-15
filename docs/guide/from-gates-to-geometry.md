@@ -2,9 +2,9 @@
 
 This page explains what LibreLane does when it turns a netlist into a `.gds`, and how to check
 that the result is worth having. It follows one run on the vending machine from
-[Writing a state machine](guide/state-machine-is-a-table.md). You'll run the same flow on your
+[Writing a state machine](../guide/state-machine-is-a-table.md). You'll run the same flow on your
 elevator, and make the same checks, in
-[Lab 05, Parts 7 to 9](labs/lab-05-elevator-overview.md#part-7-rtl-to-gdsii).
+[Lab 05, Parts 7 to 9](../labs/lab-05-elevator-overview.md#part-7-rtl-to-gdsii).
 
 Everything up to now produced lists. `stat` gave you a list of cells, and the netlist is a list of
 connections. Nothing in a list has a position, a size or a wire. A chip is geometry: rectangles of
@@ -47,7 +47,7 @@ one.
 Check your LibreLane version (Lab 01, Part 1) before you compare any number on this page with
 your own; the course is pinned to LibreLane 3.1.0.dev3. If you find a tutorial that says
 `openlane` instead of `librelane`, it is about a different tool from a different year;
-[OpenLane, OpenLane 2, LibreLane](reference/the-name-history.md) explains the names.
+[OpenLane, OpenLane 2, LibreLane](../reference/the-name-history.md) explains the names.
 
 ## The run directory
 
@@ -406,7 +406,7 @@ before you look at area.
 
 > `timing__setup__ws = +12.95 ns` against a `CLOCK_PERIOD` of 20 means the longest path takes
 > about 7 ns and you asked for 20, so you could have asked for 8.
-> [Carry delay and static timing](guide/the-carry-has-to-walk.md) explains where that number
+> [Carry delay and static timing](../guide/the-carry-has-to-walk.md) explains where that number
 > comes from.
 
 ## The wrong-PDK run
@@ -479,7 +479,7 @@ technology.
 > Most real chip-design failures look like this: not a crash, but a run that succeeds at the wrong
 > thing. Every check on this page exists because somebody once shipped what it catches.
 
-Next: [Lab 05: Elevator to GDSII](labs/lab-05-elevator-overview.md). You design a four-floor
+Next: [Lab 05: Elevator to GDSII](../labs/lab-05-elevator-overview.md). You design a four-floor
 elevator controller with the recipe from the previous page, harden it with a config like the one on
 this page, and finish with a `.gds` file, a `metrics.json` full of zeros, and a picture of a chip
 you designed. Record your five numbers (die area, instance count, setup slack, DRC count, LVS

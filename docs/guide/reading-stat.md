@@ -2,9 +2,9 @@
 
 This page explains how to read the block of numbers `stat` prints at the end of a synthesis run,
 and how to tell when its total is wrong. You'll produce every report here yourself in
-[Lab 04](labs/lab-04-reading-the-receipt-overview.md), Parts 1 to 3 and Part 6.
+[Lab 04](../labs/lab-04-reading-the-receipt-overview.md), Parts 1 to 3 and Part 6.
 
-In [Lab 02](labs/lab-02-rtl-becomes-gates-overview.md) you watched your RTL turn into named
+In [Lab 02](../labs/lab-02-rtl-becomes-gates-overview.md) you watched your RTL turn into named
 SKY130 cells, and Yosys printed a block of numbers at the end. That block works like a receipt:
 line items, quantities, prices, and a total. Once you can read it, "how big is my design?" has a
 number you can defend.
@@ -59,7 +59,7 @@ design changed and nothing was re-synthesized. The liberty file only supplied a 
 
 ## Where the second column comes from
 
-[Standard cells](guide/standard-cells-are-real.md) opened that 13 MB file and counted its 428
+[Standard cells](../guide/standard-cells-are-real.md) opened that 13 MB file and counted its 428
 entries. Only one line of each entry matters here, the area. For `maj3_1` it is:
 
 ```
@@ -229,7 +229,7 @@ Eight cells out of twenty-seven take 64 % of the silicon. The price list shows w
 
 One flip-flop costs more than five NAND gates, because it is more than five NAND gates: 24
 transistors against 4, counted from the PDK as on the
-[Standard cells](guide/standard-cells-are-real.md) page. Adding an asynchronous reset input costs
+[Standard cells](../guide/standard-cells-are-real.md) page. Adding an asynchronous reset input costs
 another 5 µm² on top, more than a whole NOR gate.
 
 The blinker's sequential total checks out by hand:
@@ -264,7 +264,7 @@ utilization below 100 % so the router can get wires through.
 
 So use `stat -liberty` for what it is good at: comparing two versions of your own design. If a
 change drops the number from 316 to 264, that saving is real and will survive to the die. Don't
-quote the number as the size of a chip. [From netlist to layout](guide/from-gates-to-geometry.md)
+quote the number as the size of a chip. [From netlist to layout](../guide/from-gates-to-geometry.md)
 is where the die number comes from.
 
 ## The machine-readable receipt
@@ -363,7 +363,7 @@ is 0:
 
 That is 102.60 µm² instead of 316.55, and 0.00 % sequential in a design that is two-thirds
 flip-flops. The cause is the one from
-[What synthesis does](guide/synthesis-is-translation.md#two-mappers): `abc` maps combinational
+[What synthesis does](../guide/synthesis-is-translation.md#two-mappers): `abc` maps combinational
 logic, `dfflibmap` maps flip-flops, and a generic `$_DFF_*` cell with no liberty entry contributes
 zero to the total. On a design this size it happens without anything that looks like an error.
 
@@ -382,4 +382,4 @@ Chase every `is unknown!` line before you believe a number.
 | `of which … sequential` | the flip-flop share, the number worth watching |
 | `Area for cell type … is unknown!` | your total is wrong; find out why |
 
-Next: [Carry delay and static timing](guide/the-carry-has-to-walk.md).
+Next: [Carry delay and static timing](../guide/the-carry-has-to-walk.md).

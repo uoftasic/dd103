@@ -1,8 +1,8 @@
 # Looking things up in the SKY130 library
 
 Commands for finding facts in the `sky130_fd_sc_hd` cell library from a workbench terminal, with
-what each one printed on `hpretl/iic-osic-tools:2026.08`. [Lab 02, Part 4](labs/lab-02-rtl-becomes-gates-overview.md#part-4-open-the-cell-library)
-walks through one cell, `maj3_1`; [Standard cells](guide/standard-cells-are-real.md) explains
+what each one printed on `hpretl/iic-osic-tools:2026.08`. [Lab 02, Part 4](../labs/lab-02-rtl-becomes-gates-overview.md#part-4-open-the-cell-library)
+walks through one cell, `maj3_1`; [Standard cells](../guide/standard-cells-are-real.md) explains
 what the numbers mean.
 
 Every entry assumes these three paths are set:

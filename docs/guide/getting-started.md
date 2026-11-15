@@ -2,7 +2,7 @@
 
 This page explains the environment DD103 runs in and the setup traps worth knowing about
 before you hit them. You'll load the course in
-[Lab 01, Part 1](labs/lab-01-one-adder-two-targets-overview.md#part-1-load-the-course).
+[Lab 01, Part 1](../labs/lab-01-one-adder-two-targets-overview.md#part-1-load-the-course).
 
 You already did the hard part in [IC101](https://uoftasic.com/ic101/): Docker is installed,
 the `workspace` repo is cloned, and the noVNC desktop comes up in your browser. DD103 installs
@@ -31,7 +31,7 @@ different image, and commands on these pages may fail in ways this course does n
 Yosys and LibreLane both move fast, and the official docs online describe newer releases,
 sometimes with renamed options. When the internet and this course disagree, the course is
 describing the program installed in your container.
-[OpenLane, OpenLane 2, LibreLane](reference/the-name-history.md) explains why the names keep
+[OpenLane, OpenLane 2, LibreLane](../reference/the-name-history.md) explains why the names keep
 changing.
 
 ## The PDK the image starts on
@@ -137,4 +137,4 @@ it at your design directory. It runs the same LibreLane 3.1.0.dev3 on the same `
 you run locally. It is a convenience, not a replacement for the workbench, which is where every
 number in this course was measured.
 
-Next: [Lab 01: One adder, two targets](labs/lab-01-one-adder-two-targets-overview.md).
+Next: [Lab 01: One adder, two targets](../labs/lab-01-one-adder-two-targets-overview.md).

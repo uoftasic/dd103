@@ -4,7 +4,7 @@ Messages you can hit in the DD103 labs that are not mistakes in your design, or 
 than they are. Each entry gives the symptom, the cause and the fix. Setup problems with Docker,
 the desktop, `.designinit` or `mod` are on IC101's
 [Troubleshooting](https://uoftasic.com/ic101/#/reference/troubleshooting) page, and Yosys parse
-errors are on [When Yosys says syntax error](reference/yosys-syntax-errors.md).
+errors are on [When Yosys says syntax error](../reference/yosys-syntax-errors.md).
 
 ## `show` says only one module must be selected
 
@@ -87,4 +87,4 @@ crashes with a Python traceback when `runs/` does not exist yet.
 ## Still stuck
 
 Ask in the [team Discord](https://discord.gg/hrJnP5UsGz). [Getting
-help](guide/getting-started.md#getting-help) says what to include.
+help](../guide/getting-started.md#getting-help) says what to include.

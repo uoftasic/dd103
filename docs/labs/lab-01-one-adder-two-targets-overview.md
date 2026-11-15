@@ -17,7 +17,7 @@ Package: [`labs/lab-01-one-adder-two-targets/`](https://github.com/uoftasic/dd10
   terminal on it.
 - [DD102](https://uoftasic.com/dd102/) is complete. If you have the `ripple4.sv` you wrote
   there, you can run it in the optional Part 8.
-- Read [Getting started](guide/getting-started.md).
+- Read [Getting started](../guide/getting-started.md).
 
 ## Part 1: Load the course
 
@@ -150,7 +150,7 @@ the bitstream loads.
    ```
 
    There are 10 logic cells for 8 LUTs because placement packs LUTs together with carry logic;
-   [FPGA and ASIC targets](guide/warehouse-and-empty-lot.md), the reading after this lab, has
+   [FPGA and ASIC targets](../guide/warehouse-and-empty-lot.md), the reading after this lab, has
    more. `icepack` then turns the
    placed design into the bitstream `results/ripple4.bin`, 104,090 bytes.
 
@@ -382,7 +382,7 @@ Why did the FPGA need four block RAMs where SKY130 needed a flip-flop for every 
 
 The FPGA already had block RAM on the die, and the four `SB_RAM40_4K` are that dedicated memory
 hardware. SKY130 has to build every bit out of flip-flops, plus multiplexers to pick which one you
-meant. The reading after this lab, [FPGA and ASIC targets](guide/warehouse-and-empty-lot.md),
+meant. The reading after this lab, [FPGA and ASIC targets](../guide/warehouse-and-empty-lot.md),
 covers this, and how real chips use a memory macro instead.
 
 </details>
@@ -458,8 +458,8 @@ Nothing to submit.
   exists. Nobody hand-picks cells on a real design, but "the tool's answer" and "the best
   answer" can differ.
 
-Next on the [Course path](README.md#course-path): read
-[FPGA and ASIC targets](guide/warehouse-and-empty-lot.md),
-[What synthesis does](guide/synthesis-is-translation.md) and
-[Standard cells](guide/standard-cells-are-real.md), then do
-[Lab 02: RTL becomes gates](labs/lab-02-rtl-becomes-gates-overview.md).
+Next on the [Course path](../index.md#course-path): read
+[FPGA and ASIC targets](../guide/warehouse-and-empty-lot.md),
+[What synthesis does](../guide/synthesis-is-translation.md) and
+[Standard cells](../guide/standard-cells-are-real.md), then do
+[Lab 02: RTL becomes gates](../labs/lab-02-rtl-becomes-gates-overview.md).

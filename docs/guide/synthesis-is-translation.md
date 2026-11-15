@@ -3,7 +3,7 @@
 This page walks through what Yosys does to your SystemVerilog between reading the file and
 printing the final cell list. It shows tool output only; you don't need to run anything while
 reading. You'll run every step shown here on the same counter in
-[Lab 02, Part 3](labs/lab-02-rtl-becomes-gates-overview.md#part-3-watch-synth-work-on-a-counter).
+[Lab 02, Part 3](../labs/lab-02-rtl-becomes-gates-overview.md#part-3-watch-synth-work-on-a-counter).
 
 A synthesis run on a small design prints roughly seven hundred lines. None of them says
 `ERROR`, and at the bottom is a number. If you scroll back up you find `PROC_ARST`, `WREDUCE`,
@@ -13,7 +13,7 @@ come from six steps, and one of the six does most of the work.
 ## The example design
 
 Here is a 4-bit counter with an enable and an asynchronous reset. It is `src/counter.sv` in the
-[Lab 02](labs/lab-02-rtl-becomes-gates-overview.md) package
+[Lab 02](../labs/lab-02-rtl-becomes-gates-overview.md) package
 ([on GitHub](https://github.com/uoftasic/dd103/tree/main/labs/lab-02-rtl-becomes-gates/src/counter.sv)).
 
 ```systemverilog
@@ -58,7 +58,7 @@ meaning, just the shape the target language forces on the sentence.
 
 Send the same sentence to an iCE40 and the accent changes to `SB_LUT4`, `SB_CARRY` and
 `SB_RAM40_4K`. The meaning is the same; the available nouns are different. That difference is the
-subject of [FPGA and ASIC targets](guide/warehouse-and-empty-lot.md).
+subject of [FPGA and ASIC targets](../guide/warehouse-and-empty-lot.md).
 
 ## Inside `synth`
 
@@ -94,7 +94,7 @@ Step 2 does almost everything. Its own sub-passes are numbered `2.1`, `2.2` and 
 ```
 
 That is twenty-six passes. `synth` is shorthand for a script somebody else wrote, and you can
-type its contents yourself, which [Lab 04](labs/lab-04-reading-the-receipt-overview.md) has you
+type its contents yourself, which [Lab 04](../labs/lab-04-reading-the-receipt-overview.md) has you
 do.
 
 Eleven of the twenty-six are some flavour of `opt`. Optimization runs after every structural
@@ -400,5 +400,5 @@ between any two passes you want to compare.
   forgetting `dfflibmap` under-reported this counter's area by 4×.
 - `Scl_LibertyReadGenlib()` lines are normal. `ERROR:` is not.
 
-Next: [Standard cells](guide/standard-cells-are-real.md). Every command on this page pointed
+Next: [Standard cells](../guide/standard-cells-are-real.md). Every command on this page pointed
 `-liberty` at the same 13 MB file; the next page opens it.

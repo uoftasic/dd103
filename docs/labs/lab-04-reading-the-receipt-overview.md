@@ -12,10 +12,10 @@ Package: [`labs/lab-04-reading-the-receipt/`](https://github.com/uoftasic/dd103/
 
 ## Before you start
 
-- [Lab 02](labs/lab-02-rtl-becomes-gates-overview.md) is complete: you have watched RTL become
+- [Lab 02](../labs/lab-02-rtl-becomes-gates-overview.md) is complete: you have watched RTL become
   SKY130 cells. `yosys -V` says `Yosys 0.68`.
-- Read [Reading the `stat` report](guide/reading-stat.md) and
-  [Carry delay and static timing](guide/the-carry-has-to-walk.md).
+- Read [Reading the `stat` report](../guide/reading-stat.md) and
+  [Carry delay and static timing](../guide/the-carry-has-to-walk.md).
 
 Start every part from the package directory:
 
@@ -140,7 +140,7 @@ How many flip-flops does a design with six bits of state get?
    Yosys re-encoded `state` one-hot: four states, four bits. Four state bits plus four counter
    bits is eight. In one-hot, `IDLE` is `---1`, so the low state bit has to leave reset high,
    and a flop that resets high is a set flop, `dfstp_2`. [Reading the `stat`
-   report](guide/reading-stat.md#fsm-re-encoding) walks through both.
+   report](../guide/reading-stat.md#fsm-re-encoding) walks through both.
 
    </details>
 
@@ -319,7 +319,7 @@ same RTL and both be right. Quote the script alongside the number, every time.
 
 Why is `ripple4` smaller than four full adders? Back to the DD102 adder, which is in this package
 as `src/fulladder.sv` and `src/ripple4.sv`. In
-[Lab 01](labs/lab-01-one-adder-two-targets-overview.md), Part 6, four times one `fulladder`
+[Lab 01](../labs/lab-01-one-adder-two-targets-overview.md), Part 6, four times one `fulladder`
 (33.7824 µm²) came out 18.5 % higher than the chained adder's 110.1056 µm².
 
 1. `make gap` runs three scripts: one `fulladder` alone, four chained and flattened, and
@@ -402,7 +402,7 @@ numbers. There is
 Every script in this lab ends with `tee -o results/<name>.json stat -json -liberty <the liberty
 file>`, which captures the receipt as JSON. The checker reads four keys from that file
 (`num_cells`, `area`, `sequential_area` and `num_cells_by_type`) under the top-level `"design"`
-object; [Reading the `stat` report](guide/reading-stat.md#the-machine-readable-receipt) shows
+object; [Reading the `stat` report](../guide/reading-stat.md#the-machine-readable-receipt) shows
 the file.
 
 1. Run the checker on the good run:
@@ -450,7 +450,7 @@ a skill, and the best time to practise it is when you caused it on purpose.
 ## Part 7: Time the adder
 
 How does the worst path through a ripple adder grow with its width? This part runs the analysis
-from [Carry delay and static timing](guide/the-carry-has-to-walk.md) on `src/ripple.sv`, with
+from [Carry delay and static timing](../guide/the-carry-has-to-walk.md) on `src/ripple.sv`, with
 `scripts/timing.tcl`.
 
 1. Check the timing tool:
@@ -503,7 +503,7 @@ from [Carry delay and static timing](guide/the-carry-has-to-walk.md) on `src/rip
    </details>
 
 5. Predict $T(64)$ with $T(N) = 0.370 + 0.392\,(N-2) + 0.328$, the formula from
-   [Carry delay and static timing](guide/the-carry-has-to-walk.md), and write it down. Then
+   [Carry delay and static timing](../guide/the-carry-has-to-walk.md), and write it down. Then
    measure it:
 
    ```bash
@@ -578,8 +578,8 @@ Answer each in one sentence, using your own numbers. The step in parentheses has
    1929.33 µm² of die (38.89 × 49.61 µm) and 109 placed instances against `stat`'s 27 cells. The
    difference is clock buffers, timing-repair buffers, well taps, filler and the empty space the
    router needs; the 8 sequential cells are the same. Use `stat -liberty` to compare two versions
-   of your own design. [From netlist to layout](guide/from-gates-to-geometry.md) is where the die
-   number comes from, and [Lab 05](labs/lab-05-elevator-overview.md) is where you produce one.
+   of your own design. [From netlist to layout](../guide/from-gates-to-geometry.md) is where the die
+   number comes from, and [Lab 05](../labs/lab-05-elevator-overview.md) is where you produce one.
 
    </details>
 
@@ -592,14 +592,14 @@ Nothing to submit.
 - Pass `-group_count 10` to `report_checks` in a copy of `timing.tcl` to see the next nine
   paths after the worst one.
 - Put the adder between two registers, as in
-  [Carry delay and static timing](guide/the-carry-has-to-walk.md#registered-adder-and-minimum-clock-period),
+  [Carry delay and static timing](../guide/the-carry-has-to-walk.md#registered-adder-and-minimum-clock-period),
   synthesize it with `dfflibmap -liberty $LIB` before `abc`, and time it with
   `create_clock -name clk -period 3.0 [get_ports clk]` and `report_clock_min_period`. Compare
   your `period_min` with the 2.96 ns on that page.
-- Save the seven-line script from [Reading the `stat` report](guide/reading-stat.md#the-machine-readable-receipt)
+- Save the seven-line script from [Reading the `stat` report](../guide/reading-stat.md#the-machine-readable-receipt)
   as `results/stat_min.py` and run it on `results/blinker.json`.
 
-Next on the [Course path](README.md#course-path): read
-[Writing a state machine](guide/state-machine-is-a-table.md) and
-[From netlist to layout](guide/from-gates-to-geometry.md), then do
-[Lab 05: Elevator to GDSII](labs/lab-05-elevator-overview.md).
+Next on the [Course path](../index.md#course-path): read
+[Writing a state machine](../guide/state-machine-is-a-table.md) and
+[From netlist to layout](../guide/from-gates-to-geometry.md), then do
+[Lab 05: Elevator to GDSII](../labs/lab-05-elevator-overview.md).

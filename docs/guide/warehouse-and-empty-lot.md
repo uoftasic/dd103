@@ -1,7 +1,7 @@
 # FPGA and ASIC targets
 
 This page explains why the same SystemVerilog becomes different hardware depending on where you
-send it. Read it after [Lab 01](labs/lab-01-one-adder-two-targets-overview.md): every number
+send it. Read it after [Lab 01](../labs/lab-01-one-adder-two-targets-overview.md): every number
 here is one you already measured there.
 
 In Lab 01 you sent one `ripple4.sv` through two synthesis flows and got two answers that look nothing
@@ -145,4 +145,4 @@ characterised separately, then placed in your floorplan as a fixed rectangle. Ma
 scope for DD103, but they are why chip designers treat memory as something you acquire rather
 than something you write.
 
-Next: [What synthesis does](guide/synthesis-is-translation.md).
+Next: [What synthesis does](../guide/synthesis-is-translation.md).

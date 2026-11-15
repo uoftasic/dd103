@@ -2,9 +2,9 @@
 
 This page explains what a standard cell is, using the SKY130 library files on your disk. You'll
 open the same files yourself in
-[Lab 02, Part 4](labs/lab-02-rtl-becomes-gates-overview.md#part-4-open-the-cell-library).
+[Lab 02, Part 4](../labs/lab-02-rtl-becomes-gates-overview.md#part-4-open-the-cell-library).
 
-Since [Lab 01](labs/lab-01-one-adder-two-targets-overview.md) you have been pointing Yosys at
+Since [Lab 01](../labs/lab-01-one-adder-two-targets-overview.md) you have been pointing Yosys at
 this path:
 
 ```
@@ -18,13 +18,13 @@ a catalogue of physical objects, and you can count them.
 ## Video: from RTL to cells
 
 This 3-minute video is silent and captioned; the captions are the narration. It takes the full
-adder from [Lab 01](labs/lab-01-one-adder-two-targets-overview.md) from seven lines of
+adder from [Lab 01](../labs/lab-01-one-adder-two-targets-overview.md) from seven lines of
 SystemVerilog to two cells out of this catalogue, and prices them.
 
 <video controls loop muted playsinline preload="none"
-       poster="assets/img/rtl-to-cells.poster.png"
+       poster="../assets/img/rtl-to-cells.poster.png"
        style="width:100%;max-width:820px;border-radius:8px">
-  <source src="assets/img/rtl-to-cells.web.mp4" type="video/mp4">
+  <source src="../assets/img/rtl-to-cells.web.mp4" type="video/mp4">
 </video>
 
 In the last third, the animation chains four of those adders and asks for the total area. Write
@@ -44,7 +44,7 @@ Everything you build in DD103 comes out of the one `.lib` file.
 
 ## What a design uses
 
-The counter from [What synthesis does](guide/synthesis-is-translation.md) came back as these
+The counter from [What synthesis does](../guide/synthesis-is-translation.md) came back as these
 cells:
 
 ```
@@ -135,7 +135,7 @@ drawing transistors. The alternative, where every gate is a different shape, is 
 before 1980, by hand, with tape.
 
 Here is part of a real chip built from this library: the counter from
-[Lab 02](labs/lab-02-rtl-becomes-gates-overview.md), hardened by LibreLane and opened in KLayout.
+[Lab 02](../labs/lab-02-rtl-becomes-gates-overview.md), hardened by LibreLane and opened in KLayout.
 
 ![Three standard-cell rows in KLayout: each row bounded top and bottom by a horizontal metal1 power rail, poly gates as vertical red stripes, diffusion and local interconnect between them, cells abutting edge to edge with no gaps](../assets/img/dd103-klayout-cell-rows.png)
 
@@ -354,5 +354,5 @@ on computing.
 - `_1` / `_2` / `_4` is drive strength: 143 functions, 428 variants.
 - A flip-flop costs several plain gates: `dfrtp_1` is 25.02 µm² and `nand2_1` is 3.75 µm².
 
-Next: [Lab 02: RTL becomes gates](labs/lab-02-rtl-becomes-gates-overview.md). Later in the
-course, [Reading the `stat` report](guide/reading-stat.md) turns that last point into a number.
+Next: [Lab 02: RTL becomes gates](../labs/lab-02-rtl-becomes-gates-overview.md). Later in the
+course, [Reading the `stat` report](../guide/reading-stat.md) turns that last point into a number.
