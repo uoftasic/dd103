@@ -41,10 +41,9 @@ that moment, so running it at two different points gives two views of the same d
 | `abc -liberty` | `sky130_fd_sc_hd__*` | the foundry's |
 
 Between those two points, `dfflibmap -liberty` replaces generic flip-flops with library flops.
-The full adder has none, so it does nothing here; it is in the script because a design that does
-have flops needs it, as you'll see in Part 3. Then
-`abc -liberty` covers everything combinational with cells from the liberty file, optimizing for
-area.
+The full adder has no flip-flops, so here it does nothing; it's in the script because a design
+that does have flops needs it, as you'll see in Part 3. After that, `abc -liberty` covers
+everything combinational with cells from the liberty file, and it picks them to optimize area.
 
 1. Run the package's script, `show.ys`, which draws one picture after `proc; opt` and one after
    `abc -liberty`. It takes about a second.
@@ -77,8 +76,8 @@ area.
 
    </details>
 
-   This is the last picture in the flow that is still about your source code. If your RTL is
-   wrong, this is where you can still see it.
+   This is the last picture in the flow that still describes your source code, so if your RTL is
+   wrong, this is where you can still see the mistake in terms of the code you wrote.
 
 3. Open `results/gates.svg` next to it. You should see two boxes, labelled like this:
 
@@ -90,9 +89,9 @@ area.
    ```
 
    The five ports and their names are the same, because they are the module boundary and nothing
-   is allowed to rename them. Everything between them is replaced by two cells whose names you
-   did not choose and whose pins are called `A`, `B`, `C` and `X`. `stat` prices them, in
-   `results/show.log`:
+   is allowed to rename them. Everything between them has been replaced by two cells whose names
+   you didn't choose and whose pins are called `A`, `B`, `C` and `X`. `stat` prices the two cells,
+   and you'll find its report in `results/show.log`:
 
    ```
    === fulladder ===
@@ -102,10 +101,11 @@ area.
       Chip area for module '\fulladder': 33.782400
    ```
 
-   The left picture describes behaviour; the right picture is a bill of materials for
-   something a foundry will etch. Synthesis turns one into the other.
+   The left picture describes behaviour, and the right picture is a bill of materials for
+   something a foundry will etch; synthesis is the step that turns the first into the second.
 
-4. Work out which boxes became which cell. There is no box-for-box mapping.
+4. Work out which boxes became which cell, bearing in mind that the boxes don't map one-for-one
+   onto cells.
 
    <details>
    <summary>Answer</summary>
@@ -139,9 +139,9 @@ area.
    <summary>Answer</summary>
 
    The RTL view draws your operators, so a different spelling gives different boxes. Synthesis
-   works from what your logic computes, not from how you wrote it, and both lines compute the
-   majority function. The reverse also holds: you can't read a gate netlist and recover the RTL
-   you wrote.
+   works from the function your logic computes rather than from the way you wrote it, and both
+   lines compute the majority function, so they map to the same cells. The same fact works in
+   the other direction too: you can't read a gate netlist and recover the RTL you wrote.
 
    </details>
 
@@ -159,8 +159,8 @@ see [Troubleshooting](../reference/troubleshooting.md).
 
 ## Part 2: Diagram size limits
 
-How big can a gate diagram get before it stops helping? It is better to find out here than in
-Lab 05.
+How big can a gate diagram get before it stops helping? It's better to find out here, on four
+full adders, than in Lab 05.
 
 1. `make bigger` runs the same two `show` calls on `ripple4`, four full adders instead of one.
    Before you run it, write down how many times bigger you expect the gate view's canvas area
@@ -191,7 +191,7 @@ Lab 05.
 
 4. Open `results/gates_ripple4.svg`. It is 44 inches wide: twelve cells, a scatter of bit-slice
    splitters, and no visual centre. Squashed to the width of this page it looks like this, and
-   zooming in does not help:
+   zooming in doesn't make it any easier to follow:
 
    ![ripple4 after abc -liberty — a 3189 pt wide mat of cells](../assets/img/lab02-ripple4-gates.svg)
 
@@ -200,17 +200,17 @@ the RTL view stayed readable.
 
 For the rest of the course, draw the gate view of one small block only, and the RTL view of
 anything bigger. The elevator FSM in [Lab 05](../labs/lab-05-elevator-overview.md) is 76 cells, and
-its gate view comes out 883 × 9018 pt, so you'll draw its RTL instead. This limit does not go
-away with experience; it is why professional flows show you numbers and layouts rather than
-gate schematics.
+its gate view comes out 883 × 9018 pt, so you'll draw its RTL instead. Experience doesn't make
+this limit go away, and it's the reason professional flows show you numbers and layouts rather
+than gate schematics.
 
 ## Part 3: Watch synth work on a counter
 
 Which pass turns the counter's flip-flops into SKY130 cells, which pass maps its logic, and what
 happens to the area when one of them is missing? This part runs the walkthrough from
 [What synthesis does](../guide/synthesis-is-translation.md) on `src/counter.sv`, a 4-bit counter
-with an enable and an asynchronous reset. Set the liberty path first; every command below uses
-it.
+with an enable and an asynchronous reset. Set the liberty path first, because every command
+below uses it.
 
 ```bash
 LIB=/foss/pdks/sky130A/libs.ref/sky130_fd_sc_hd/lib/sky130_fd_sc_hd__tt_025C_1v80.lib
@@ -251,7 +251,7 @@ LIB=/foss/pdks/sky130A/libs.ref/sky130_fd_sc_hd/lib/sky130_fd_sc_hd__tt_025C_1v8
 
    </details>
 
-3. See the two mappers split the work:
+3. Now see how the two mappers split the work between them:
 
    ```bash
    yosys -p "read_verilog -sv src/counter.sv; synth -top counter;
@@ -278,7 +278,8 @@ LIB=/foss/pdks/sky130A/libs.ref/sky130_fd_sc_hd/lib/sky130_fd_sc_hd__tt_025C_1v8
 
    The counter needs both an enable and an asynchronous reset, and no single SKY130 cell
    provides both: `edfxtp_1` has no reset pin. So `dfflibmap` used the reset flop and the
-   enable was rebuilt out of logic. The library made that decision, not your code.
+   enable was rebuilt out of logic. That choice came from what the library offers rather than
+   from anything in your code.
 
    </details>
 
@@ -314,8 +315,8 @@ LIB=/foss/pdks/sky130A/libs.ref/sky130_fd_sc_hd/lib/sky130_fd_sc_hd__tt_025C_1v8
    ```
 
 You should see 14 cells: four `sky130_fd_sc_hd__dfrtp_1` next to ten generic gates, with
-`100.096000 (100.00%)` sequential. This is the mirror image of step 5: only the flops have a
-price.
+`100.096000 (100.00%)` sequential. This is the mirror image of step 5, because this time the
+flops are the only cells that have a price.
 
 ## Part 4: Open the cell library
 
@@ -396,8 +397,8 @@ LEF=$REF/lef/sky130_fd_sc_hd.lef
 
    You should see a 7.4K file, `267` rectangles, and sixteen section names from `nwell` to `end`.
 
-6. Open the cell in Magic. Copy it out of the PDK first: the PDK tree is read-only, and Magic dims
-   every layer of a cell it can't edit.
+6. Open the cell in Magic. Copy it out of the PDK first, because the PDK tree is read-only and
+   Magic dims every layer of a cell it can't edit.
 
    ```bash
    cp $REF/mag/sky130_fd_sc_hd__maj3_1.mag results/
@@ -524,13 +525,15 @@ Diagrams:
   read_liberty -lib /foss/pdks/sky130A/libs.ref/sky130_fd_sc_hd/lib/sky130_fd_sc_hd__tt_025C_1v80.lib
   ```
 
-  `-lib` reads the library as a catalogue only: cell names, pin names, pin directions, no logic.
-  Delete that line from `show.ys` and re-run `make` (`git checkout show.ys` puts it back). The netlist and the area are identical, but
-  the picture gets worse: `show` no longer knows which pins are outputs, so it stacks `A B C X`
-  down the left side of every cell and draws the arrows on `sum` and `cout` pointing backwards
-  into the box. The diagram is a rendering of the design, and renderings have settings.
+  With `-lib`, Yosys reads the library only as a catalogue: cell names, pin names and pin
+  directions, but no logic. Delete that line from `show.ys` and re-run `make`
+  (`git checkout show.ys` puts it back). The netlist and the area are identical, but the picture
+  gets worse, because `show` no longer knows which pins are outputs, so it stacks `A B C X` down
+  the left side of every cell and draws the arrows on `sum` and `cout` pointing backwards into
+  the box. The diagram is only a rendering of the design, and like any rendering it depends on
+  its settings.
 - For a raster image for slides, `make png` runs `cairosvg` (2.9.0, in the image) at 1200 px
-  wide. Prefer the SVG for anything you'll zoom into.
+  wide. For anything you'll want to zoom into, use the SVG instead.
 
 Next on the [Course path](../index.md#course-path): read
 [Synthesizable SystemVerilog](../guide/the-hardware-dialect.md),
