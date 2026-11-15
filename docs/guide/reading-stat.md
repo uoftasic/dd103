@@ -143,22 +143,21 @@ real cells, which `abc` on its own doesn't do:
 ```
 === blinker ===
 
-       27  316.554 cells
-        1    10.01   sky130_fd_sc_hd__a21bo_1
+       28  316.554 cells
         2   15.014   sky130_fd_sc_hd__a21o_1
-        1    8.758   sky130_fd_sc_hd__a31o_1
-        1    6.256   sky130_fd_sc_hd__and2_0
-        2    7.507   sky130_fd_sc_hd__clkinv_1
+        3   11.261   sky130_fd_sc_hd__clkinv_1
         7  175.168   sky130_fd_sc_hd__dfrtp_1
         1   26.275   sky130_fd_sc_hd__dfstp_2
-        1    6.256   sky130_fd_sc_hd__lpflow_isobufsrc_1
-        1    3.754   sky130_fd_sc_hd__nand2_1
+        2    7.507   sky130_fd_sc_hd__nand2_1
         2   12.512   sky130_fd_sc_hd__nand2b_1
-        1    3.754   sky130_fd_sc_hd__nor2_1
+        2    7.507   sky130_fd_sc_hd__nor2_1
         2    10.01   sky130_fd_sc_hd__nor3_1
+        1    7.507   sky130_fd_sc_hd__o211ai_1
+        1    7.507   sky130_fd_sc_hd__o21a_1
         2    10.01   sky130_fd_sc_hd__o21ai_0
+        1    7.507   sky130_fd_sc_hd__o21bai_1
         1    8.758   sky130_fd_sc_hd__o41ai_1
-        2   12.512   sky130_fd_sc_hd__or3_1
+        1    10.01   sky130_fd_sc_hd__or4b_1
 
    Chip area for module '\blinker': 316.553600
      of which used for sequential elements: 201.443200 (63.64%)
@@ -223,7 +222,7 @@ Look at the last two lines of the blinker receipt again:
      of which used for sequential elements: 201.443200 (63.64%)
 ```
 
-Eight cells out of twenty-seven take 64 % of the silicon, and the price list shows why:
+Eight cells out of twenty-eight take 64 % of the silicon, and the price list shows why:
 
 | Cell | What it is | Area |
 |---|---|---|
@@ -243,7 +242,7 @@ You can check the blinker's sequential total by hand:
 
 $$7 \times 25.024 + 1 \times 26.2752 = 175.168 + 26.2752 = 201.4432\ \mu\text{m}^2$$
 
-The other nineteen cells, which include every gate that decides anything, share 115.11 µm². So
+The other twenty cells, which include every gate that decides anything, share 115.11 µm². So
 this design spends nearly two thirds of its area remembering where it is, and one third deciding
 where to go next.
 
@@ -267,7 +266,7 @@ floorplan settings (no `FP_CORE_UTIL` of your own), reports this:
 | die area | 1929.33 µm² (38.89 × 49.61 µm) |
 
 The 316 µm² design needs a 1929 µm² chip, about 6.1 times as much. The layout has 109 placed
-instances against `stat`'s 27 cells, though the flow still counted the same 8 sequential cells.
+instances against `stat`'s 28 cells, though the flow still counted the same 8 sequential cells.
 The extra instances are timing-repair buffers, clock buffers, well taps and filler cells, and the
 rest of the area is empty space that keeps utilization below 100 % so that the router can get
 wires through.
@@ -289,19 +288,19 @@ Every lab in this course checks your work without an instructor, and this sectio
    "creator": "Yosys 0.68 (git sha1 38e001a6f, ...)",
    "modules": {
       "\\blinker": {
-         "num_cells":         27,
+         "num_cells":         28,
          "area":              316.553600,
          "sequential_area":    201.443200,
          "num_cells_by_type": {
             "sky130_fd_sc_hd__dfrtp_1": 7,
             "sky130_fd_sc_hd__dfstp_2": 1,
             "sky130_fd_sc_hd__nand2b_1": 2,
-            "sky130_fd_sc_hd__nor2_1": 1
+            "sky130_fd_sc_hd__nor2_1": 2
          }
       }
    },
       "design": {
-         "num_cells":         27,
+         "num_cells":         28,
          "area":              316.553600,
          "sequential_area":    201.443200,
          "num_cells_by_type": {
@@ -312,8 +311,8 @@ Every lab in this course checks your work without an instructor, and this sectio
 }
 ```
 
-To make it fit, we cut eleven of the receipt's fifteen cell types from the module object and
-thirteen from the design object, and eight more `num_*` keys from both. The full file is
+To make it fit, we cut ten of the receipt's fourteen cell types from the module object and
+twelve from the design object, and ten more `num_*` keys from both. The full file is
 `results/blinker.json` once you have run `make` in Lab 04. Four keys carry
 everything the text receipt showed you:
 
@@ -344,7 +343,7 @@ print(f"sequential : {d['sequential_area']:.2f} um^2 "
 
 ```
 $ python3 stat_min.py blinker.json
-cells      : 27
+cells      : 28
 flip-flops : 8
 area       : 316.55 um^2
 sequential : 201.44 um^2 (63.6%)
@@ -360,7 +359,7 @@ If you delete `dfflibmap` from the blinker flow and run it again, nothing report
 the exit status is 0:
 
 ```
-       25  102.598 cells
+       26  105.101 cells
         4        -   $_DFFE_PN0P_
         3        -   $_DFF_PN0_
         1        -   $_DFF_PN1_
@@ -370,11 +369,11 @@ the exit status is 0:
    Area for cell type $_DFF_PN0_ is unknown!
    Area for cell type $_DFF_PN1_ is unknown!
 
-   Chip area for module '\blinker': 102.598400
+   Chip area for module '\blinker': 105.100800
      of which used for sequential elements: 0.000000 (0.00%)
 ```
 
-The total is 102.60 µm² instead of 316.55, and the sequential share is 0.00 % in a design that
+The total is 105.10 µm² instead of 316.55, and the sequential share is 0.00 % in a design that
 is two-thirds flip-flops. The cause is the one described in
 [What synthesis does](../guide/synthesis-is-translation.md#two-mappers): `abc` maps combinational
 logic and `dfflibmap` maps flip-flops, so without `dfflibmap` the flip-flops stay as generic

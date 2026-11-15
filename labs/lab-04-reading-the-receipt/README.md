@@ -55,13 +55,13 @@ tells you if yours drift.
 ```
 file                            cells  flops   area (um^2)   seq %
 ------------------------------------------------------------------
-blinker.json                       27      8        316.55   63.6%
+blinker.json                       28      8        316.55   63.6%
 blinker_nofsm.json                 27      6        264.00   56.9%
-blinker_explicit.json              26      6        265.25   56.6%
-blinker_explicit_nodffe.json       29      8        332.82   60.5%
-blinker_flat.json                  27      8        316.55   63.6%
-blinker_fast.json                  46      8        380.36   53.0%
-blinker_broken.json                25      0        102.60    0.0%  <- unmapped!
+blinker_explicit.json              25      6        262.75   57.1%
+blinker_explicit_nodffe.json       30      8        327.81   61.5%
+blinker_flat.json                  28      8        316.55   63.6%
+blinker_fast.json                  44      8        374.11   53.8%
+blinker_broken.json                26      0        105.10    0.0%  <- unmapped!
 fulladder.json                      2      0         33.78    0.0%
 ripple4.json                       12      0        110.11    0.0%
 ripple4_hier.json                   8      0        135.13    0.0%

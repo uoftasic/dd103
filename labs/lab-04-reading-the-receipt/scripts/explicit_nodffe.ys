@@ -6,7 +6,7 @@
 # `opt -nodffe -nosdff`, which is what `synth` does. Plain `opt` folds the
 # clock enable into a $dffe cell, and fsm_detect no longer recognises `state`
 # as a state register -- so the FSM is never re-encoded. One flag, two flops,
-# 67 um^2.
+# 65.06 um^2.
 
 read_verilog -sv src/blinker.sv
 hierarchy -check -top blinker
