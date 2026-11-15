@@ -2,8 +2,8 @@
 
 Writeup: [`docs/labs/lab-04-reading-the-receipt-overview.md`](../../docs/labs/lab-04-reading-the-receipt-overview.md)
 
-Four experiments on two designs, each a prediction you make before you look, plus a timing
-analysis of the ripple adder.
+This package runs four experiments on two designs, and in each one you write down a prediction
+before you look at the result. The writeup then adds a timing analysis of the ripple adder.
 
 ```bash
 . /foss/designs/common/.designinit
@@ -22,9 +22,9 @@ make
 | `make gap` | Experiment 4: one full adder alone vs four chained, flattened and not |
 | `make check` | re-run the self-check on JSON you already have |
 | `make table` | reprint the summary from JSON you already have |
-| `make clean` | empty `results/` |
+| `make clean` | delete the logs, JSON and netlists in `results/` |
 
-The timing analysis is not a `make` target. The writeup runs it as
+The timing analysis is not a `make` target, so the writeup has you run it by hand as
 `NETLIST=results/gates4.v sta -exit scripts/timing.tcl`.
 
 ## Files
@@ -36,9 +36,9 @@ The timing analysis is not a `make` target. The writeup runs it as
 | `src/check_stat.py` | Reads `stat -json -liberty` output and says PASS or FAIL. This is the grader. |
 | `scripts/baseline.ys` | The receipt, done right. |
 | `scripts/nofsm.ys` | Same, with `synth -nofsm`. |
-| `scripts/broken.ys` | `baseline.ys` with the `dfflibmap` line deleted. Exits 0 with a wrong area. |
+| `scripts/broken.ys` | `baseline.ys` with the `dfflibmap` line deleted. Yosys exits 0 and reports the wrong area. |
 | `scripts/explicit.ys` | `synth` written out by hand as `proc / opt / fsm / techmap / opt`. |
-| `scripts/explicit_nodffe.ys` | The same, with one flag changed. Two more flip-flops. |
+| `scripts/explicit_nodffe.ys` | The same, with `-nodffe -nosdff` added to one `opt`, which gives two more flip-flops. |
 | `scripts/flat.ys` | `synth -flatten`. |
 | `scripts/fast.ys` | `synth`, then ABC's three-command fast script (Yosys 0.68 removed `abc -fast`). |
 | `scripts/gap_one.ys`, `scripts/gap_four.ys` | One full adder, then four of them chained and flattened. |
@@ -48,8 +48,9 @@ The timing analysis is not a `make` target. The writeup runs it as
 
 ## Reference numbers
 
-Measured on `hpretl/iic-osic-tools:2026.08` with Yosys 0.68, Python 3.12.3 and `sky130A`.
-`src/check_stat.py` knows these numbers and tells you if yours drift.
+These were measured on `hpretl/iic-osic-tools:2026.08` with Yosys 0.68, Python 3.12.3 and
+`sky130A`. `src/check_stat.py` has most of these numbers built in, and when you run it with `--expect` it
+tells you if yours drift.
 
 ```
 file                            cells  flops   area (um^2)   seq %
@@ -66,8 +67,9 @@ ripple4.json                       12      0        110.11    0.0%
 ripple4_hier.json                   8      0        135.13    0.0%
 ```
 
-`blinker_broken.json` is supposed to fail. `make broken` runs the checker on it so you can see what
-a FAIL looks like before you earn one by accident.
+`blinker_broken.json` is supposed to fail. `make broken` runs the checker on it so that you see
+what a FAIL looks like before you earn one by accident.
 
 > [`docs/guide/reading-stat.md`](../../docs/guide/reading-stat.md) and the lab writeup quote
-> `src/blinker.sv` and its numbers. If you change the RTL, re-run `make` and update both.
+> `src/blinker.sv` and its numbers, so if you change the RTL, re-run `make` and update both pages
+> to match.
