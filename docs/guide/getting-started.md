@@ -14,7 +14,7 @@ Every command in this course runs in a terminal on the noVNC desktop, inside the
 not on your laptop. You start the desktop from your `workspace` clone with
 `./scripts/start_vnc.sh` (`scripts\start_vnc.bat` on Windows) and open it at
 http://localhost/. Ports, passwords, resolution and what to do when the page is blank are in
-[IC101: Launch the noVNC desktop](https://uoftasic.com/ic101/#/guide/launch-novnc). If a setup
+[IC101: Launch the noVNC desktop](https://uoftasic.com/ic101/guide/launch-novnc.html). If a setup
 step fails, the fix is usually in IC101.
 
 Course files go under `/foss/designs/modules/`, which is your `workspace` folder bind-mounted

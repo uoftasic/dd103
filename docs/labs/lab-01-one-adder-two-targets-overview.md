@@ -22,7 +22,7 @@ Package: [`labs/lab-01-one-adder-two-targets/`](https://github.com/uoftasic/dd10
 ## Part 1: Load the course
 
 If you haven't set up the workbench, do
-[IC101 Lab 03](https://uoftasic.com/ic101/#/labs/lab-03-launch-the-workbench-overview) first.
+[IC101 Lab 03](https://uoftasic.com/ic101/labs/lab-03-launch-the-workbench-overview.html) first.
 
 1. Start the desktop from your `workspace` clone (`./scripts/start_vnc.sh`, or
    `scripts\start_vnc.bat` on Windows), open http://localhost/ and open a terminal on the
@@ -60,10 +60,10 @@ If you haven't set up the workbench, do
    | `fatal: could not read Username for 'https://github.com'` | git could not read the repo anonymously and is asking you to log in. Check that you typed `dd103`. If you did, ask in [Discord](https://discord.gg/hrJnP5UsGz). Do not type your password. |
 
    Anything else about Docker, the desktop, `.designinit` or `mod` is on IC101's
-   [Troubleshooting](https://uoftasic.com/ic101/#/reference/troubleshooting) page. If `mod`
+   [Troubleshooting](https://uoftasic.com/ic101/reference/troubleshooting.html) page. If `mod`
    won't work at all, `./scripts/add_module.sh dd103`, run on your laptop from your `workspace`
    clone, clones the course into `modules/dd103` in that clone, the same folder `mod add` uses
-   (IC101's [What the smoke test checks](https://uoftasic.com/ic101/#/guide/smoke-test)
+   (IC101's [What the smoke test checks](https://uoftasic.com/ic101/guide/smoke-test.html)
    describes it). In the desktop terminal, `cd /foss/designs/modules/dd103` then takes you there.
    Labs 01 to 04 run even without `.designinit`: each package names its own PDK and cell library,
    so `make` in the package directory needs no environment setup.
@@ -78,7 +78,7 @@ If you haven't set up the workbench, do
    You should see `Yosys 0.68 (git sha1 38e001a6f, Release, GNU /usr/bin/c++ 13.3.0)` and a
    first line of `LibreLane v3.1.0.dev3`. If either version number is different, you are not on
    `hpretl/iic-osic-tools:2026.08`; see
-   [IC101: Launch the noVNC desktop](https://uoftasic.com/ic101/#/guide/launch-novnc) for the
+   [IC101: Launch the noVNC desktop](https://uoftasic.com/ic101/guide/launch-novnc.html) for the
    image the `workspace` scripts pull. You don't need to check the others now; later labs print
    `iverilog -V` (`14.0 (devel)`), `verilator --version` (`Verilator 5.050`),
    `nextpnr-ice40 --version` (`nextpnr-0.11.1-9-gb17408e2`) and `surfer --version`

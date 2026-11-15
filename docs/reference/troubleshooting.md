@@ -3,7 +3,7 @@
 Messages you can hit in the DD103 labs that are not mistakes in your design, or that look worse
 than they are. Each entry gives the symptom, the cause and the fix. Setup problems with Docker,
 the desktop, `.designinit` or `mod` are on IC101's
-[Troubleshooting](https://uoftasic.com/ic101/#/reference/troubleshooting) page, and Yosys parse
+[Troubleshooting](https://uoftasic.com/ic101/reference/troubleshooting.html) page, and Yosys parse
 errors are on [When Yosys says syntax error](../reference/yosys-syntax-errors.md).
 
 ## `show` says only one module must be selected
