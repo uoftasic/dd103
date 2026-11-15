@@ -15,13 +15,13 @@ Org: [github.com/uoftasic](https://github.com/uoftasic)
 
 **Prerequisites:** [IC101](https://uoftasic.com/ic101/) then [DD102](https://uoftasic.com/dd102/), in that order.
 
-Students start at the Course path table on the course home page, `docs/README.md`.
+Students start at the Course path table on the course home page, `docs/index.md`.
 
 ## Quick start
 
-Every package under `labs/` runs with `make` alone in a bare container, with no environment setup:
-no `.designinit`, no `mod`, no exported PDK variables. Labs 01–04 exit 0; Lab 05 uses LibreLane and
-needs the full workbench.
+The packages for Labs 01–04 run with `make` alone in a bare container, with no environment setup
+(no `.designinit`, no `mod`, no exported PDK variables), and exit 0. Lab 05 is the exception: it
+uses LibreLane, so it needs the full workbench.
 
 ```bash
 git clone https://github.com/uoftasic/dd103.git
@@ -32,13 +32,14 @@ docker run --rm --user "$(id -u):$(id -g)" -v "$PWD:/work" -w /work \
   bash -c 'cd /work/labs/lab-01-one-adder-two-targets && make'
 ```
 
-This is a maintainer check. Students run the labs inside the `workspace` desktop they set up in
-IC101.
+That `docker run` line is for maintainers checking a package. Students run the labs inside the
+`workspace` desktop they set up in IC101.
 
-Docs preview (requires Node.js):
+Docs preview (requires [Quarto](https://quarto.org/docs/get-started/) 1.11):
 
 ```bash
-npx docsify-cli serve docs      # -> http://localhost:3000
+quarto preview docs                            # -> http://localhost:4200
+quarto render docs --profile pdf --to typst    # whole course as one PDF in docs/_book/
 ```
 
 Courses that need IIC-OSIC-TOOLS and SKY130 document the team workbench setup in the course,
@@ -48,7 +49,7 @@ rather than bundling Docker in every repo.
 
 | Path | On Pages? | Purpose |
 |------|-----------|---------|
-| `docs/` | Yes | Docsify site: home page with the Course path, guide pages, reference pages |
+| `docs/` | Yes | Quarto site (`docs/_quarto.yml`): home page with the Course path, guide pages, reference pages |
 | `docs/guide/` | Yes | Guide pages: reading only, no required commands |
 | `docs/labs/` | Yes | Lab writeups: the numbered steps students run |
 | `labs/` | No | Runnable packages (HDL, Python, data, graders) |
@@ -60,11 +61,11 @@ rather than bundling Docker in every repo.
 
 | Setting | Value |
 |---------|--------|
-| Source | Deploy from a branch |
-| Branch | `main` |
-| Folder | `/docs` |
+| Source | GitHub Actions |
 
-No Actions deploy step is required for the baseline Docsify site.
+On every push to `main` that touches `docs/`, `.github/workflows/site.yml` renders `docs/` with
+Quarto, adds the whole-course PDF, checks the rendered links with `scripts/check_site.py` and
+deploys `docs/_site`. The site has a PDF of every page next to its HTML.
 
 ## Contributing
 

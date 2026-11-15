@@ -32,7 +32,7 @@ For a dry run, add `--dry-run`.
 - [ ] Repo created under `uoftasic` with id matching `dd103`
 - [ ] `scripts/init-template.py` run (or the three tokens replaced by hand)
 - [ ] Pushed to `main`
-- [ ] Pages: **Settings → Pages → `main` / `/docs`**
+- [ ] Pages: **Settings → Pages → Source: GitHub Actions** (`.github/workflows/site.yml` builds `docs/` with Quarto)
 - [ ] Live: `https://uoftasic.com/<course-id>/` (org Pages; hub: https://edu.uoftasic.com/)
 - [ ] Sidebar navigates Home → Getting started → Lab 01
 - [ ] Math and the sample figure render on the home page
@@ -45,6 +45,6 @@ name. Keep the GitHub repo name equal to `dd103` so Pages and clone URLs stay pr
 
 ## Related
 
-Each course from this template publishes at `https://uoftasic.com/<course-id>/`, with Docsify docs
-under `docs/` (no build step) and separate `labs/` and `scripts/` trees. The education hub is
+Each course from this template publishes at `https://uoftasic.com/<course-id>/`, with Quarto docs
+under `docs/` and separate `labs/` and `scripts/` trees. The education hub is
 https://edu.uoftasic.com/.
