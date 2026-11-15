@@ -282,8 +282,10 @@ circuit with a dead LED, but Verilator, reading the same file, still points at l
 word.
 
 For the rest of this track, make sure your code lints clean before you synthesize it. The result
-is easy to read: `-Wall` makes warnings fatal, so Verilator exits with 0 when the file is clean
-and with something else when it isn't. It runs in 4 milliseconds, so there's no reason to skip it.
+is easy to read, because Verilator treats every warning as fatal unless you pass `-Wno-fatal`, so
+it exits with 0 when the file is clean and with something else when it isn't. `-Wall` adds the
+style checks that are off by default, such as the one for an unused parameter you'll meet in
+Lab 05. A lint run takes 4 milliseconds, so there's no reason to skip it.
 
 ## Limits of lint
 
