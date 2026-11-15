@@ -2,11 +2,11 @@
 
 Writeup: [`docs/labs/lab-05-elevator-overview.md`](../../docs/labs/lab-05-elevator-overview.md)
 
-A 4-floor elevator controller, designed from a state table and taken all the way to a `.gds`
-file that passes DRC, LVS and antenna signoff.
+In this lab you design a 4-floor elevator controller from a state table and take it all the way
+to a `.gds` file that passes DRC, LVS and antenna signoff.
 
-Run everything inside the workbench (`hpretl/iic-osic-tools:2026.08`: Verilator 5.050, Icarus
-14.0, Yosys 0.68, LibreLane 3.1.0.dev3).
+Run everything inside the workbench, `hpretl/iic-osic-tools:2026.08`, which ships Verilator 5.050,
+Icarus 14.0, Yosys 0.68 and LibreLane 3.1.0.dev3.
 
 ```bash
 . /foss/designs/common/.designinit
@@ -29,24 +29,24 @@ make sim
 | `make clean` | delete `results/`, keep `runs/` |
 | `make distclean` | `clean`, then delete `runs/` |
 
-`make sim` exits non-zero until all six checks pass. That is the definition of done for the RTL
-half of the lab.
+`make sim` exits non-zero until all six checks pass, and passing all six is how you know the RTL
+half of the lab is done.
 
-Re-running `make harden` with the same `TAG` does not start over: LibreLane says
-`Using existing run at 'v1'` and appends stages 78, 79, 80… onto the finished run. Use a new tag,
-such as `make harden TAG=v2`.
+If you run `make harden` again with the same `TAG`, LibreLane does not start over. It prints
+`Using existing run at 'v1'` and appends stages 78, 79, 80… onto the finished run, so give each
+new run its own tag, such as `make harden TAG=v2`.
 
 ## The skeleton
 
-`src/elevator.sv` is a working 3-state machine (`IDLE / MOVING / DOORS`). It lints, simulates,
-synthesizes and hardens. It is missing two things, marked `TODO` in the source:
+`src/elevator.sv` is a working 3-state machine (`IDLE / MOVING / DOORS`) that already lints,
+simulates, synthesizes and hardens. It is missing two things, both marked `TODO` in the source:
 
 | TODO | What is missing | Which check fails |
 |---|---|---|
 | 1 | the call queue, a `pending` register | T3, and half of T5 |
 | 3 | the door-dwell timer, a `dwell` counter | T4 |
 
-TODO(2) is the state you add to hold the doors open while the timer runs.
+TODO(2) marks the state you add to hold the doors open while the timer runs.
 
 ## Files
 
@@ -63,7 +63,8 @@ TODO(2) is the state you add to hold the doors open while the timer runs.
 
 ## Reference numbers
 
-Reference implementation on `hpretl/iic-osic-tools:2026.08`, 6 cores / 7.5 GB:
+These are from the reference implementation on `hpretl/iic-osic-tools:2026.08`, on a machine with
+6 cores and 7.5 GB:
 
 | | Skeleton | Finished |
 |---|---|---|
@@ -71,6 +72,6 @@ Reference implementation on `hpretl/iic-osic-tools:2026.08`, 6 cores / 7.5 GB:
 | flip-flops | 7 | 17 |
 | sequential share of area | 46.08 % | 55.72 % |
 
-LibreLane `Classic` flow, 80 stages: 59 s wall clock, 525 MB peak RSS, die
-62.335 × 73.055 µm = 4553.88 µm², setup slack +11.66 ns on a 20 ns clock, and DRC / LVS / antenna
-0 / 0 / 0.
+The LibreLane `Classic` flow runs 80 stages in 59 s of wall-clock time, with a peak RSS of 525 MB.
+It produces a 62.335 × 73.055 µm die (4553.88 µm²) with +11.66 ns of setup slack on a 20 ns clock,
+and the DRC, LVS and antenna checks all report 0.
