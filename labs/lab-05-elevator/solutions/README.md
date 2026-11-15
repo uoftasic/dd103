@@ -1,6 +1,6 @@
 # Reference implementation
 
-Open this only after your own version passes all six checks in `make sim`.
+Open this only after your own version passes all eight checks in `make sim`.
 
 `elevator.sv` here is the complete 5-state machine (`IDLE / MOVING / DOOR_OPEN / DWELL /
 DOOR_SHUT`), with a 4-bit `pending` call queue and a 4-bit `dwell` timer. Compare it with yours;

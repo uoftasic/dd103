@@ -20,7 +20,7 @@ make sim
 |---|---|
 | `make` | `lint`, `sim`, `synth` |
 | `make lint` | `verilator --lint-only -Wall`; exits 0 on the shipped skeleton |
-| `make sim` | `iverilog` + `vvp`, six checks; the skeleton fails three of them on purpose |
+| `make sim` | `iverilog` + `vvp`, eight checks; the skeleton fails three of them on purpose |
 | `make synth` | Yosys → SKY130 cells, and the `stat` receipt |
 | `make show` | the RTL diagram, `results/elevator_rtl.svg` (not the gate diagram) |
 | `make harden TAG=v1` | `librelane config.json` → GDSII, about 2 min |
@@ -29,7 +29,7 @@ make sim
 | `make clean` | delete `results/`, keep `runs/` |
 | `make distclean` | `clean`, then delete `runs/` |
 
-`make sim` exits non-zero until all six checks pass, and passing all six is how you know the RTL
+`make sim` exits non-zero until all eight checks pass, and passing all eight is how you know the RTL
 half of the lab is done.
 
 If you run `make harden` again with the same `TAG`, LibreLane does not start over. It prints
@@ -53,7 +53,7 @@ TODO(2) marks the state you add to hold the doors open while the timer runs.
 | File | What it is |
 |---|---|
 | `src/elevator.sv` | The skeleton you edit. Ports, reset and the 7-segment decoder are done. |
-| `src/tb_elevator.sv` | Six checks. Drives on `negedge`, samples 1 ns after `posedge`. |
+| `src/tb_elevator.sv` | Eight checks. Drives on `negedge`, samples 1 ns after `posedge`. |
 | `examples/vending.sv` | The vending machine from [Writing a state machine](../../docs/guide/state-machine-is-a-table.md), used in Part 1 of the writeup. |
 | `config.json` | LibreLane config. `PDK` and `STD_CELL_LIBRARY` are pinned; see the writeup. |
 | `Makefile` | `lint` `sim` `synth` `show` `harden` `metrics` `view` `clean` `distclean` |
