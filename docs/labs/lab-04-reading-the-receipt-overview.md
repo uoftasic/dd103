@@ -1,10 +1,10 @@
 # Lab 04: Reading the receipt
 
 You'll check a `stat` receipt by hand, then run four experiments that each ask you to write a
-number down before you run the command. Each is set up so that the number you write down is
-wrong, and the way it is wrong is the lesson. You'll finish by timing the ripple adder with
-OpenSTA and predicting the delay of a 64-bit one. The question running through the lab: how do
-you know your number is right when nobody is going to check it for you?
+number down before you run the command. Each one is set up so that the number you write down
+will be wrong, and working out why it's wrong is the lesson. You'll finish by timing the ripple
+adder with OpenSTA and predicting the delay of a 64-bit one. The question that runs through the
+whole lab is how you know a number is right when nobody is going to check it for you.
 
 Time: about 3 hours, not counting Going further.
 
@@ -12,12 +12,13 @@ Package: [`labs/lab-04-reading-the-receipt/`](https://github.com/uoftasic/dd103/
 
 ## Before you start
 
-- [Lab 02](../labs/lab-02-rtl-becomes-gates-overview.md) is complete: you have watched RTL become
-  SKY130 cells. `yosys -V` says `Yosys 0.68`.
+- You should have finished [Lab 02](../labs/lab-02-rtl-becomes-gates-overview.md), where you
+  watched RTL become SKY130 cells, and `yosys -V` should say `Yosys 0.68`.
 - Read [Reading the `stat` report](../guide/reading-stat.md) and
   [Carry delay and static timing](../guide/the-carry-has-to-walk.md).
 
-Start every part from the package directory:
+Start every part from the package directory. These three lines load the course, take you there
+and point `LIB` at the typical-corner liberty file:
 
 ```bash
 mod dd103
@@ -25,18 +26,19 @@ cd labs/lab-04-reading-the-receipt
 LIB=/foss/pdks/sky130A/libs.ref/sky130_fd_sc_hd/lib/sky130_fd_sc_hd__tt_025C_1v80.lib
 ```
 
-`stat -liberty` does one piece of arithmetic:
+All `stat -liberty` does is one piece of arithmetic:
 
 $$\text{area} = \sum_{\text{cell types } t} n_t \times a_t$$
 
 where $n_t$ is how many cells of type $t$ the netlist contains and $a_t$ is the `area :` line
-for that cell in the liberty file. There are two ways for the answer to be wrong:
+for that cell in the liberty file. That leaves two ways for the answer to be wrong:
 
-1. $n_t$ is not what you think, because synthesis rewrote your design.
-2. $a_t$ does not exist, because a cell never got mapped to the technology, and Yosys counts it
-   as zero.
+1. $n_t$ isn't what you think it is, because synthesis rewrote your design.
+2. $a_t$ doesn't exist, because a cell never got mapped to the technology, and Yosys counts the
+   missing area as zero.
 
-`make` runs Parts 2 to 5 in about five seconds. Each part also has its own target.
+`make` runs Parts 2 to 5 in about five seconds, and each part also has its own target if you
+want to run it by itself.
 
 ## Part 1: Prices on the receipt
 
@@ -51,9 +53,9 @@ Where does the area on a `stat` receipt come from?
              abc -liberty $LIB; opt_clean; stat -liberty $LIB"
    ```
 
-   The first gives counts only. The second adds an area column, `16  110.106 cells` with four
-   `$scopeinfo` among them, an `Area for cell type $scopeinfo is unknown!` warning, and
-   `Chip area ... 110.105600`.
+   The first prints cell counts only. The second adds an area column and reports
+   `16  110.106 cells`, four of which are `$scopeinfo`, along with an
+   `Area for cell type $scopeinfo is unknown!` warning and `Chip area ... 110.105600`.
 
 2. Look up the unit price of `maj3_1`:
 
@@ -61,8 +63,8 @@ Where does the area on a `stat` receipt come from?
    grep -A200 'cell ("sky130_fd_sc_hd__maj3_1")' $LIB | grep -m1 area
    ```
 
-   You should see `area : 10.009600000;`. The same lookup for `xnor2_1` gives `8.7584`. Check
-   the whole receipt by hand.
+   You should see `area : 10.009600000;`, and the same lookup for `xnor2_1` gives `8.7584`. Use
+   those two prices and the counts from step 1 to check the whole receipt by hand.
 
    <details>
    <summary>Answer</summary>
@@ -71,7 +73,8 @@ Where does the area on a `stat` receipt come from?
 
    </details>
 
-3. Remove the `$scopeinfo` bookkeeping cells before counting. Keep the backslash:
+3. Now remove the `$scopeinfo` bookkeeping cells before counting. Keep the backslash in front of
+   `$scopeinfo`:
 
    ```bash
    yosys -p "read_verilog -sv src/ripple4.sv src/fulladder.sv; synth -top ripple4; flatten;
@@ -79,7 +82,8 @@ Where does the area on a `stat` receipt come from?
    ```
 
 You should see `12  110.106 cells`, no `is unknown!` warning, and the same total. If you still
-see `16`, the shell swallowed `$scopeinfo` because the backslash was missing.
+see `16`, the backslash was missing, so the shell swallowed `$scopeinfo` before Yosys ever saw
+it.
 
 ## Part 2: Predict the flip-flop count
 
@@ -89,8 +93,8 @@ How many flip-flops does a design with six bits of state get?
    a four-state controller with a countdown timer. Look only at the `always_ff` block.
 
 2. Count the bits assigned with `<=`. There are two state variables: `state`, a `logic [1:0]`
-   enum, and `count`, a `logic [3:0]`. A bit that survives a clock edge needs a flip-flop. Write
-   your flip-flop count on paper.
+   enum, and `count`, a `logic [3:0]`. Every bit that has to survive a clock edge needs a
+   flip-flop, so the number of bits is your prediction. Write it on paper.
 
 3. Run:
 
@@ -114,10 +118,11 @@ How many flip-flops does a design with six bits of state get?
         of which used for sequential elements: 201.443200 (63.64%)
    ```
 
-   Every cell whose name starts with `df` is a flip-flop. The receipt says 8: seven `dfrtp_1`
-   and one `dfstp_2`.
+   Every cell whose name starts with `df` is a flip-flop, so the receipt says there are 8: seven
+   `dfrtp_1` and one `dfstp_2`.
 
-4. Read the next block, where the same target asks the log what happened:
+4. Read the next block, in which the same target pulls out the part of the synthesis log that
+   explains what happened:
 
    ```
    2.7.1. Executing FSM_DETECT pass (finding FSMs in design).
@@ -137,9 +142,10 @@ How many flip-flops does a design with six bits of state get?
    <details>
    <summary>Answer</summary>
 
-   Yosys re-encoded `state` one-hot: four states, four bits. Four state bits plus four counter
-   bits is eight. In one-hot, `IDLE` is `---1`, so the low state bit has to leave reset high,
-   and a flop that resets high is a set flop, `dfstp_2`. [Reading the `stat`
+   Yosys re-encoded `state` as one-hot, which uses one bit per state, so four states take four
+   bits. Four state bits plus four counter bits make eight. In one-hot, `IDLE` is `---1`, so the
+   low state bit has to come out of reset high, and a flop that resets high is a set flop, which
+   here is the `dfstp_2`. [Reading the `stat`
    report](../guide/reading-stat.md#fsm-re-encoding) walks through both.
 
    </details>
@@ -154,20 +160,21 @@ How many flip-flops does a design with six bits of state get?
         of which used for sequential elements: 150.144000 (56.87%)
    ```
 
-   Your prediction comes back. Which encoding gave the smaller design, and what should you take
-   from it?
+   With re-encoding off, the flip-flop count is the six you predicted. Which encoding gave the
+   smaller design, and what should you take from it?
 
    <details>
    <summary>Answer</summary>
 
-   The binary one, 264.00 µm² against 316.55. One-hot spent two extra flip-flops (50 µm²) on
-   cheaper decoding, and on a four-state machine that trade loses. The lesson is not `-nofsm`;
-   it is that you have to go and look at the netlist, because every number you quote comes from
-   it.
+   The binary encoding did, at 264.00 µm² against 316.55. One-hot spent two extra flip-flops
+   (50 µm²) to make the decoding cheaper, and on a four-state machine that trade doesn't pay.
+   That doesn't mean you should always use `-nofsm`. What you should take from it is that you
+   have to go and look at the netlist, because every number you quote comes from it.
 
    </details>
 
-6. Look up the prices that make flip-flops expensive:
+6. Look up the prices of a few flip-flops and simple gates, to see why flip-flops are so
+   expensive:
 
    ```bash
    for c in dfxtp_1 dfrtp_1 dfstp_2 nor2_1 nand2_1 inv_1; do
@@ -175,16 +182,16 @@ How many flip-flops does a design with six bits of state get?
    done
    ```
 
-You should see `dfrtp_1` at `25.024000000` and `nand2_1` at `3.7536000000`. Work out the
-sequential total from the prices and check it against the receipt's `201.443200`.
+You should see `dfrtp_1` at `25.024000000` and `nand2_1` at `3.7536000000`. Use these prices to
+work out the sequential total, and check it against the receipt's `201.443200`.
 
 <details>
 <summary>Answer</summary>
 
 $$7 \times 25.024 + 1 \times 26.2752 = 201.4432\ \mu\text{m}^2 \quad\text{of}\quad 316.5536$$
 
-Eight cells out of twenty-seven are 63.64 % of the silicon. The nineteen cells that decide
-anything share the other 115.11 µm².
+So eight cells out of twenty-seven take up 63.64 % of the silicon, and the nineteen cells that
+actually decide anything share the other 115.11 µm².
 
 </details>
 
@@ -207,7 +214,8 @@ dfflibmap -liberty /foss/pdks/sky130A/libs.ref/sky130_fd_sc_hd/lib/sky130_fd_sc_
    make broken
    ```
 
-You should see that nothing breaks:
+You should see the run succeed, with exit status 0 and a receipt that looks normal at first
+glance:
 
 ```
 yosys scripts/broken.ys -> exit status 0   (yes. zero.)
@@ -219,35 +227,37 @@ yosys scripts/broken.ys -> exit status 0   (yes. zero.)
      of which used for sequential elements: 0.000000 (0.00%)
 ```
 
-That is 102.60 µm² instead of 316.55, and 0.00 % sequential in a design that is two thirds
-flip-flops. The receipt is short by 213.96 µm², 68 % of the design, and the run exited zero. Why?
+The receipt says 102.60 µm² instead of 316.55, and 0.00 % sequential for a design that is two
+thirds flip-flops. It's short by 213.96 µm², which is 68 % of the design, and yet the run exited
+with status zero. Why?
 
 <details>
 <summary>Answer</summary>
 
-`abc -liberty` maps combinational logic only. Without `dfflibmap` the flip-flops stay as
-`$_DFF_*`, Yosys's internal technology-independent placeholders, which have no liberty entry and
-so contribute zero.
+`abc -liberty` maps combinational logic only. Without `dfflibmap`, the flip-flops stay as
+`$_DFF_*` cells, which are Yosys's internal technology-independent placeholders. They have no
+liberty entry, so each one contributes zero area.
 
 </details>
 
-> **Rule:** a cell type starting with `$_` in your final netlist means something did not get
-> mapped, and your area is too small by however much it was worth. `$scopeinfo` is the one
-> harmless exception. Chase every `is unknown!` line before you believe a number.
+> **Rule:** if a cell type in your final netlist starts with `$_`, something didn't get mapped,
+> and your area is too small by however much that cell was worth. `$scopeinfo` is the one
+> harmless exception. Track down every `is unknown!` line before you believe a number.
 
-The same target then runs the self-check on the broken JSON; Part 6 explains that output.
+After that, the same target runs the self-check on the broken JSON, and Part 6 explains what it
+prints.
 
 ## Part 4: Five synthesis scripts
 
 Which script gives "the" area of `blinker.sv`?
 
-1. Before you run anything, read the five scripts' descriptions and decide which one gives the
-   area:
+1. Before you run anything, read the descriptions of the five scripts and decide which one gives
+   the area:
 
    | Script | What it does |
    |---|---|
    | `explicit.ys` | `synth` written out by hand: `proc / opt / fsm / memory / techmap / opt` |
-   | `explicit_nodffe.ys` | the same, but `opt -nodffe -nosdff` before `fsm` |
+   | `explicit_nodffe.ys` | the same, but with `opt -nodffe -nosdff` before `fsm` |
    | `baseline.ys` | plain `synth -top blinker` |
    | `flat.ys` | `synth -top blinker -flatten` |
    | `fast.ys` | `synth`, then ABC's three-command fast script |
@@ -268,7 +278,8 @@ Which script gives "the" area of `blinker.sv`?
    blinker_fast.json                  46      8        380.36   53.0%
    ```
 
-3. Find out why the hand-written script lost the FSM:
+3. The hand-written `explicit.ys` ends up with only six flip-flops, so it lost the FSM somewhere.
+   Find out why:
 
    ```bash
    grep -A1 FSM_DETECT results/baseline.log
@@ -283,9 +294,9 @@ Which script gives "the" area of `blinker.sv`?
 
    Plain `opt` folds the clock enable into a `$dffe` cell before `fsm` runs, and `fsm_detect`
    then no longer recognises `state` as a state register. `synth` runs `opt -nodffe -nosdff` at
-   that point instead, so that this does not happen. Adding those two flags to `explicit.ys`
-   brings the FSM back, which is the `explicit_nodffe` row: one flag on one line, two
-   flip-flops and 67 µm².
+   that point instead, so that this doesn't happen. Adding those two flags to that one line of
+   `explicit.ys` brings the FSM back, and that's the `explicit_nodffe` row: the change on one
+   line is worth two flip-flops and 67 µm².
 
    </details>
 
@@ -298,33 +309,36 @@ Which script gives "the" area of `blinker.sv`?
    fast:     strash / dretime / map
    ```
 
-You should see five areas between 265 and 380 µm², a 43 % spread from one unchanged source file.
-Which row is the area of `blinker.sv`?
+You should see five areas between 265 and 380 µm², which is a 43 % spread from a single source
+file that never changed. Which row is the area of `blinker.sv`?
 
 <details>
 <summary>Answer</summary>
 
-None of them is the correct row. `-flatten` did nothing here because `blinker` has no
-submodules; on `ripple4` in Part 5 flattening changes everything. The fast script, three
-commands instead of twelve, made the design about 20 % bigger: you bought synthesis runtime with
-silicon.
+None of them is the one correct row. `-flatten` made no difference here because `blinker` has
+no submodules, but on `ripple4` in Part 5 flattening changes everything. The fast script runs
+three ABC commands instead of twelve, and it made the design about 20 % bigger, so you bought
+synthesis runtime with silicon.
 
-"How big is it?" has no answer without "under which script?" attached. LibreLane exposes this
-knob as `SYNTH_STRATEGY`, which is why two competent people can report different areas for the
-same RTL and both be right. Quote the script alongside the number, every time.
+The question "how big is it?" has no answer until you add "under which script?". LibreLane
+exposes this knob as `SYNTH_STRATEGY`, which is why two competent people can report different
+areas for the same RTL and both be right. Every time you quote an area, quote the script that
+produced it alongside the number.
 
 </details>
 
 ## Part 5: The area gap
 
-Why is `ripple4` smaller than four full adders? Back to the DD102 adder, which is in this package
-as `src/fulladder.sv` and `src/ripple4.sv`. In
-[Lab 01](../labs/lab-01-one-adder-two-targets-overview.md), Part 6, four times one `fulladder`
-(33.7824 µm²) came out 18.5 % higher than the chained adder's 110.1056 µm².
+Why is `ripple4` smaller than four full adders? This part goes back to the DD102 adder, which is
+in this package as `src/fulladder.sv` and `src/ripple4.sv`. In
+[Lab 01](../labs/lab-01-one-adder-two-targets-overview.md), Part 6, you predicted the chained
+adder's area as four times one `fulladder` (33.7824 µm²), and the measured 110.1056 µm² came out
+18.5 % smaller than that.
 
 1. `make gap` runs three scripts: one `fulladder` alone, four chained and flattened, and
-   `scripts/gap_hier.ys`, the same four with the `flatten` line removed, so ABC optimizes each
-   `fulladder` separately. Before you run it, write down what you expect `gap_hier.ys` to report.
+   `scripts/gap_hier.ys`, which is the same four with the `flatten` line removed, so that ABC
+   optimizes each `fulladder` on its own. Before you run it, write down what you expect
+   `gap_hier.ys` to report.
 
 2. Run:
 
@@ -341,7 +355,7 @@ as `src/fulladder.sv` and `src/ripple4.sv`. In
       Chip area for module '\fulladder': 33.782400
    ```
 
-   Multiply by four and write it on the blank line the Makefile prints.
+   Multiply that area by four and write the result on the blank line the Makefile prints.
 
 3. Read the chained result:
 
@@ -352,22 +366,22 @@ as `src/fulladder.sv` and `src/ripple4.sv`. In
       Chip area for module '\ripple4': 110.105600
    ```
 
-   That is 110.11 µm², 18.5 % less than your $4 \times 33.7824 = 135.1296\ \mu\text{m}^2$. The
-   four `maj3_1` are still there, since carry-out is still the majority function. Account for
-   the whole difference from the two cell lists.
+   That's 110.11 µm², 18.5 % less than your $4 \times 33.7824 = 135.1296\ \mu\text{m}^2$. The
+   four `maj3_1` are still there, because carry-out is still the majority function, so the
+   difference has to come from somewhere else. Use the two cell lists to account for all of it.
 
    <details>
    <summary>Answer</summary>
 
-   What changed is the sum. Alone, ABC builds `a ^ b ^ cin` from one `xor3_1`. In the chain it
-   builds each one from two `xnor2_1`:
+   The difference is all in the sum. On its own, ABC builds `a ^ b ^ cin` from one `xor3_1`, but
+   in the chain it builds each sum from two `xnor2_1`:
 
    $$\underbrace{23.7728}_{\texttt{xor3\_1}} - \underbrace{2 \times 8.7584}_{\texttt{2 × xnor2\_1}} = 6.256 \qquad 4 \times 6.256 = 25.024\ \mu\text{m}^2$$
 
-   and $135.1296 - 110.1056 = 25.024$. The entire gap is that one cell swap, four times. Two
-   `xnor2_1` are smaller but one logic level deeper than a single `xor3_1`. Alone, the sum is the
-   critical path, so ABC pays for the fast cell. In a chain the carry is the critical path and
-   the sum has slack, so ABC spends that slack on area.
+   and $135.1296 - 110.1056 = 25.024$, so the entire gap is that one cell swap, made four times.
+   Two `xnor2_1` are smaller than a single `xor3_1`, but one logic level deeper. In a full adder
+   on its own, the sum is the critical path, so ABC pays for the fast cell. In a chain the carry
+   is the critical path and the sum has slack to spare, so ABC spends that slack on area.
 
    </details>
 
@@ -380,30 +394,31 @@ as `src/fulladder.sv` and `src/ripple4.sv`. In
       Chip area for top module '\ripple4': 135.129600
    ```
 
-You should see 135.1296 µm², your prediction to the digit. What does that tell you about
-predicting a design's area from its parts?
+You should see 135.1296 µm², which matches your prediction to the last digit. What does that
+tell you about predicting a design's area from its parts?
 
 <details>
 <summary>Answer</summary>
 
-The prediction is the exact answer the tool gives when you stop it from looking across the
-module boundaries you drew. A block costs less in context than it does alone, so "how big is my
-design?" can't be answered from a spreadsheet of parts, and datasheet areas are always for a
-whole block.
+Adding up the parts gives exactly the answer the tool gives when you stop it from looking across
+the module boundaries you drew. Once it can look across them, a block costs less in context than
+it does alone. That's why you can't answer "how big is my design?" from a spreadsheet of parts,
+and why datasheet areas are always given for a whole block.
 
 </details>
 
 ## Part 6: The self-check
 
-How does a script tell a good receipt from a bad one? There is no instructor checking your
-numbers. There is
-[`src/check_stat.py`](https://github.com/uoftasic/dd103/tree/main/labs/lab-04-reading-the-receipt/src/check_stat.py).
+How does a script tell a good receipt from a bad one? No instructor checks your numbers in this
+course, so instead there's
+[`src/check_stat.py`](https://github.com/uoftasic/dd103/tree/main/labs/lab-04-reading-the-receipt/src/check_stat.py),
+which checks them for you.
 
 Every script in this lab ends with `tee -o results/<name>.json stat -json -liberty <the liberty
 file>`, which captures the receipt as JSON. The checker reads four keys from that file
 (`num_cells`, `area`, `sequential_area` and `num_cells_by_type`) under the top-level `"design"`
-object; [Reading the `stat` report](../guide/reading-stat.md#the-machine-readable-receipt) shows
-the file.
+object, and [Reading the `stat` report](../guide/reading-stat.md#the-machine-readable-receipt)
+shows what the file looks like.
 
 1. Run the checker on the good run:
 
@@ -420,9 +435,10 @@ the file.
      PASS  (matches the reference run)
    ```
 
-   It exits 0 on pass and 1 on fail, so a `Makefile` can gate on it.
+   It exits with status 0 on a pass and 1 on a fail, so a `Makefile` can stop when a check fails.
 
-2. Run the checker on the unmapped run from Part 3, as the end of `make broken` did:
+2. Now run the checker on the unmapped run from Part 3, which is what the end of `make broken`
+   did:
 
    ```bash
    python3 src/check_stat.py results/blinker_broken.json --expect blinker
@@ -445,12 +461,13 @@ the file.
    ```
 
 You should see `PASS` for `blinker.json` and `FAIL` for `blinker_broken.json`. Reading a FAIL is
-a skill, and the best time to practise it is when you caused it on purpose.
+a skill, and the best time to practise it is on one you caused on purpose, when you already know
+what went wrong.
 
 ## Part 7: Time the adder
 
 How does the worst path through a ripple adder grow with its width? This part runs the analysis
-from [Carry delay and static timing](../guide/the-carry-has-to-walk.md) on `src/ripple.sv`, with
+from [Carry delay and static timing](../guide/the-carry-has-to-walk.md) on `src/ripple.sv`, using
 `scripts/timing.tcl`.
 
 1. Check the timing tool:
@@ -498,13 +515,13 @@ from [Carry delay and static timing](../guide/the-carry-has-to-walk.md) on `src/
    <details>
    <summary>Answer</summary>
 
-   0.392 ns every time.
+   You get 0.392 ns every time, so each extra bit adds the same delay to the worst path.
 
    </details>
 
 5. Predict $T(64)$ with $T(N) = 0.370 + 0.392\,(N-2) + 0.328$, the formula from
-   [Carry delay and static timing](../guide/the-carry-has-to-walk.md), and write it down. Then
-   measure it:
+   [Carry delay and static timing](../guide/the-carry-has-to-walk.md), and write your prediction
+   down. Then measure it:
 
    ```bash
    yosys -q -p "read_verilog -sv src/ripple.sv src/fulladder.sv; chparam -set N 64 ripple;
@@ -518,11 +535,12 @@ from [Carry delay and static timing](../guide/the-carry-has-to-walk.md) on `src/
    <details>
    <summary>Answer</summary>
 
-   The formula says 25.002 ns, so you were right to six picoseconds.
+   The formula gives 25.002 ns, which is within six picoseconds of the measured 24.996 ns.
 
    </details>
 
-6. Make copies of the script with realistic clock periods, and read the slack:
+6. The script uses a 100 ns clock period. Make copies of it with more realistic periods of 2 ns
+   and 1 ns, and read the slack:
 
    ```bash
    for P in 2 1; do
@@ -534,7 +552,7 @@ from [Carry delay and static timing](../guide/the-carry-has-to-walk.md) on `src/
 
    You should see `0.519   slack (MET)` at 2 ns and `-0.481   slack (VIOLATED)` at 1 ns.
 
-7. Try two other process corners:
+7. Now time the same netlist at two other process corners:
 
    ```bash
    for C in ss_n40C_1v28 ff_100C_1v65; do
@@ -545,7 +563,8 @@ from [Carry delay and static timing](../guide/the-carry-has-to-walk.md) on `src/
    ```
 
 You should see `13.249` ns at the slow corner and `1.000` ns at the fast corner, against
-`1.481` ns at typical: the same netlist, nine times slower at the slow corner than at typical.
+`1.481` ns at typical. The netlist is the same in all three runs, and it's nine times slower at
+the slow corner than at typical.
 
 ## Finishing
 
@@ -554,8 +573,8 @@ You should see `13.249` ns at the slow corner and `1.000` ns at the fast corner,
 Each of your written predictions (Parts 2, 3, 4, 5 and 7) has the tool's number next to it, and
 your Part 7 table is filled in from your own runs.
 
-`make table` reprints the summary of every run in this lab; the package README lists the
-reference values.
+`make table` reprints the summary of every run in this lab, and the package README lists the
+reference values to compare against.
 
 ### Questions
 
@@ -573,13 +592,13 @@ Answer each in one sentence, using your own numbers. The step in parentheses has
    <details>
    <summary>Answer</summary>
 
-   No. `Chip area` is the sum of the standard cells and nothing else. The same `blinker.sv` taken
-   all the way to a layout by LibreLane, with the flow's default floorplan settings, reports
-   1929.33 µm² of die (38.89 × 49.61 µm) and 109 placed instances against `stat`'s 27 cells. The
-   difference is clock buffers, timing-repair buffers, well taps, filler and the empty space the
-   router needs; the 8 sequential cells are the same. Use `stat -liberty` to compare two versions
-   of your own design. [From netlist to layout](../guide/from-gates-to-geometry.md) is where the die
-   number comes from, and [Lab 05](../labs/lab-05-elevator-overview.md) is where you produce one.
+   No. `Chip area` is the sum of the standard-cell areas and nothing else. When LibreLane takes
+   the same `blinker.sv` all the way to a layout, with the flow's default floorplan settings, it
+   reports 1929.33 µm² of die (38.89 × 49.61 µm) and 109 placed instances, against `stat`'s 27
+   cells. The difference is made up of clock buffers, timing-repair buffers, well taps, filler
+   and the empty space the router needs, while the 8 sequential cells are the same in both. So
+   use `stat -liberty` to compare two versions of your own design, not to size a chip.
+   [From netlist to layout](../guide/from-gates-to-geometry.md) is where the die number comes from, and [Lab 05](../labs/lab-05-elevator-overview.md) is where you produce one.
 
    </details>
 
