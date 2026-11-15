@@ -58,8 +58,8 @@ add9         lint clean, 205.1968 um^2, 200 + 100 = 300
 
 > [`docs/guide/the-latch-you-didnt-ask-for.md`](../../docs/guide/the-latch-you-didnt-ask-for.md)
 > and [`docs/guide/blocking-vs-nonblocking.md`](../../docs/guide/blocking-vs-nonblocking.md) quote
-> these numbers, so if you change any source file here, re-run `make` and update both pages to
-> match.
+> these numbers verbatim, so if you change any source file here, re-run `make` and update both
+> pages to match.
 
 ## Files that are wrong on purpose
 

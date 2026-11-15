@@ -19,9 +19,9 @@ Students start at the Course path table on the course home page, `docs/index.md`
 
 ## Quick start
 
-The packages for Labs 01–04 run with `make` alone in a bare container, with no environment setup
-(no `.designinit`, no `mod`, no exported PDK variables), and exit 0. Lab 05 is the exception: it
-uses LibreLane, so it needs the full workbench.
+Every package under `labs/` runs with `make` alone in a bare container, with no environment setup
+(no `.designinit`, no `mod`, no exported PDK variables), and Labs 01–04 exit 0. Lab 05 uses
+LibreLane, so it needs the full workbench.
 
 ```bash
 git clone https://github.com/uoftasic/dd103.git

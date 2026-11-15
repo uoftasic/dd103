@@ -99,7 +99,7 @@ link to the files under `labs/` instead.
    "Check yourself" questions are fine at the end.
 3. Add it to a Read row of the Course path, to the sidebar in `docs/_quarto.yml` and to the
    chapters in `docs/_quarto-pdf.yml`, in the same position in all three.
-4. Images go under `docs/assets/img/` with paths relative to `docs/`.
+4. Images go under `docs/assets/img/`, linked with paths relative to the page you are writing in (`../assets/img/x.png` from a guide or lab page).
 5. Write links between pages relative to the page you are writing in (`../guide/x.md` from a
    lab), because that is how Quarto resolves them. Use GitHub URLs for `labs/` and `scripts/`.
 
