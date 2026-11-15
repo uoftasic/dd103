@@ -5,11 +5,11 @@ printing the final list of cells. It only shows tool output, so you don't need t
 while you read. You'll run every step shown here yourself, on the same counter, in
 [Lab 02, Part 3](../labs/lab-02-rtl-becomes-gates-overview.md#part-3-watch-synth-work-on-a-counter).
 
-A synthesis run on even a small design prints roughly seven hundred lines. None of them says
+A synthesis run on even a small design prints roughly six hundred lines. None of them says
 `ERROR`, and at the bottom there is a number. If you scroll back up you'll find `PROC_ARST`,
-`WREDUCE`, `ALUMACC`, `dch -f` and a hundred lines about cells being skipped, which is a lot to
-make sense of. All seven hundred lines come from just six steps, though, and one of those six
-does most of the work.
+`WREDUCE`, `ALUMACC`, `dch -f` and a warning about multi-output cells, which is a lot to make
+sense of. All six hundred lines come from just six steps, though, and one of those six does most
+of the work.
 
 ## The example design
 
@@ -33,7 +33,7 @@ endmodule
 
 The ASIC flow for it is a single Yosys command line: `read_verilog -sv`, then
 `synth -top counter`, `dfflibmap -liberty`, `abc -liberty`, `opt_clean` and `stat -liberty`, with
-every `-liberty` pointed at the SKY130 liberty file. On this counter it prints 726 lines. Yosys
+every `-liberty` pointed at the SKY130 liberty file. On this counter it prints 627 lines. Yosys
 numbers every pass it runs, so if you keep only the lines that start with a number, you're left
 with the top-level steps:
 
@@ -298,7 +298,7 @@ With `dfflibmap` in place, the same design comes out as:
 ```
 
 That is 37.54 µm² against 148.89 µm². Leaving out one line of the flow under-reported the design
-by a factor of four, and the only sign of it was a single warning line among 700-odd.
+by a factor of four, and the only sign of it was a single warning line among 600-odd.
 
 `Area for cell type … is unknown!` always means the same thing: a cell in your netlist isn't in
 the liberty file. Ninety percent of the time it's a generic `$_…_` cell, and ninety percent of
@@ -309,42 +309,62 @@ Area is the number you'll quote in every design review, and a missing `dfflibmap
 way to quote one that is wrong by 4×. On any design with a clock, check that
 `of which used for sequential elements` is not `0.00%`.
 
-## ABC's skipped-cell warnings
+## ABC and the liberty file {#abcs-skipped-cell-warnings}
 
-In step 4 you'll see a block like this:
-
-```
-ABC: + read_lib -w /foss/pdks/sky130A/libs.ref/sky130_fd_sc_hd/lib/sky130_fd_sc_hd__tt_025C_1v80.lib
-ABC: Parsing finished successfully.  Parsing time =     0.07 sec
-ABC: Scl_LibertyReadGenlib() skipped cell "sky130_fd_sc_hd__decap_12" without logic function.
-ABC: Scl_LibertyReadGenlib() skipped sequential cell "sky130_fd_sc_hd__dfbbn_1".
-ABC: Scl_LibertyReadGenlib() skipped sequential cell "sky130_fd_sc_hd__dfrtp_1".
-ABC: Scl_LibertyReadGenlib() skipped sequential cell "sky130_fd_sc_hd__dfxtp_1".
-ABC: Scl_LibertyReadGenlib() skipped three-state cell "sky130_fd_sc_hd__ebufn_1".
-```
-
-It goes on for 94 lines, which makes it look as though your run has failed. The run is fine, and
-ABC prints the totals on the line after the block:
+In step 4, before ABC maps anything, it loads the cell library and prints a warning:
 
 ```
-ABC: Library "sky130_fd_sc_hd__tt_025C_1v80" from "…tt_025C_1v80.lib" has 334 cells
-     (94 skipped: 63 seq; 13 tri-state; 18 no func; 0 dont_use; …).  Time = 0.12 sec
+4.1. Extracting gate netlist of module `\counter' to `<abc-temp-dir>/input.blif'..
+ABC: using cached merged SCL: /tmp/yosys-liberty-scl-cache/yosys_merged_951f6b0f.scl (1 files)
+...
+ABC: + read_blif <abc-temp-dir>/input.blif
+ABC: + read_scl /tmp/yosys-liberty-scl-cache/yosys_merged_951f6b0f.scl
+ABC: Warning: Detected 9 multi-output cells (for example, "sky130_fd_sc_hd__fa_1").
 ```
 
-The library has 428 cells (the next page counts them), so ABC can use 334 of them and has
-skipped the other 94. Of those 94, 63 are flip-flops and latches, the kind of cell that `dfflibmap` handled one step
-earlier. ABC isn't rejecting them; it's the combinational mapper, and they aren't
+ABC isn't reading the 13 MB liberty file here. The first time you run `abc -liberty` on a
+library, Yosys converts the file into ABC's own compact format, an `.scl` file, and keeps it in
+`/tmp/yosys-liberty-scl-cache/`. Every later run loads that copy instead and says so in the
+`using cached merged SCL` line, which is why that line is missing from the very first run after
+you start the desktop.
+
+The warning is about the nine cells in the library that have more than one output, such as the
+full adder `fa_1`, and
+[Lab 01's Going further](../labs/lab-01-one-adder-two-targets-overview.md#going-further-optional)
+explains why ABC doesn't use it. Like the rest of this block, it's normal output on a successful
+run, and it appears every time you use `abc -liberty` on SKY130. If a run really does fail, Yosys
+prints a line beginning with `ERROR:` and stops.
+
+ABC can't use every other cell in the library either. You can see which ones it leaves out by
+asking it to read the liberty file itself, with `yosys-abc -c "read_lib -w $LIB"` (`yosys-abc`
+is the copy of ABC that ships with Yosys, and `LIB` is set as in Lab 02). It prints a line for
+every cell it skips, 94 of them, like these:
+
+```
+Scl_LibertyReadGenlib() skipped cell "sky130_fd_sc_hd__decap_12" without logic function.
+Scl_LibertyReadGenlib() skipped sequential cell "sky130_fd_sc_hd__dfbbn_1".
+Scl_LibertyReadGenlib() skipped sequential cell "sky130_fd_sc_hd__dfrtp_1".
+Scl_LibertyReadGenlib() skipped sequential cell "sky130_fd_sc_hd__dfxtp_1".
+Scl_LibertyReadGenlib() skipped three-state cell "sky130_fd_sc_hd__ebufn_1".
+```
+
+and then the totals:
+
+```
+Library "sky130_fd_sc_hd__tt_025C_1v80" from "…tt_025C_1v80.lib" has 334 cells
+     (94 skipped: 63 seq; 13 tri-state; 18 no func; 0 dont_use; …).  Time = 0.15 sec
+```
+
+The library has 428 cells (the next page counts them), so ABC can use 334 of them and skips the
+other 94. Of those 94, 63 are flip-flops and latches, the kind of cell that `dfflibmap` handled
+one step earlier. ABC isn't rejecting them; it's the combinational mapper, and they aren't
 combinational logic, so it leaves them out of consideration. That's why
-`sky130_fd_sc_hd__dfrtp_1` appears in the skipped list in the same run where `dfflibmap` used
-four of them: the two tools do different jobs with the same library.
+`sky130_fd_sc_hd__dfrtp_1` is on ABC's skipped list even though `dfflibmap` used four of them in
+this same flow: the two tools do different jobs with the same library.
 
 The other 31 are cells with no logic to speak of: `decap` (filler capacitors), `diode` (antenna
 protection), and `ebufn`/`einv` (tri-state buffers, which have a third output state that Boolean
 algebra has no symbol for).
-
-These lines are normal output on a successful run. They appear every time you use
-`abc -liberty` on SKY130, before ABC does anything useful. If a run really does fail, Yosys
-prints a line beginning with `ERROR:` and stops.
 
 ## Two ABC runs
 
@@ -406,8 +426,8 @@ run, so use it between any two passes you want to compare.
   splits wide cells into narrow ones.
 - `dfflibmap` maps flip-flops and `abc` maps combinational logic. They are separate commands, and
   forgetting `dfflibmap` made this counter's area come out 4× too small.
-- The `Scl_LibertyReadGenlib()` lines are normal output; a line starting with `ERROR:` means the
-  run really failed.
+- ABC's `Detected 9 multi-output cells` warning is normal output; a line starting with `ERROR:`
+  means the run really failed.
 
 Next: [Standard cells](../guide/standard-cells-are-real.md). Every command on this page pointed
 `-liberty` at the same 13 MB file, and the next page opens it up.

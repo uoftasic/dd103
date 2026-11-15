@@ -249,19 +249,20 @@ any 4-input function.
    The `$scopeinfo` warning is harmless, because those cells are the same kind of marker you saw
    in Part 3, left behind by `flatten`, rather than hardware.
 
-2. Before that block, `abc` prints 94 lines like these, 63 of them about flip-flops and
-   latches:
+2. Before that block, where `abc` starts, it loads the cell library and prints a warning:
 
    ```
-   ABC: Scl_LibertyReadGenlib() skipped sequential cell "sky130_fd_sc_hd__dfbbn_1".
-   ABC: Scl_LibertyReadGenlib() skipped sequential cell "sky130_fd_sc_hd__dfbbn_2".
-   ABC: Scl_LibertyReadGenlib() skipped sequential cell "sky130_fd_sc_hd__dfbbp_1".
+   ABC: + read_scl /tmp/yosys-liberty-scl-cache/yosys_merged_951f6b0f.scl
+   ABC: Warning: Detected 9 multi-output cells (for example, "sky130_fd_sc_hd__fa_1").
    ```
 
-   These lines don't mean you broke anything. ABC maps only combinational logic, and flip-flops
-   are handled by a separate pass called `dfflibmap`, which you'll use in Part 7 and meet
-   properly in Lab 02. Your adder has no flip-flops, so it loses nothing when ABC skips every
-   flop in the library.
+   The `.scl` file is the liberty file converted into ABC's own format, which Yosys does the
+   first time you use the library and then keeps in `/tmp`. The warning doesn't mean you broke
+   anything. It appears on every `abc -liberty` run on SKY130, and Going further, at the end of
+   this lab, explains what it's about. ABC also maps only combinational logic, so it leaves
+   every flip-flop in the library out of consideration. Flip-flops are handled by a separate pass
+   called `dfflibmap`, which you'll use in Part 7 and meet properly in Lab 02. Your adder has no
+   flip-flops, so it loses nothing.
 
 You should see a chip area of `110.105600` µm² and no denominator anywhere.
 

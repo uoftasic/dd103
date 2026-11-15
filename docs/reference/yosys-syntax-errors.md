@@ -251,9 +251,10 @@ Both paths give 79 cells and 509.2384 µm², identical to four decimal places. T
 disagree about grammar but agree completely about the hardware, which is what you want from a
 front end.
 
-> `abc -liberty` prints roughly a hundred lines of
-> `Scl_LibertyReadGenlib() skipped sequential cell ...` before it does anything useful. That's
-> normal output, and it doesn't mean anything is wrong.
+> Both runs also print
+> `ABC: Warning: Detected 9 multi-output cells (for example, "sky130_fd_sc_hd__fa_1").` when
+> `abc -liberty` starts. That's normal output on every SKY130 run, and it doesn't mean anything
+> is wrong.
 
 ## Which option to use
 
