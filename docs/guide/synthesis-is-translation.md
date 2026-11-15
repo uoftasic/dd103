@@ -1,14 +1,15 @@
 # What synthesis does
 
 This page walks through what Yosys does to your SystemVerilog between reading the file and
-printing the final cell list. It shows tool output only; you don't need to run anything while
-reading. You'll run every step shown here on the same counter in
+printing the final list of cells. It only shows tool output, so you don't need to run anything
+while you read. You'll run every step shown here yourself, on the same counter, in
 [Lab 02, Part 3](../labs/lab-02-rtl-becomes-gates-overview.md#part-3-watch-synth-work-on-a-counter).
 
-A synthesis run on a small design prints roughly seven hundred lines. None of them says
-`ERROR`, and at the bottom is a number. If you scroll back up you find `PROC_ARST`, `WREDUCE`,
-`ALUMACC`, `dch -f`, and a hundred lines about cells being skipped. Those seven hundred lines
-come from six steps, and one of the six does most of the work.
+A synthesis run on even a small design prints roughly seven hundred lines. None of them says
+`ERROR`, and at the bottom there is a number. If you scroll back up you'll find `PROC_ARST`,
+`WREDUCE`, `ALUMACC`, `dch -f` and a hundred lines about cells being skipped, which is a lot to
+make sense of. All seven hundred lines come from just six steps, though, and one of those six
+does most of the work.
 
 ## The example design
 
@@ -30,10 +31,11 @@ module counter (
 endmodule
 ```
 
-The ASIC flow for it is one Yosys command line: `read_verilog -sv`, then `synth -top counter`,
-`dfflibmap -liberty`, `abc -liberty`, `opt_clean` and `stat -liberty`, all pointed at the
-SKY130 liberty file. On this counter it prints 726 lines. Yosys numbers every pass it runs, so
-filtering for lines that start with a number leaves just the top-level steps:
+The ASIC flow for it is a single Yosys command line: `read_verilog -sv`, then
+`synth -top counter`, `dfflibmap -liberty`, `abc -liberty`, `opt_clean` and `stat -liberty`, with
+every `-liberty` pointed at the SKY130 liberty file. On this counter it prints 726 lines. Yosys
+numbers every pass it runs, so if you keep only the lines that start with a number, you're left
+with the top-level steps:
 
 ```
 1. Executing Verilog-2005 frontend: counter.sv
@@ -44,25 +46,28 @@ filtering for lines that start with a number leaves just the top-level steps:
 6. Printing statistics.
 ```
 
-Six steps. The first says "Verilog-2005 frontend" even for a `.sv` file because Yosys's front
-end grew out of a Verilog-2005 parser; `-sv` asks it to accept SystemVerilog.
+That makes six steps. The first one says "Verilog-2005 frontend" even though the file is `.sv`,
+because Yosys's front end grew out of a Verilog-2005 parser; the `-sv` flag asks it to accept
+SystemVerilog as well.
 
 ## Synthesis as translation
 
-Your source says "add one to `count`". SKY130 has no word for "add". Its vocabulary is
-`xnor2_1`, `maj3_1`, `a31oi_1`, `nand4_1`: a few hundred fixed nouns, and nothing else.
+Your source says "add one to `count`", but SKY130 has no word for "add". Its whole vocabulary is
+a few hundred fixed nouns such as `xnor2_1`, `maj3_1`, `a31oi_1` and `nand4_1`, and anything you
+want to say has to be said with those.
 
-So Yosys works like a translator into a language with a small, fixed dictionary. It has to say
-what you meant using only words that exist. The result has an accent: no error and no loss of
-meaning, just the shape the target language forces on the sentence.
+So Yosys works like a translator into a language with a small, fixed dictionary: it has to say
+what you meant using only the words that exist. The result has an accent. There is no error in it
+and no meaning has been lost, but the sentence has the shape the target language forces on it.
 
-Send the same sentence to an iCE40 and the accent changes to `SB_LUT4`, `SB_CARRY` and
-`SB_RAM40_4K`. The meaning is the same; the available nouns are different. That difference is the
-subject of [FPGA and ASIC targets](../guide/warehouse-and-empty-lot.md).
+If you send the same sentence to an iCE40 FPGA, the accent changes to `SB_LUT4`, `SB_CARRY` and
+`SB_RAM40_4K`. The meaning stays the same, but the nouns available to express it are different.
+That difference is the subject of [FPGA and ASIC targets](../guide/warehouse-and-empty-lot.md).
 
 ## Inside `synth`
 
-Step 2 does almost everything. Its own sub-passes are numbered `2.1`, `2.2` and so on:
+Step 2, `synth`, does almost all of the work. It runs passes of its own, numbered `2.1`, `2.2`
+and so on:
 
 ```
 2.1. Executing HIERARCHY pass (managing design hierarchy).
@@ -93,41 +98,41 @@ Step 2 does almost everything. Its own sub-passes are numbered `2.1`, `2.2` and 
 2.26. Executing CHECK pass (checking for obvious problems).
 ```
 
-That is twenty-six passes. `synth` is shorthand for a script somebody else wrote, and you can
-type its contents yourself, which [Lab 04](../labs/lab-04-reading-the-receipt-overview.md) has you
-do.
+That is twenty-six passes. `synth` is really shorthand for a script somebody else wrote, and you
+could type its contents in yourself, which is what
+[Lab 04](../labs/lab-04-reading-the-receipt-overview.md) has you do.
 
-Eleven of the twenty-six are some flavour of `opt`. Optimization runs after every structural
-change, not once at the end, because every structural change leaves new unused logic to throw
-away.
+Eleven of the twenty-six are some flavour of `opt`. Yosys optimizes after every structural change
+rather than once at the end, because each structural change leaves behind new unused logic that
+can be thrown away.
 
 > **Version note.** Everything on this page is Yosys 0.68, as shipped in
-> `hpretl/iic-osic-tools:2026.08`. Pass names are stable across versions, but pass numbering is
-> not. If your sub-pass numbers don't match the list above (here `2.13` is `SHARE`), you are on a
-> different Yosys.
+> `hpretl/iic-osic-tools:2026.08`. The pass names stay the same from one version to the next, but
+> the numbering changes. If your sub-pass numbers don't match the list above (here `2.13` is
+> `SHARE`), you're running a different version of Yosys.
 
 ## The five main passes
 
-The whole flow fits in one line:
+You can write the whole flow in one line:
 
 `proc` → `opt` → `techmap` → `dfflibmap` → `abc`
 
-Most of the other sub-passes of `synth` are one of these under a more specific name, or a
-housekeeping pass. (`dfflibmap` is not in `synth` at all; it is step 3.) Here is what each one
-does, plus `hierarchy`, which always runs first:
+Most of the other sub-passes of `synth` are either one of these under a more specific name or a
+housekeeping pass. (`dfflibmap` isn't part of `synth` at all; it's step 3.) Here is what each of
+the five does, along with `hierarchy`, which always runs first:
 
 | Pass | What it does |
 |---|---|
-| `hierarchy` | Decides which module is the top and connects the instances below it. |
-| `proc` | Turns your `always` blocks into cells. Before `proc` an `always_ff` is behaviour; after it, it is a multiplexer and a flip-flop. |
-| `opt` | Throws work away: folds constants, deletes unreachable cells, merges two identical cells into one. |
-| `techmap` | Splits wide cells into single-bit ones. A 4-bit `$add` becomes a pile of one-bit gates. |
-| `dfflibmap` | Replaces every generic flip-flop with a named flip-flop from the liberty file. Flip-flops only. |
-| `abc` | Replaces everything that is not a flip-flop with named cells from the liberty file. Combinational logic only. |
+| `hierarchy` | Decides which module is the top and connects up the instances below it. |
+| `proc` | Turns your `always` blocks into cells. Before `proc` an `always_ff` is a description of behaviour; after it, it's a multiplexer and a flip-flop. |
+| `opt` | Throws away work that isn't needed: it folds constants, deletes unreachable cells, and merges two identical cells into one. |
+| `techmap` | Splits wide cells into single-bit ones, so a 4-bit `$add` becomes a pile of one-bit gates. |
+| `dfflibmap` | Replaces every generic flip-flop with a named flip-flop from the liberty file. It touches flip-flops and nothing else. |
+| `abc` | Replaces everything that isn't a flip-flop with named cells from the liberty file. It handles combinational logic only. |
 
 ## How the design changes shape
 
-Stopping after each pass and running `stat` shows what each one did to the counter:
+If you stop after each pass and run `stat`, you can see what each one did to the counter:
 
 ```
 ### hierarchy -top counter
@@ -158,28 +163,30 @@ Stopping after each pass and running `stat` shows what each one did to the count
        13   $_XOR_
 ```
 
-After `hierarchy` there are two cells. Your `always_ff` block has not been touched: it is still
-a process, which is why `stat` can't see the flip-flops yet.
+After `hierarchy` there are two cells. Your `always_ff` block hasn't been touched yet; it is
+still a process, which is why `stat` can't see any flip-flops.
 
-After `proc` there are five. The `if/else if` became a `$mux`, the `!rst_n` became a `$not`, and
-`count <= …` became `$adff`, a D flip-flop with asynchronous reset. Your control flow is now
-hardware.
+After `proc` there are five. The `if/else if` has become a `$mux`, the `!rst_n` a `$not`, and
+`count <= …` a `$adff`, which is a D flip-flop with an asynchronous reset. At this point your
+control flow has been turned into hardware.
 
-After `opt` it is back down to two. `opt` noticed that a mux feeding a flip-flop's D input,
-choosing between the flop's own output and a new value, is an enable. It folded the `$mux`,
-`$not`, `$logic_not` and `$adff` into a single `$adffe`: one flip-flop with a built-in enable
-pin. `opt` recognised an idiom you wrote as control flow and named it as one piece of hardware.
-Whether SKY130 actually has that piece is a separate question, and the answer (below) is no.
+After `opt` the count is back down to two. `opt` noticed that a mux feeding a flip-flop's D
+input, choosing between the flop's own output and a new value, is really an enable. It folded the
+`$mux`, `$not`, `$logic_not` and `$adff` into a single `$adffe`, one flip-flop with a built-in
+enable pin. In other words, `opt` recognised an idiom you wrote as control flow and named it as
+one piece of hardware. Whether SKY130 actually has that piece of hardware is a separate question;
+as you'll see below, SKY130 has no single cell for it.
 
 After `techmap` there are forty-eight. The count went up because `techmap` split the 4-bit
-`$add` and the 4-bit `$adffe` into single-bit gates, and SKY130 has no 4-bit anything.
-`$_AND_`, `$_XOR_`, `$_DFFE_PN0P_`: the leading underscore means generic, a one-bit gate that
-does not belong to any technology yet. None of these forty-eight gates is a SKY130 cell.
+`$add` and the 4-bit `$adffe` into single-bit gates, since SKY130 has no 4-bit cells of any
+kind. In names such as `$_AND_`, `$_XOR_` and `$_DFFE_PN0P_`, the leading underscore means the
+cell is generic: a one-bit gate that doesn't belong to any technology yet. None of these
+forty-eight gates is a SKY130 cell.
 
 ## Two mappers
 
-The netlist is now a mix of combinational gates and flip-flops, and two different passes
-convert them into SKY130 cells, as separate commands:
+The netlist is now a mix of combinational gates and flip-flops, and two different passes, run
+as separate commands, convert them into SKY130 cells:
 
 ```
 3. Executing DFFLIBMAP pass (mapping DFF cells to sequential cells from liberty file).
@@ -197,13 +204,14 @@ ABC RESULTS:   sky130_fd_sc_hd__xnor2_1 cells:        2
 ABC RESULTS:   sky130_fd_sc_hd__xor2_1 cells:        1
 ```
 
-`dfflibmap` did the flops and `abc` did everything else. Neither touched the other's cells.
-(Why `dfflibmap` mapped `$_DFF_PN0_` rather than the `$_DFFE_PN0P_` that `opt` built is the next
-subsection.)
+`dfflibmap` mapped the flops and `abc` mapped everything else, and neither touched the other's
+cells. (Why `dfflibmap` mapped `$_DFF_PN0_` rather than the `$_DFFE_PN0P_` that `opt` built is
+the subject of the next subsection.)
 
-There are two because ABC is a Boolean optimizer. It works by rewriting logic functions, so it
-needs every cell to be a function of its inputs. Here is what the liberty file says about two
-cells, `maj3_1` from your Lab 01 adder and `dfrtp_1` from the counter:
+The reason there are two mappers is that ABC is a Boolean optimizer. It works by rewriting logic
+functions, so it needs every cell it handles to be a function of its inputs. Here is what the
+liberty file says about two cells, `maj3_1` from your Lab 01 adder and `dfrtp_1` from the
+counter:
 
 ```
     cell ("sky130_fd_sc_hd__maj3_1") {
@@ -218,17 +226,17 @@ cells, `maj3_1` from your Lab 01 adder and `dfrtp_1` from the counter:
         }
 ```
 
-`maj3_1` declares a Boolean expression. `dfrtp_1` declares no function at all; it declares
-state. A Boolean rewriter has nothing to rewrite there. So ABC gets the combinational logic and
-nothing else, and a separate, much simpler pass matches flip-flops by their clock, reset and
-enable shape. That is why the flow has two mapping commands, and why forgetting one of them
-fails in such a confusing way.
+`maj3_1` declares a Boolean expression, but `dfrtp_1` declares no function at all; what it
+declares is state, and a Boolean rewriter has nothing it can rewrite in that. So ABC is given
+only the combinational logic, and a separate, much simpler pass matches flip-flops by the shape
+of their clock, reset and enable. That is why the flow has two mapping commands, and it's also
+why forgetting one of them fails in such a confusing way.
 
 ### Flip-flop shapes in the library
 
-`dfflibmap` mapped `$_DFF_PN0_`, a plain flop with an asynchronous reset, and not the
-`$_DFFE_PN0P_` enable flop that `opt` built. Higher up in its output, it lists every flip-flop
-shape SKY130 has a cell for:
+`dfflibmap` mapped `$_DFF_PN0_`, a plain flop with an asynchronous reset, rather than the
+`$_DFFE_PN0P_` enable flop that `opt` built. To see why, look higher up in its output, where it
+lists every flip-flop shape that SKY130 has a cell for:
 
 ```
     \sky130_fd_sc_hd__dfrtp_1 _DFF_PN0_ (.CLK( C), .D( D), .Q( Q), .RESET_B( R));
@@ -237,19 +245,20 @@ shape SKY130 has a cell for:
     unmapped dff cell: $_DFFE_PN_
 ```
 
-SKY130's one enable flop, `edfxtp_1`, has no reset pin. Your counter needs both an enable and
+SKY130's only enable flop, `edfxtp_1`, has no reset pin. Your counter needs both an enable and
 an asynchronous reset, and no single cell provides both, so `dfflibmap` used the reset flop and
 rebuilt the enable out of logic. That is where the four `$_MUX_` in the half-mapped design at the
-end of this page came from, and eventually the `a31oi_1`, `nand2_1` and `nand4_1` in the final
-cell list. (They are not the four `$_MUX_` from `techmap`: the `abc` inside `synth` had already
-folded those into six generic gates, as [Two ABC runs](#two-abc-runs) shows.)
+end of this page come from, and eventually the `a31oi_1`, `nand2_1` and `nand4_1` in the final
+cell list. (These are different from the four `$_MUX_` that `techmap` produced: the `abc` inside
+`synth` had already folded those into six generic gates, as [Two ABC runs](#two-abc-runs)
+shows.)
 
-The library made that decision, not your code. With the same RTL on a target that has an
-enable-and-reset flop, those cells would not appear.
+It was the library that made this decision, not your code. If you synthesized the same RTL for a
+target that has a flop with both an enable and a reset, those extra cells wouldn't appear.
 
 ## Leaving out `dfflibmap`
 
-Delete exactly that one command from the flow and nothing errors. The exit status is 0, and
+Deleting just that one command from the flow produces no error at all. The exit status is 0, and
 `stat` prints:
 
 ```
@@ -269,10 +278,10 @@ Delete exactly that one command from the flow and nothing errors. The exit statu
 ```
 
 ABC mapped the six combinational gates and left the four flip-flops alone, so they are still
-generic `$_DFFE_PN0P_`. SKY130 has no cell called `$_DFFE_PN0P_`, so `stat` can't price them.
-It says so once and reports a total that leaves them out.
+the generic `$_DFFE_PN0P_`. SKY130 has no cell by that name, so `stat` has no area to give
+them. It says so once, in the warning line, and then reports a total that leaves them out.
 
-With `dfflibmap` in place the same design is:
+With `dfflibmap` in place, the same design comes out as:
 
 ```
        11  148.893 cells
@@ -288,16 +297,16 @@ With `dfflibmap` in place the same design is:
      of which used for sequential elements: 100.096000 (67.23%)
 ```
 
-That is 37.54 µm² against 148.89 µm². One missing line under-reported the design by a factor of
-four, and the only sign was a single warning line in the middle of 700-odd.
+That is 37.54 µm² against 148.89 µm². Leaving out one line of the flow under-reported the design
+by a factor of four, and the only sign of it was a single warning line among 700-odd.
 
-`Area for cell type … is unknown!` always means the same thing: a cell in your netlist is not in
-the liberty file. Ninety percent of the time it is a generic `$_…_` cell, and ninety percent of
-those are flip-flops you forgot to map. (`$scopeinfo`, which you met in Lab 01, is the harmless
-exception: it is a bookkeeping marker, not hardware.)
+`Area for cell type … is unknown!` always means the same thing: a cell in your netlist isn't in
+the liberty file. Ninety percent of the time it's a generic `$_…_` cell, and ninety percent of
+those are flip-flops you forgot to map. (The harmless exception is `$scopeinfo`, which you met in
+Lab 01; it's a bookkeeping marker rather than hardware.)
 
-Area is the number you'll quote in every design review, and this is the easiest way to quote one
-that is wrong by 4×. On any design with a clock, check that
+Area is the number you'll quote in every design review, and a missing `dfflibmap` is the easiest
+way to quote one that is wrong by 4×. On any design with a clock, check that
 `of which used for sequential elements` is not `0.00%`.
 
 ## ABC's skipped-cell warnings
@@ -314,36 +323,35 @@ ABC: Scl_LibertyReadGenlib() skipped sequential cell "sky130_fd_sc_hd__dfxtp_1".
 ABC: Scl_LibertyReadGenlib() skipped three-state cell "sky130_fd_sc_hd__ebufn_1".
 ```
 
-It goes on for 94 lines, and it looks like your run just failed. It didn't. ABC prints the total
-on the line after the block:
+It goes on for 94 lines, which makes it look as though your run has failed. The run is fine, and
+ABC prints the totals on the line after the block:
 
 ```
 ABC: Library "sky130_fd_sc_hd__tt_025C_1v80" from "…tt_025C_1v80.lib" has 334 cells
      (94 skipped: 63 seq; 13 tri-state; 18 no func; 0 dont_use; …).  Time = 0.12 sec
 ```
 
-The library has 428 cells (the next page counts them), so that is 334 usable cells and 94
-skipped. 63 of the 94 are flip-flops and latches,
-the kind of cell `dfflibmap` handles one step earlier. ABC is not rejecting them. It is the
-combinational mapper, and they are not combinational logic, so it leaves them out of
-consideration.
+The library has 428 cells (the next page counts them), so ABC can use 334 of them and has
+skipped the other 94. Of those 94, 63 are flip-flops and latches, the kind of cell that `dfflibmap` handled one step
+earlier. ABC isn't rejecting them; it's the combinational mapper, and they aren't
+combinational logic, so it leaves them out of consideration. That's why
 `sky130_fd_sc_hd__dfrtp_1` appears in the skipped list in the same run where `dfflibmap` used
-four of them: two tools, two jobs, one library.
+four of them: the two tools do different jobs with the same library.
 
 The other 31 are cells with no logic to speak of: `decap` (filler capacitors), `diode` (antenna
 protection), and `ebufn`/`einv` (tri-state buffers, which have a third output state that Boolean
 algebra has no symbol for).
 
 These lines are normal output on a successful run. They appear every time you use
-`abc -liberty` on SKY130, before ABC does anything useful. If a run actually fails, Yosys prints
-a line beginning with `ERROR:` and stops.
+`abc -liberty` on SKY130, before ABC does anything useful. If a run really does fail, Yosys
+prints a line beginning with `ERROR:` and stops.
 
 ## Two ABC runs
 
-The sub-pass list includes `2.22. Executing ABC pass`, inside `synth`, and then you run
-`abc -liberty` yourself as step 4. They are separate calls.
+The sub-pass list includes `2.22. Executing ABC pass` inside `synth`, and then you run
+`abc -liberty` yourself as step 4. These are two separate calls to ABC.
 
-The one inside `synth` has no liberty file, so it optimizes into a generic gate set:
+The one inside `synth` isn't given a liberty file, so it optimizes into a generic set of gates:
 
 ```
 ABC RESULTS:               AND cells:        1
@@ -353,14 +361,14 @@ ABC RESULTS:              XNOR cells:        1
 ABC RESULTS:               XOR cells:        2
 ```
 
-Those six technology-neutral gates are the 48 from `techmap` boiled down. Your `abc -liberty`
-then optimizes again, this time knowing which cells SKY130 has and what each one costs, and
-lands on seven real cells. The second pass can make choices the first had no basis for, so it
-is not redundant.
+Those six technology-neutral gates are what the 48 from `techmap` boil down to. Your
+`abc -liberty` then optimizes again, this time knowing which cells SKY130 has and what each one
+costs, and ends up with seven real cells. Because the second run can make choices that the first
+had no basis for, it isn't redundant.
 
 ## A half-mapped design
 
-Putting a `stat` between `dfflibmap` and `abc` shows the design halfway through mapping:
+A `stat` placed between `dfflibmap` and `abc` shows the design halfway through mapping:
 
 ```
        14  100.096 cells
@@ -383,22 +391,23 @@ Putting a `stat` between `dfflibmap` and `abc` shows the design halfway through 
      of which used for sequential elements: 100.096000 (100.00%)
 ```
 
-Four real `sky130_fd_sc_hd__dfrtp_1` sit next to ten generic gates in the same netlist. This is
-the mirror image of the run without `dfflibmap`: there, sequential area was `0.00%`; here it is
-`100.00%`, because the only cells with a price are the flops.
+Four real `sky130_fd_sc_hd__dfrtp_1` cells sit next to ten generic gates in the same netlist.
+This is the mirror image of the run without `dfflibmap`: there the sequential area was `0.00%`,
+and here it is `100.00%`, because the flops are the only cells with a known area.
 
-Every stage of a chip flow leaves the design in a legal but half-finished state. Stopping to
-look at one is how you debug the flow instead of guessing. `stat` costs nothing, so use it
-between any two passes you want to compare.
+Every stage of a chip flow leaves the design in a legal but half-finished state, and stopping to
+look at one of those states lets you debug the flow instead of guessing. `stat` costs nothing to
+run, so use it between any two passes you want to compare.
 
 ## Summary
 
-- A run has six top-level steps. One of them, `synth`, has twenty-six sub-passes.
-- `proc` turns behaviour into hardware, `opt` deletes, and `techmap` splits wide cells into
-  narrow ones.
-- `dfflibmap` maps flip-flops and `abc` maps combinational logic. They are separate commands;
-  forgetting `dfflibmap` under-reported this counter's area by 4×.
-- `Scl_LibertyReadGenlib()` lines are normal. `ERROR:` is not.
+- A run has six top-level steps, and one of them, `synth`, has twenty-six sub-passes of its own.
+- `proc` turns behaviour into hardware, `opt` deletes logic that isn't needed, and `techmap`
+  splits wide cells into narrow ones.
+- `dfflibmap` maps flip-flops and `abc` maps combinational logic. They are separate commands, and
+  forgetting `dfflibmap` made this counter's area come out 4× too small.
+- The `Scl_LibertyReadGenlib()` lines are normal output; a line starting with `ERROR:` means the
+  run really failed.
 
 Next: [Standard cells](../guide/standard-cells-are-real.md). Every command on this page pointed
-`-liberty` at the same 13 MB file; the next page opens it.
+`-liberty` at the same 13 MB file, and the next page opens it up.
