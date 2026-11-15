@@ -85,7 +85,7 @@ Add `unique` to the same code and it synthesizes to `2 cells`, which do this:
 
 ```verilog
 assign y[0] = s[1] | ~(s[0]);
-assign y[1] = s[1] ^ s[0];
+assign y[1] = s[0] ^ s[1];
 ```
 
 For `s = 2'b11` that logic gives `y = 2'b01`, a value you never wrote. `unique` told

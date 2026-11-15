@@ -158,7 +158,7 @@ With that change it synthesizes, with exit status 0, to two cells:
 
 ```verilog
 assign y[0] = s[1] | ~(s[0]);
-assign y[1] = s[1] ^ s[0];
+assign y[1] = s[0] ^ s[1];
 ```
 
 If you feed that logic `s = 2'b11`, it returns `y = 2'b01`, a value you never wrote. Yosys took
