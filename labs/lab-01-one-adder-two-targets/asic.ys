@@ -7,8 +7,8 @@
 # `flatten` dissolves the four fulladder instances so ABC can optimize across
 # them. `abc -liberty` picks real cells. `stat -liberty` prices the result.
 #
-# Expect 94 lines of "Scl_LibertyReadGenlib() skipped ..." from abc, 63 of them
-# about flip-flops. That is normal — see the README.
+# Expect "Warning: Detected 9 multi-output cells" from abc when it loads the
+# library. That is normal — see the README.
 
 read_verilog -sv src/ripple4.sv src/fulladder.sv
 synth -top ripple4

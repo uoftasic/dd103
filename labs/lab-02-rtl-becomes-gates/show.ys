@@ -30,7 +30,8 @@ show -format svg -prefix results/rtl -notitle fulladder
 # `synth` is the standard script. `dfflibmap` maps flip-flops to library
 # flops (this design has none — it is here because it belongs in the habit).
 # `abc` maps everything combinational onto real cells, using area numbers
-# read out of the liberty file. Expect a wall of warnings; see the README.
+# read out of the liberty file. Expect abc to warn "Detected 9 multi-output
+# cells"; it is normal.
 synth -top fulladder
 dfflibmap -liberty /foss/pdks/sky130A/libs.ref/sky130_fd_sc_hd/lib/sky130_fd_sc_hd__tt_025C_1v80.lib
 abc -liberty /foss/pdks/sky130A/libs.ref/sky130_fd_sc_hd/lib/sky130_fd_sc_hd__tt_025C_1v80.lib

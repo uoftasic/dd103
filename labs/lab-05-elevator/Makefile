@@ -35,7 +35,7 @@ sim: | $(RES)
 ## synth — map to real SKY130 cells and print the receipt
 synth: | $(RES)
 	@echo "== yosys -> sky130_fd_sc_hd =="
-	@echo "   (abc prints ~100 'skipped sequential cell' lines. Normal.)"
+	@echo "   (abc warns 'Detected 9 multi-output cells' in results/synth.log. Normal.)"
 	yosys -p "read_verilog -sv src/elevator.sv; \
 	          synth -top elevator; \
 	          dfflibmap -liberty $(LIB); \

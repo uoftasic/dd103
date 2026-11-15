@@ -30,7 +30,7 @@ asic: | $(RES)
 	@echo "=============================================================="
 	@echo " ASIC TARGET — SKY130, sky130_fd_sc_hd standard cells"
 	@echo "=============================================================="
-	@echo " (abc prints 94 'Scl_LibertyReadGenlib() skipped' lines. Normal.)"
+	@echo " (abc warns 'Detected 9 multi-output cells'. Normal.)"
 	yosys asic.ys | tee $(RES)/asic.log
 
 ## table — the three numbers you write down

@@ -49,9 +49,9 @@ ERROR: Module `\fulladder' referenced in module `\ripple4' in cell `\slice[3].fa
 
 ## Output that is not an error
 
-- `abc` prints 94 lines of `ABC: Scl_LibertyReadGenlib() skipped ...` before it does anything
-  useful, and 63 of them are about flip-flops and latches. ABC maps only combinational logic, so
-  it skips those cells in the library.
+- `abc` prints `ABC: Warning: Detected 9 multi-output cells (for example, "sky130_fd_sc_hd__fa_1").`
+  when it loads the library. ABC maps only single-output cells, so it leaves cells such as the
+  full adder `fa_1` out, and the warning appears on every `abc -liberty` run on SKY130.
 - `stat` prints `Area for cell type $scopeinfo is unknown!`. The `$scopeinfo` cells are markers
   that `flatten` leaves behind, not hardware, and `write_verilog` does not emit them.
 
