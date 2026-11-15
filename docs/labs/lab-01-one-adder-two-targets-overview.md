@@ -156,7 +156,7 @@ bitstream loads.
 
    There are 10 logic cells for 8 LUTs because placement packs LUTs together with carry logic;
    [FPGA and ASIC targets](../guide/warehouse-and-empty-lot.md), the reading after this lab,
-   explains this in more detail. After placement, `icepack` turns the placed design into the
+   comes back to this. After placement, `icepack` turns the placed design into the
    bitstream `results/ripple4.bin`, which is 104,090 bytes.
 
    What does the `/5280` tell you that a cell count alone doesn't?
@@ -330,9 +330,9 @@ Where did the difference come from, and what in `asic.ys` made it possible?
 <details>
 <summary>Answer</summary>
 
-On its own, a full adder's sum becomes one `xor3_1` (23.773 µm²). In the chain, ABC used two
-`xnor2_1` (17.517 µm²) per slice instead, because in context it can share the intermediate
-$a \oplus b$ term across the carry path. `asic.ys` has a `flatten` before `abc`, which dissolves
+On its own, a full adder's sum becomes one `xor3_1` (23.773 µm²). In the chain, ABC built each
+sum from two `xnor2_1` (17.517 µm²) instead, because it was choosing cells for the whole chain at
+once rather than for one adder on its own. `asic.ys` has a `flatten` before `abc`, which dissolves
 the four `fulladder` instances, and that is what let ABC see across the module boundary you drew.
 
 So a block can cost less inside a design than it does on its own. That's why you can't

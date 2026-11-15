@@ -21,14 +21,15 @@ fails, look there first, because the fix is usually in IC101.
 
 Course files go under `/foss/designs/modules/`, which is your `workspace` folder bind-mounted
 into the container. That means the files live on your own disk, so deleting the container doesn't
-delete your work. The `mod` shell function, which the `.designinit` environment file (described below)
-defines, clones a course into that
-folder (`mod add dd103`) and moves you into it (`mod dd103`).
+delete your work. The `mod` shell function clones a course into that folder (`mod add dd103`) and
+moves you into it (`mod dd103`). It's defined by `.designinit`, the environment file described
+below.
 
 ## Pinned versions
 
 The course is pinned to the image `hpretl/iic-osic-tools:2026.08`, and the two versions in it
-that matter are Yosys 0.68 and LibreLane 3.1.0.dev3. If your tools report something else, you're
+that matter are Yosys 0.68, the synthesis tool, and LibreLane 3.1.0.dev3, the flow that takes a
+design all the way to a chip layout. If your tools report something else, you're
 on a different image, and commands on these pages may fail in ways this course doesn't describe.
 
 Yosys and LibreLane both move fast, and the official docs online describe newer releases,
@@ -69,7 +70,7 @@ off the internet, will fall over without it. In Lab 01 we have you check both va
 ## What the machine needs
 
 A machine with 4 GB of RAM works, and 8 GB is comfortable. The image itself takes about 19 GB of
-disk, and that's the number that surprises people.
+disk, which is the requirement people tend not to expect.
 
 The tools need much less memory than their reputation suggests. Here is what two jobs used on
 this image, measured with `/usr/bin/time -v` on a six-core laptop with 7.5 GB of RAM:

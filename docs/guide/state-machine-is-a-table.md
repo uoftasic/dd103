@@ -297,7 +297,7 @@ Here is that trade measured three ways on the same source file:
 | Run | flip-flops | total cells | area | sequential share |
 |---|---|---|---|---|
 | `synth` (default: `auto` chose one-hot) | 6 | 17 | 231.47 µm² | 65.41% |
-| `fsm -encoding binary` | 3 | 23 | 185.18 µm² | 40.54% |
+| `fsm -encoding binary` | 3 | 20 | 187.68 µm² | 40.00% |
 | `synth -nofsm` (register left alone) | 3 | 13 | 137.63 µm² | 54.55% |
 
 Row 3 adds one word to the usual command. Row 2 needs the coarse passes spelled out, because
@@ -309,8 +309,9 @@ Row 3 adds one word to the usual command. Row 2 needs the coarse passes spelled 
 > flag has no effect. If your log has no `Found FSM state register` line, that's what happened.
 
 Now compare the flip-flop and cell counts in the first two rows. Subtracting the flip-flops from
-the total, one-hot has 6 flops and 11 logic cells, and binary has 3 flops and 20 logic cells. That's the trade the theory predicts: one-hot
-spends three more registers to save nine decode gates.
+the total, one-hot has 6 flops and 11 logic cells, and binary has 3 flops and 17 logic cells.
+That's the trade the theory predicts: one-hot spends three more registers to save six decode
+gates.
 
 On SKY130 one-hot comes out behind, because a `dfrtp_1` costs 25.02 µm² and a two-input gate
 costs between 3.75 and 6.26. One-hot is the standard answer on an FPGA, where a flip-flop sits
@@ -345,6 +346,7 @@ $ verilator --lint-only -Wall vending.sv
 %Warning-LATCH: vending.sv:32:5: Latch inferred for signal 'vending.next' (not all control paths of combinational always assign a value)
                                : ... Suggest use of always_latch for intentional latches
 %Warning-LATCH: vending.sv:32:5: Latch inferred for signal 'dispense' (not all control paths of combinational always assign a value)
+%Warning-LATCH: vending.sv:32:5: Latch inferred for signal 'refund' (not all control paths of combinational always assign a value)
 ```
 
 `example pattern 0x6` is `3'd6`, the unused encoding from step 4. Run the linter first, every

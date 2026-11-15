@@ -172,7 +172,7 @@ the only correct answer, and one of the Going further exercises argues with it.
    cp src/elevator.sv results/elevator_skeleton.sv
    ```
 
-You should see lint exit 0 on the code we shipped, and then six checks, three of which fail:
+You should see lint exit 0 on the code we shipped, and then eight checks, three of which fail:
 
 ```
   PASS  T1 reset: floor 0, doors shut, display shows 1
@@ -232,7 +232,7 @@ status register in every chip is written this way.
 
 </details>
 
-## Part 4: A fifth state and a timer (TODO 2 and 3)
+## Part 4: Two more states and a timer (TODO 2 and 3) {#part-4-a-fifth-state-and-a-timer-todo-2-and-3}
 
 How do you hold the doors open for a fixed number of ticks?
 
@@ -606,7 +606,7 @@ Fill in this table from your own run, so that you have a record of it:
 | `runs/<tag>/final/gds/elevator.gds` exists | | 420,588 bytes |
 
 If your cells and area are within about 20 % of ours, you built the same kind of thing we did.
-Once all six of your own checks pass, compare your design with the
+Once all eight of your own checks pass, compare your design with the
 [reference implementation](https://github.com/uoftasic/dd103/tree/main/labs/lab-05-elevator/solutions).
 
 ### Questions
@@ -617,7 +617,7 @@ Once all six of your own checks pass, compare your design with the
    <summary>Answer</summary>
 
    A different call-scheduling rule, or one extra state, moves every number, so there's no
-   reason they should match. The ones that must match are these: all six checks pass, the four
+   reason they should match. The ones that must match are these: all eight checks pass, the four
    error counts are zero, setup and hold slack are both positive, and the synthesis log names
    `sky130_fd_sc_hd`, not `sg13g2`.
 
@@ -641,11 +641,11 @@ Nothing to submit. Do keep two files from this lab, though: `elevator.sv` and
 - Argue with the scheduler. Serving the lowest pending floor first means somebody on floor 3
   waits forever if people on floors 0 and 1 keep pressing their buttons. Real elevators use SCAN:
   keep going in the direction you were going, serve every call on the way, and then reverse.
-  Implement it, re-run `make sim` (the six checks still pass, since SCAN is a superset), and see
+  Implement it, re-run `make sim` (the eight checks still pass, since SCAN is a superset), and see
   what it costs in cells.
 - Let the tool re-encode, or stop it. `synth -top elevator -nofsm` leaves your 3-bit state
   register alone instead of making it one-hot, and gives 79 cells, 756.98 µm² and 15 flip-flops
-  against the default's 76 / 765.73 / 17. That is two fewer flops and three more gates, for a
+  against the default's 76 / 765.73 / 17. That is two fewer flops and five more gates, for a
   design 1.1 % smaller. On this design the choice between binary and one-hot is worth almost
   nothing, and that's more useful to know than either side of the argument.
 - Push the clock. Set `"CLOCK_PERIOD": 4.0` in `config.json` and harden again with a new tag.
@@ -654,7 +654,7 @@ Nothing to submit. Do keep two files from this lab, though: `elevator.sv` and
 - Grow it: add eight floors, a door-obstruction input, or an overload sensor. The flow handled 76
   cells in 59 seconds, but detailed routing time grows steeply with design size, so keep it under
   a few thousand cells and re-check the wall-clock time as you go.
-- Compare with someone else. Two people who both passed all six checks will still have different
+- Compare with someone else. Two people who both passed all eight checks will still have different
   cell counts, die sizes and slack, so work out together which of your design decisions caused
   the biggest gap.
 

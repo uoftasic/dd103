@@ -291,8 +291,8 @@ around it.
 Most of the skill in triaging a syntax error is working out which of the two you've hit, and
 [When Yosys says syntax error](../reference/yosys-syntax-errors.md) walks you through it.
 
-Two of this page's examples exit with code zero even though the designs are wrong. A zero exit
-code means only that Yosys didn't crash. The only way to catch reactions two and three is to read
+Four of this page's examples (reactions two and three, `$display` and `initial`) exit with code
+zero even though the designs are wrong. A zero exit code means only that Yosys didn't crash. The only way to catch reactions two and three is to read
 the netlist that comes out, which [Reading the `stat` report](../guide/reading-stat.md) trains
 you to do.
 
@@ -300,8 +300,8 @@ you to do.
 
 You'll come back to these pages rather than read them once:
 
-- [The synthesizable subset](../reference/synthesizable-subset.md) covers every construct on this
-  page and a dozen more, with the exact `stat` output each one produces on Yosys 0.68. Look up
+- [The synthesizable subset](../reference/synthesizable-subset.md) covers most of the constructs
+  on this page and a dozen more, with the exact result each one gives on Yosys 0.68. Look up
   your construct before you write it.
 - [When Yosys says syntax error](../reference/yosys-syntax-errors.md) covers what to do when the
   problem is the parser and not the physics, including the two workarounds already installed in

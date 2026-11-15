@@ -240,9 +240,10 @@ liberty entry, so each one contributes zero area.
 
 </details>
 
-> **Rule:** if a cell type in your final netlist starts with `$_`, something didn't get mapped,
-> and your area is too small by however much that cell was worth. `$scopeinfo` is the one
-> harmless exception. Track down every `is unknown!` line before you believe a number.
+> **Rule** (from [Reading the `stat` report](../guide/reading-stat.md#unmapped-cells)): a cell
+> type in your final netlist that starts with `$_` was never mapped, so your area is too small by
+> whatever that cell would have cost. `$scopeinfo` is the one harmless exception, and every
+> `is unknown!` line needs tracking down before you believe a number.
 
 After that, the same target runs the self-check on the broken JSON, and Part 6 explains what it
 prints.
@@ -402,8 +403,9 @@ tell you about predicting a design's area from its parts?
 
 Adding up the parts gives exactly the answer the tool gives when you stop it from looking across
 the module boundaries you drew. Once it can look across them, a block costs less in context than
-it does alone. That's why you can't answer "how big is my design?" from a spreadsheet of parts,
-and why datasheet areas are always given for a whole block.
+it does alone. That is the point Lab 01, Part 6 left you with, and now you've measured both
+sides of it. It's why you can't answer "how big is my design?" from a spreadsheet of parts, and
+why datasheet areas are always given for a whole block.
 
 </details>
 
@@ -615,7 +617,7 @@ Nothing to submit.
   synthesize it with `dfflibmap -liberty $LIB` before `abc`, and time it with
   `create_clock -name clk -period 3.0 [get_ports clk]` and `report_clock_min_period`. Compare
   your `period_min` with the 2.96 ns on that page.
-- Save the seven-line script from [Reading the `stat` report](../guide/reading-stat.md#the-machine-readable-receipt)
+- Save the `stat_min.py` script from [Reading the `stat` report](../guide/reading-stat.md#the-machine-readable-receipt)
   as `results/stat_min.py` and run it on `results/blinker.json`.
 
 Next on the [Course path](../index.md#course-path): read

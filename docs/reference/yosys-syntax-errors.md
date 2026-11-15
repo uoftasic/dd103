@@ -353,7 +353,7 @@ violations, in 64 seconds.
 4. Otherwise, use `-m slang` with `read_slang`, or `sv2v f.sv > f.v`. Both are installed, and both
    produce the same gates.
 5. Set `"USE_SLANG": true` in your LibreLane `config.json` so the flow reads the file the same way
-   your Yosys lab did.
+   your `read_slang` run did.
 
 ## Physics limits and the workarounds
 

@@ -227,7 +227,8 @@ neither mistake gets as far as synthesis. On `shift_b.sv`, Verilator warns:
                                     : ... Suggest using delayed assignment '<='
     9 |         a = d;
       |           ^
-                 ... For warning description see https://verilator.org/warn/BLKSEQ?v=5.046
+                 ... For warning description see https://verilator.org/warn/BLKSEQ?v=5.050
+                 ... Use "/* verilator lint_off BLKSEQ */" and lint_on around source to disable this message.
 ```
 
 Verilator prints one warning for each of the three lines and exits 1. The mistake in the other
@@ -238,8 +239,9 @@ direction, in `comb_nb.sv`, gets a different warning:
                                      : ... This will be executed as a blocking assignment '='!
     4 |         t <= a & 4'hC;
       |           ^~
-                  ... For warning description see https://verilator.org/warn/COMBDLY?v=5.046
-                  *** See https://verilator.org/warn/COMBDLY?v=5.046 before disabling this,
+                  ... For warning description see https://verilator.org/warn/COMBDLY?v=5.050
+                  ... Use "/* verilator lint_off COMBDLY */" and lint_on around source to disable this message.
+                  *** See https://verilator.org/warn/COMBDLY?v=5.050 before disabling this,
                   else you may end up with different sim results.
 ```
 

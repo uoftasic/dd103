@@ -132,7 +132,7 @@ why in this course you never write `always @*`.
 
 With `always_comb` and `unique case`, the latch disappears, but so does your fourth LED. The third
 message says "No latch inferred", with no error and no warning, just a statement that there was
-nothing to worry about. The result is two cells, which is smaller than the correct version.
+nothing to worry about. The result is two cells, the same count as the correct version.
 
 ## `unique` and don't-care outputs
 
@@ -251,12 +251,14 @@ plain English before synthesis starts. On `bar_comb.sv`:
 %Warning-CASEINCOMPLETE: src/bar_comb.sv:8:9: Case values incompletely covered (example pattern 0x3)
     8 |         case (level)
       |         ^~~~
-                         ... For warning description see https://verilator.org/warn/CASEINCOMPLETE?v=5.046
+                         ... For warning description see https://verilator.org/warn/CASEINCOMPLETE?v=5.050
+                         ... Use "/* verilator lint_off CASEINCOMPLETE */" and lint_on around source to disable this message.
 %Warning-LATCH: src/bar_comb.sv:7:5: Latch inferred for signal 'bar' (not all control paths of combinational always assign a value)
                                    : ... Suggest use of always_latch for intentional latches
     7 |     always_comb begin
       |     ^~~~~~~~~~~
-                ... For warning description see https://verilator.org/warn/LATCH?v=5.046
+                ... For warning description see https://verilator.org/warn/LATCH?v=5.050
+                ... Use "/* verilator lint_off LATCH */" and lint_on around source to disable this message.
 %Error: Exiting due to 2 warning(s)
 ```
 

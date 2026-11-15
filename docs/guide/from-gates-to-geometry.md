@@ -151,10 +151,10 @@ in `06-yosys-synthesis/yosys-synthesis.log` is:
         1    6.256   sky130_fd_sc_hd__or2_2
 ```
 
-These are the same seventeen cells you got by hand, but they take 252.74 µm² instead of 231.47,
-because every cell is a `_2` where your hand run produced a `_1`. Those suffixes are drive
-strengths. A `_2` cell has wider transistors, so it can charge a longer wire faster, and it costs
-more area. LibreLane picks the stronger family from the start because it knows real wires are
+That's seventeen cells, the same count you got by hand, but they take 252.74 µm² instead of
+231.47, because every cell in LibreLane's list is a `_2`, where your hand run mostly produced
+`_1`s. Those suffixes are drive strengths. A `_2` cell has wider transistors, so it can charge a
+longer wire faster, and it costs more area. LibreLane picks the stronger family from the start because it knows real wires are
 coming, which your bare `abc` run didn't allow for.
 
 ### `13-openroad-floorplan`: floorplan
