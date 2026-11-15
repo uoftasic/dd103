@@ -1,0 +1,52 @@
+# The whole course as one PDF:
+#   quarto render docs --profile pdf --to typst      # writes docs/_book/*.pdf
+# Chapter order follows the sidebar in _quarto.yml.
+
+project:
+  type: book
+  output-dir: _book
+
+book:
+  title: "DD103 — RTL on FPGAs & ASICs"
+  subtitle: "SystemVerilog in depth, and how the same RTL lowers differently to FPGA and ASIC."
+  author: "UofT ASIC Team"
+  output-file: dd103-course
+  chapters:
+    - index.md
+    - part: "1–2. Start"
+      chapters:
+        - guide/getting-started.md
+        - labs/lab-01-one-adder-two-targets-overview.md
+    - part: "3–4. What synthesis builds"
+      chapters:
+        - guide/warehouse-and-empty-lot.md
+        - guide/synthesis-is-translation.md
+        - guide/standard-cells-are-real.md
+        - labs/lab-02-rtl-becomes-gates-overview.md
+    - part: "5–6. The traps"
+      chapters:
+        - guide/the-hardware-dialect.md
+        - guide/the-latch-you-didnt-ask-for.md
+        - guide/blocking-vs-nonblocking.md
+        - labs/lab-03-three-ways-to-lose-a-latch-overview.md
+    - part: "7–8. Area and timing"
+      chapters:
+        - guide/reading-stat.md
+        - guide/the-carry-has-to-walk.md
+        - labs/lab-04-reading-the-receipt-overview.md
+    - part: "9–10. Capstone"
+      chapters:
+        - guide/state-machine-is-a-table.md
+        - guide/from-gates-to-geometry.md
+        - labs/lab-05-elevator-overview.md
+  appendices:
+    - reference/synthesizable-subset.md
+    - reference/yosys-syntax-errors.md
+    - reference/sky130-library-lookups.md
+    - reference/the-name-history.md
+    - reference/troubleshooting.md
+
+format:
+  typst:
+    toc: true
+    toc-depth: 1
