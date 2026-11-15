@@ -2,11 +2,12 @@
 
 Writeup: [`docs/labs/lab-01-one-adder-two-targets-overview.md`](../../docs/labs/lab-01-one-adder-two-targets-overview.md)
 
-One `ripple4.sv`, synthesized for an iCE40 FPGA and for SKY130 standard cells.
+This lab takes one adder, `ripple4.sv`, and synthesizes it twice: once for an iCE40 FPGA and once
+for SKY130 standard cells.
 
-Runs inside the workbench `hpretl/iic-osic-tools:2026.08` (Yosys 0.68, nextpnr-ice40 0.11.1).
-Check yours with `yosys -V`. Both flows are already in the workbench; there is no vendor toolchain
-to install.
+It runs inside the workbench `hpretl/iic-osic-tools:2026.08` (Yosys 0.68, nextpnr-ice40 0.11.1),
+and you can check your Yosys version with `yosys -V`. Both flows already ship in the workbench, so
+there is no vendor toolchain to install.
 
 ```bash
 cd labs/lab-01-one-adder-two-targets
@@ -35,11 +36,12 @@ make            # both flows, then a summary of your numbers
 
 ## Using your own adder
 
-Copy your DD102 files into `src/` and keep the module named `ripple4` with ports `a`, `b`,
-`cin`, `sum`, `cout`. If you split it into different files, edit the `read_verilog` line at the
-top of both `.ys` files.
+Copy your DD102 files into `src/` and keep the module named `ripple4`, with ports `a`, `b`,
+`cin`, `sum` and `cout`, because both scripts expect that name. If your design is split across
+different files, edit the `read_verilog` line at the top of both `.ys` files to read them.
 
-If your `ripple4.sv` instantiates a `fulladder` and that file is not read too, Yosys stops with:
+If your `ripple4.sv` instantiates a `fulladder` but the script does not read the file that defines
+it, Yosys stops with:
 
 ```
 ERROR: Module `\fulladder' referenced in module `\ripple4' in cell `\slice[3].fa' is not part of the design.
@@ -48,9 +50,10 @@ ERROR: Module `\fulladder' referenced in module `\ripple4' in cell `\slice[3].fa
 ## Output that is not an error
 
 - `abc` prints 94 lines of `ABC: Scl_LibertyReadGenlib() skipped ...` before it does anything
-  useful, 63 of them about flip-flops and latches. ABC maps only combinational logic.
+  useful, and 63 of them are about flip-flops and latches. ABC maps only combinational logic, so
+  it skips those cells in the library.
 - `stat` prints `Area for cell type $scopeinfo is unknown!`. The `$scopeinfo` cells are markers
-  left by `flatten`, not hardware, and `write_verilog` does not emit them.
+  that `flatten` leaves behind, not hardware, and `write_verilog` does not emit them.
 
 ## Reference numbers (Yosys 0.68, sky130A, iCE40 UP5K)
 
@@ -60,5 +63,5 @@ ASIC  4 × sky130_fd_sc_hd__maj3_1 + 8 × sky130_fd_sc_hd__xnor2_1
       = 12 cells, 110.1056 µm²
 ```
 
-If your adder is written differently, your numbers will differ. Write down what you got; the
-writeup explains what to make of it.
+If your adder is written differently, your numbers will differ. Write down what you got, and the
+writeup will help you make sense of it.
