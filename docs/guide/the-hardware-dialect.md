@@ -4,21 +4,22 @@ This page explains why some legal SystemVerilog doesn't synthesize, and what Yos
 meets it. You'll run every example here in
 [Lab 03, Part 1](../labs/lab-03-three-ways-to-lose-a-latch-overview.md#part-1-code-that-does-not-become-hardware).
 
-You copy something out of a textbook. It is clearly SystemVerilog, and your simulator runs it.
-Yosys says:
+Suppose you copy something out of a textbook. It's clearly SystemVerilog, and your simulator
+runs it, but Yosys says:
 
 ```
 ERROR: syntax error, unexpected TOK_ID
 ```
 
-and points at a line that looks fine. Usually nothing is wrong with the code. You wrote it in the
-wrong half of the language.
+and points at a line that looks fine. Usually there's nothing wrong with the code. The trouble is
+that you wrote it in the wrong half of the language, and the next section explains what that
+means.
 
 ## Two languages in one
 
-Here are two files. Both end in `.sv` and both are legal SystemVerilog. They ship in
-[`labs/lab-03-three-ways-to-lose-a-latch/examples/`](https://github.com/uoftasic/dd103/tree/main/labs/lab-03-three-ways-to-lose-a-latch/examples);
-the lines below are the interesting part of each.
+Here are two files, both ending in `.sv` and both legal SystemVerilog. They ship in
+[`labs/lab-03-three-ways-to-lose-a-latch/examples/`](https://github.com/uoftasic/dd103/tree/main/labs/lab-03-three-ways-to-lose-a-latch/examples),
+and the lines below are the interesting part of each.
 
 `dut.sv` is a register:
 
@@ -50,15 +51,16 @@ final q = 9
 tb.sv:22: $finish called at 36 (1ns)
 ```
 
-Look at what the testbench asks for. `#5` means wait five time units. `$display` means print a
-line to my terminal. `$finish` means stop the simulation.
+Look at what the testbench asks for: `#5` means wait five time units, `$display` means print a
+line to my terminal, and `$finish` means stop the simulation.
 
-A chip has no terminal, no clock to check the time on, and no way to stop. There is nothing to
-build for those three lines. They describe an experiment run on a circuit, not a circuit.
+A chip has no terminal, no clock to check the time on and no way to stop, so there is nothing to
+build for those three lines. They describe an experiment you run on a circuit, rather than the
+circuit itself.
 
 One half of SystemVerilog describes behaviour over time, for a program that will run on your
 laptop. The other half describes a structure made of wires and gates, which exists all at once
-and keeps working every picosecond whether anyone is watching. Synthesis only reads the second
+and keeps working every picosecond whether anyone is watching. Synthesis reads only the second
 half.
 
 ## Analogy: margin notes on a blueprint
@@ -68,10 +70,10 @@ building. Notes in the margin, such as "verify dimension on site", "see sheet A-
 "contractor to confirm before pour", are useful and printed in the same ink, but nobody pours
 concrete in their shape.
 
-`$display` is a margin note. So are `#5` and `initial`.
+In SystemVerilog, `$display` is a margin note, and so are `#5` and `initial`.
 
-Yosys does not always recognise a margin note, and it reacts to one in three different ways.
-Only one of them is the reaction you want.
+Yosys doesn't always recognise a margin note when it meets one. It reacts in one of three ways,
+and only the first is the reaction you want.
 
 ## Reaction one: it stops
 
@@ -87,9 +89,9 @@ endfunction
 u_return_id.sv:5: ERROR: syntax error, unexpected TOK_ID
 ```
 
-Every textbook writes functions with `return`, and Yosys's built-in parser does not implement
-it. This is the good case: the tool refuses, you find out immediately, and you fix it by
-assigning to the function's own name instead:
+Every textbook writes functions with `return`, but Yosys's built-in parser doesn't implement it.
+This is the good case, because the tool refuses, you find out immediately, and the fix is to
+assign to the function's own name instead:
 
 ```systemverilog
 function automatic logic [3:0] flip (input logic [3:0] x);
@@ -119,16 +121,16 @@ module u_delay(d, q);
 endmodule
 ```
 
-Yosys printed zero warnings about it. The `#5` is gone, and your five-nanosecond delay became a
-wire.
+Yosys printed zero warnings while doing this, but the `#5` is gone and your five-nanosecond delay
+has become a wire.
 
-It has to be that way. Delay in real hardware is a consequence of the transistors you end up
-with; you find out what it is afterwards, by measuring. You can't request it, because there is
-no gate whose function is "be late".
+Yosys has no other choice here. In real hardware, delay is a consequence of the transistors you
+end up with, and you find out what it is afterwards by measuring it. You can't ask for a delay,
+because there is no gate whose function is "be late".
 
 ## Reaction three: it builds something you didn't mean
 
-This is the most dangerous of the three, because nothing tells you.
+This is the most dangerous of the three, because nothing tells you it has happened.
 
 ```systemverilog
 always_comb begin
@@ -152,28 +154,29 @@ Now add the one word many textbooks tell you to add:
 unique case (s)
 ```
 
-It synthesizes with exit status 0, to two cells:
+With that change it synthesizes, with exit status 0, to two cells:
 
 ```verilog
 assign y[0] = s[1] | ~(s[0]);
 assign y[1] = s[1] ^ s[0];
 ```
 
-Feed that `s = 2'b11` and it returns `y = 2'b01`, a value you never wrote. Yosys took `unique`
-as your promise that `2'b11` can never happen, treated the output for it as don't-care, and
-picked whatever made the gates smallest. So `unique` didn't make the code safer; it switched off
-the check that was protecting you.
+If you feed that logic `s = 2'b11`, it returns `y = 2'b01`, a value you never wrote. Yosys took
+`unique` as your promise that `2'b11` can never happen, so it treated the output for that case as
+don't-care and picked whatever made the gates smallest. Instead of making the code safer,
+`unique` switched off the latch check that was protecting you.
 
-> In simulation, `unique` is a runtime assertion: a simulator complains if two branches match or
-> none does. In synthesis it is a permission slip. The same keyword does opposite jobs, which is
-> the two-languages problem in a single word.
+> In simulation, `unique` is a runtime assertion, so a simulator complains if two branches match
+> or if none does. In synthesis it's a permission slip that lets the tool assume the missing
+> cases never happen. The same keyword does opposite jobs, which is the two-languages problem in a
+> single word.
 
-Reaction three produces no error message and no warning. It is the reason this course has you
+Reaction three produces no error message and no warning, and it's the reason this course has you
 read `stat` output instead of trusting a zero exit code.
 
 ## `$display`
 
-You might expect Yosys to ignore `$display`. It doesn't:
+You might expect Yosys to ignore `$display`, but it doesn't, as this fragment shows:
 
 ```systemverilog
 always_ff @(posedge clk) begin
@@ -182,7 +185,7 @@ always_ff @(posedge clk) begin
 end
 ```
 
-That fragment ships complete as
+The complete file ships as
 [`labs/lab-03-three-ways-to-lose-a-latch/examples/t_display.sv`](https://github.com/uoftasic/dd103/blob/main/labs/lab-03-three-ways-to-lose-a-latch/examples/t_display.sv).
 Mapped to SKY130, it gives:
 
@@ -196,21 +199,21 @@ Mapped to SKY130, it gives:
    Chip area for module '\t_display': 80.076800
 ```
 
-The four flip-flops became four real SKY130 cells. A fifth cell, `$print`, went all the way
-through to the technology-mapped netlist, where the area report can't price it.
+The four flip-flops became four real SKY130 cells, but a fifth cell, `$print`, went all the way
+through to the technology-mapped netlist, and the area report has no area to give it.
 
 Yosys keeps it because a `$print` cell is useful for formal verification and for simulating the
-netlist. But no SKY130 standard cell prints to a terminal, so it would sit in your netlist as
-something no place-and-route tool can place.
+netlist. No SKY130 standard cell prints to a terminal, though, so in your netlist it would be a
+cell that no place-and-route tool can place.
 
-Icarus says so directly when it compiles the file:
+Icarus tells you this directly when it compiles the file:
 
 ```
 t_display.sv:21: warning: System task ($display) cannot be synthesized in an always_ff process.
 ```
 
 "It simulated fine" and "it synthesized without errors" are two independent claims, and neither
-implies the other. Every trap on this page passed simulation.
+implies the other: every trap on this page passed simulation.
 
 ## The short list
 
@@ -239,7 +242,8 @@ These never become hardware, because none of them names a piece of it:
 
 ### `initial`
 
-`initial` doesn't error. It survives:
+`initial` doesn't cause an error, and it survives synthesis, though not as hardware. Take this
+line:
 
 ```systemverilog
 initial count = 4'd0;
@@ -262,37 +266,39 @@ and it lands in your SKY130 netlist as this:
   output [3:0] count;
 ```
 
-That is an attribute, effectively a comment. Not one gate of reset logic was built. On an FPGA
-the attribute is honoured: the bitstream really does load your flops with zero. On an ASIC your
-counter powers up holding whatever the transistors settle to, and the only thing describing the
-value you wanted is a note in a file. If you want a reset, build one in an `always_ff`, out of
-gates.
+That is an attribute, which is effectively a comment, and not one gate of reset logic was built
+for it. On an FPGA the attribute is honoured, because the bitstream really does load your flops
+with zero. On an ASIC your counter powers up holding whatever value the transistors settle to,
+and the only record of the value you wanted is a note in a file. If you want a reset, build one
+out of gates in an `always_ff`.
 
 ## Physics limits and parser gaps
 
-You might wonder whether Yosys is just bad. Two separate things are going on, and it helps to
-keep them apart.
+You might wonder whether Yosys is just a bad tool. There are really two separate things going on,
+and it helps to keep them apart.
 
-The synthesizable subset is not a Yosys opinion. No synthesizer at any price will build you a
-`#5`. That boundary is set by physics and by the IEEE 1364.1 standard, and a $100,000 commercial
-tool draws it in the same place. Everything in the second table above fails everywhere.
+The first is the synthesizable subset, which is not a Yosys opinion: no synthesizer at any price
+will build you a `#5`. That boundary is set by physics and by the IEEE 1364.1 standard, and a
+$100,000 commercial tool draws it in the same place, so everything in the second table above
+fails in every tool.
 
-The parser is a real Yosys limitation. `return` inside a function and `import pkg::*` inside a
-module are synthesizable ideas; they are syntax that Yosys's hand-written front end never
-learned. Commercial tools accept both. This is a missing feature, not physics, and the image
-ships two ways around it.
+The second is the parser, and that is a real Yosys limitation. `return` inside a function and
+`import pkg::*` inside a module are synthesizable ideas, written in syntax that Yosys's
+hand-written front end never learned, and commercial tools accept both. This is a missing
+feature rather than a limit set by physics, and the course's container image ships two ways
+around it.
 
-Knowing which of the two you have hit is most of the triage skill.
-[When Yosys says syntax error](../reference/yosys-syntax-errors.md) walks through it.
+Most of the skill in triaging a syntax error is working out which of the two you've hit, and
+[When Yosys says syntax error](../reference/yosys-syntax-errors.md) walks you through it.
 
-Two exit codes in this page's examples are zero for designs that are wrong. A zero exit code
-means Yosys did not crash, and nothing more. The only thing that catches reactions two and three
-is reading the netlist that came out, which [Reading the `stat` report](../guide/reading-stat.md)
-trains you to do.
+Two of this page's examples exit with code zero even though the designs are wrong. A zero exit
+code means only that Yosys didn't crash. The only way to catch reactions two and three is to read
+the netlist that comes out, which [Reading the `stat` report](../guide/reading-stat.md) trains
+you to do.
 
 ## Reference pages
 
-You'll come back to these rather than read them once:
+You'll come back to these pages rather than read them once:
 
 - [The synthesizable subset](../reference/synthesizable-subset.md) covers every construct on this
   page and a dozen more, with the exact `stat` output each one produces on Yosys 0.68. Look up
