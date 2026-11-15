@@ -30,12 +30,12 @@ Here is your adder in the warehouse, from `synth_ice40`:
 
 ```
 === ripple4 ===
-   12 cells
+   13 cells
     4   $scopeinfo
-    8   SB_LUT4
+    9   SB_LUT4
 ```
 
-The four `$scopeinfo` entries are bookkeeping rather than hardware, so the adder itself is eight
+The four `$scopeinfo` entries are bookkeeping rather than hardware, so the adder itself is nine
 `SB_LUT4`s. Here is the same file on the empty lot, from `synth` and `abc -liberty` with the
 SKY130 liberty file:
 
@@ -46,7 +46,7 @@ SKY130 liberty file:
    Chip area for module '\ripple4': 110.105600
 ```
 
-The FPGA flow reports eight lookup tables, and the ASIC flow reports twelve named SKY130 cells
+The FPGA flow reports nine lookup tables, and the ASIC flow reports twelve named SKY130 cells
 (four `maj3_1` and eight `xnor2_1`) and an area in square micrometres.
 
 ## LUTs and standard cells
@@ -74,20 +74,23 @@ and `icepack` wrote a bitstream. The placer reported:
 
 ```
 Info: Device utilisation:
-Info:            ICESTORM_LC:      10/   5280     0%
+Info:            ICESTORM_LC:      11/   5280     0%
 Info:                  SB_IO:      14/     39    35%
 ```
 
 and the bitstream came out at about 104 KB.
 
-There are two things to notice here. The first is that `nextpnr` reports 10 logic cells where
-`yosys` reported 8 LUTs. Placement packs LUTs together with carry logic, so the counts from the
-two tools stop matching. The second is that the 104 KB file is the same size no matter what your
+There are two things to notice here. The first is that `nextpnr` reports 11 logic cells where
+`yosys` reported 9 LUTs, because the two tools count different things. Yosys counts the lookup
+tables it mapped, and `nextpnr` counts the logic cells it placed, which include two that its
+packer adds, `$PACKER_GND` and `$PACKER_VCC`. Some of the LUT inputs are tied to a constant, and
+the chip has no wire that is permanently 0 or permanently 1, so the constants have to come from
+logic cells too. The second is that the 104 KB file is the same size no matter what your
 design does, because it holds the settings for every shelf in the whole warehouse, including the
-5,270 you left empty. An ASIC's GDSII file works the other way: it describes only what you
+5,269 you left empty. An ASIC's GDSII file works the other way: it describes only what you
 built, so it grows as your design does.
 
-The numbers `10/5280` and `110.11 µm²` are the first things anyone will ask about your design,
+The numbers `11/5280` and `110.11 µm²` are the first things anyone will ask about your design,
 but they answer different questions, so you can't swap one for the other. "It fits" is an FPGA
 answer, because on an FPGA the question is whether your design fits in the chip you have. "It
 costs this much silicon" is an ASIC answer, because there the question is how much silicon your
@@ -97,8 +100,8 @@ design needs.
 
 | | FPGA (iCE40 UP5K) | ASIC (SKY130) |
 |---|---|---|
-| your logic becomes | 8 × `SB_LUT4` | 4 × `maj3_1` + 8 × `xnor2_1` |
-| the report says | 10 of 5280 logic cells | 110.11 µm² |
+| your logic becomes | 9 × `SB_LUT4` | 4 × `maj3_1` + 8 × `xnor2_1` |
+| the report says | 11 of 5280 logic cells | 110.11 µm² |
 | you hand over | a 104 KB bitstream | a GDSII file |
 | to change it | reload, three seconds | re-manufacture, months |
 | cost shape | one chip, one price | enormous once, then nearly free per unit |
@@ -123,14 +126,14 @@ On the FPGA it becomes:
 
 ```
 === mem ===
-   54 cells
+   53 cells
    29   SB_DFF
-   21   SB_LUT4
+   20   SB_LUT4
     4   SB_RAM40_4K
 ```
 
 The four `SB_RAM40_4K` are block RAMs, dedicated memory hardware that was already sitting on
-the die whether you used it or not, and with them the whole memory comes to 54 cells.
+the die whether you used it or not, and with them the whole memory comes to 53 cells.
 
 On SKY130, with the same `synth` / `dfflibmap` / `abc` / `stat -liberty` flow (the run that took
 about twelve seconds in Lab 01, because it had twenty-seven thousand cells to map), it becomes:

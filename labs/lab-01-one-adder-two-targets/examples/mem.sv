@@ -5,7 +5,7 @@
 // flip-flop and every read becomes a multiplexer tree.
 //
 //   yosys -p "read_verilog -sv mem.sv; synth_ice40 -top mem; stat"
-//     -> 54 cells: 29 SB_DFF, 21 SB_LUT4, 4 SB_RAM40_4K
+//     -> 53 cells: 29 SB_DFF, 20 SB_LUT4, 4 SB_RAM40_4K
 //
 //   LIB=/foss/pdks/sky130A/libs.ref/sky130_fd_sc_hd/lib/sky130_fd_sc_hd__tt_025C_1v80.lib
 //   yosys -p "read_verilog -sv mem.sv; synth -top mem; dfflibmap -liberty $LIB; \
