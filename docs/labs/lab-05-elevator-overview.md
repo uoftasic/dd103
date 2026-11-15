@@ -18,7 +18,7 @@ Package: [`labs/lab-05-elevator/`](https://github.com/uoftasic/dd103/tree/main/l
   [From netlist to layout](../guide/from-gates-to-geometry.md).
 - Check your versions: `yosys -V` should say `Yosys 0.68` and `librelane --version` should say
   `LibreLane v3.1.0.dev3`.
-- Each LibreLane run directory is about 65 MB, so budget a few hundred megabytes of disk and
+- Each LibreLane run directory is about 90 MB, so budget a few hundred megabytes of disk and
   delete the run tags you no longer need.
 
 Start in the package directory:
@@ -295,13 +295,13 @@ What did the call queue, the timer and two more states cost in silicon?
    ```
    === elevator ===
 
-          76  765.734 cells
+          80  766.986 cells
            ...
           16  400.384   sky130_fd_sc_hd__dfrtp_1
            1   26.275   sky130_fd_sc_hd__dfstp_2
            ...
-      Chip area for module '\elevator': 765.734400
-        of which used for sequential elements: 426.659200 (55.72%)
+      Chip area for module '\elevator': 766.985600
+        of which used for sequential elements: 426.659200 (55.63%)
    ```
 
 3. Compare with the skeleton's numbers below. (If you want to reproduce them, run the Yosys
@@ -309,10 +309,10 @@ What did the call queue, the timer and two more states cost in silicon?
 
 | | Skeleton (3 states) | Finished (5 states) |
 |---|---|---|
-| cells | 43 | 76 |
-| area | 382.87 µm² | 765.73 µm² |
+| cells | 43 | 80 |
+| area | 382.87 µm² | 766.99 µm² |
 | flip-flops | 7 | 17 |
-| sequential share | 46.08 % | 55.72 % |
+| sequential share | 46.08 % | 55.63 % |
 
 You should see that the finished design is roughly twice the size of the skeleton. Where did the
 ten extra flip-flops come from?
@@ -325,7 +325,7 @@ machine: Yosys makes the state register one-hot, with one bit per state, and you
 states to five. With `-nofsm`, which leaves the 3-bit state register alone (see Going further),
 the finished design has 15.
 
-The seventeen flops are 22 % of the cells but 55.72 % of the area. A `dfrtp_1` costs 25.02 µm²
+The seventeen flops are 21 % of the cells but 55.63 % of the area. A `dfrtp_1` costs 25.02 µm²
 and a `nand2_1` costs 3.75, so the state is the expensive part of the design. That is why
 engineers argue about minimizing states, and you now have a number of your own to argue with.
 
@@ -342,8 +342,8 @@ Which diagram of the finished design is worth drawing?
 You should see a wide strip (6503 × 1566 pt for the finished design) with your names on the
 wires, and five register boxes, one for each of your five multi-bit state elements.
 
-Don't run `show` on the gate netlist. On this design it comes out 883 × 9018 pt, a vertical
-ribbon ten times taller than it is wide with 76 unlabelled boxes in it. The gate view in
+Don't run `show` on the gate netlist. On this design it comes out 883 × 9455 pt, a vertical
+ribbon ten times taller than it is wide with 80 unlabelled boxes in it. The gate view in
 [Lab 02](../labs/lab-02-rtl-becomes-gates-overview.md) was readable only because it was a two-cell
 full adder. Once a design this size is mapped to cells, the useful way to look at it is as a
 layout, which you'll do in Part 9.
@@ -403,11 +403,12 @@ There are three things in it to notice:
 
    [00:48:11] INFO     Saving views to '/work/runs/v1/final'…
    [00:48:11] INFO     Flow complete.
-   Classic - Stage 80 - Report Manufacturability ━━━━━━━━━━━━━━━━━━━━ 80/80 0:00:57
+   Classic - Stage 80 - Report Manufacturability ━━━━━━━━━━━━━━━━━━━━ 80/80 0:02:13
    ```
 
-   On a 6-core laptop with 7.5 GB of RAM this took 59 seconds of wall-clock time and peaked at
-   525 MB. If yours takes noticeably longer, that means your design got bigger, not that
+   Our run of the reference design, in a container limited to 2 CPUs and 3 GB of RAM, took
+   2 min 15 s of wall-clock time and peaked at 652 MB, so on a laptop with more cores yours
+   should be quicker. If it takes noticeably longer, that means your design got bigger, not that
    anything is broken.
 
    A dozen `WARNING` lines follow. They are normal, and
@@ -440,13 +441,13 @@ Is the chip clean, and what is on it besides your logic?
    ```
 
    ```
-   design__die__area                      4553.88
-   design__core__area                     2499.9
-   design__instance__utilization          0.550551
-   timing__setup__ws                      11.664674889496723
-   timing__hold__ws                       0.10763004681033471
-   route__wirelength                      1989
-   design__instance__count__stdcell       148
+   design__die__area                      4025.14
+   design__core__area                     2169.58
+   design__instance__utilization          0.568051
+   timing__setup__ws                      12.392420773650056
+   timing__hold__ws                       0.12794571320118497
+   route__wirelength                      1816
+   design__instance__count__stdcell       159
    antenna__violating__nets               0
    magic__drc_error__count                0
    klayout__drc_error__count              0
@@ -486,63 +487,75 @@ Is the chip clean, and what is on it besides your logic?
 
 Three of the metrics need some explaining. Answer each question below from your own run.
 
-`design__instance__count__stdcell` is 148, where Yosys said 76. What are the other 72?
+`design__instance__count__stdcell` is 159, where Yosys said 80 in Part 5. What are the other 79?
 
 <details>
 <summary>Answer</summary>
 
-They are real cells that the flow added after synthesis: 30 well taps, a clock tree, hold-fix
-delay cells and antenna diodes. The table in the answer to the last of these three questions
-counts each kind, and the logs show what was inserted:
+Almost all of them are real cells that the flow added after synthesis: 28 well taps, a clock
+tree, timing-repair buffers and antenna diodes. The table in the answer to the last of these
+three questions counts each kind, and the logs show what was inserted:
 
 ```
+[INFO RSZ-0027] Inserted 5 sky130_fd_sc_hd__buf_2 input buffers.
+[INFO RSZ-0028] Inserted 11 sky130_fd_sc_hd__buf_2 output buffers.
+[INFO RSZ-0034] Found 1 slew violations.
+[INFO RSZ-0035] Found 1 fanout violations.
+[INFO RSZ-0038] Inserted 3 buffers in 2 nets.
 [INFO CTS-0018]     Created 3 clock buffers.
-[INFO RSZ-0046] Found 11 endpoints with hold violations.
-[INFO RSZ-0032] Inserted 14 hold buffers.
+[INFO CTS-0207]  Dummy loads inserted 1
+[INFO RSZ-0046] Found 15 endpoints with hold violations.
+[INFO RSZ-0032] Inserted 21 hold buffers.
 ```
 
-So the flow found eleven hold violations, none of which you wrote. A hold violation is data
+That makes 28 taps, 4 clock-tree cells, 40 timing-repair buffers (5 + 11 + 3 + 21) and 6
+diodes, 78 cells in all. The 79th was never added. LibreLane runs Yosys with its own synthesis
+script, and that run built 81 cells where `make synth` built 80, as
+`runs/v1/06-yosys-synthesis/reports/stat.rpt` shows.
+
+So the flow found fifteen hold violations, none of which you wrote. A hold violation is data
 arriving at a flip-flop too early: the previous stage was so fast that the new value overtook the
-clock edge. The fix is to slow the path down on purpose, which is why the layout
-contains 32 timing-repair buffers costing 320.31 µm². It's also why `timing__hold__ws` came out
-at +0.108 ns, only just positive, because positive by a small margin is what the resizer aims
-for.
+clock edge. The fix is to slow the path down on purpose, which is what the 21 hold buffers do.
+Together with the buffers on the inputs and outputs and the three that fixed the slew and fanout
+violations, they are the 40 timing-repair buffers in `metrics.json`, and they cost 314.05 µm².
+The hold fix is also why `timing__hold__ws` came out at +0.128 ns, only just positive, because
+positive by a small margin is what the resizer aims for.
 
 </details>
 
-`timing__setup__ws` is +11.66 ns on a 20 ns clock. Roughly how fast could this elevator run?
+`timing__setup__ws` is +12.39 ns on a 20 ns clock. Roughly how fast could this elevator run?
 
 <details>
 <summary>Answer</summary>
 
-Your longest path takes about 8.3 ns (20 − 11.66), so this elevator would run at roughly
-120 MHz. That leaves 11.66 ns of headroom it isn't using, which you could spend on more floors or
+Your longest path takes about 7.6 ns (20 − 12.39), so this elevator would run at roughly
+130 MHz. That leaves 12.39 ns of headroom it isn't using, which you could spend on more floors or
 a smarter scheduler.
 
 </details>
 
-The finished layout contains 481 physical cells, and `metrics.json` counts 148 of them as
-standard-cell instances. How many of the 481 compute anything?
+The finished layout contains 325 physical cells, and `metrics.json` counts 159 of them as
+standard-cell instances. How many of the 325 compute anything?
 
 <details>
 <summary>Answer</summary>
 
-Only 118 of the 148 do:
+Only 131 of the 159 do:
 
 | | count | what it is |
 |---|---|---|
-| `decap` | 265 | decoupling capacitors, which store charge locally for the power rails |
-| `fill` | 68 | nothing at all; filler that keeps the rows continuous |
-| `tapvpwrvgnd` | 30 | well taps, which tie the substrate to the rails |
+| `decap` | 114 | decoupling capacitors, which store charge locally for the power rails |
+| `fill` | 52 | nothing at all; filler that keeps the rows continuous |
+| `tapvpwrvgnd` | 28 | well taps, which tie the substrate to the rails |
 | `dfrtp` / `dfstp` | 17 | your flip-flops |
-| `clkdlybuf` / `dlygate` / `clkbuf` / `buf` | 37 | the clock tree and hold repair |
+| `clkdlybuf` / `dlygate` / `clkbuf` / `buf` | 45 | the clock tree and timing repair, plus one buffer from synthesis |
 | `diode` | 6 | antenna protection |
-| everything else | 58 | your logic |
+| everything else | 63 | your logic |
 
-Decap, fill and taps account for 363 of the 481, so more than two thirds of the cells in your
-chip are there to make the silicon manufacturable rather than to make the elevator work. That is
-normal. It is also why an area number from `stat` always underestimates the rectangle you end up
-paying for: 765.73 µm² of cells landed in a 4553.88 µm² die.
+Decap, fill and taps account for 194 of the 325, so more than half of the cells in your chip are
+there to make the silicon manufacturable rather than to make the elevator work. That is normal.
+It is also why an area number from `stat` always underestimates the rectangle you end up paying
+for: 766.99 µm² of cells landed in a 4025.14 µm² die.
 
 </details>
 
@@ -566,15 +579,15 @@ the layout to an image for you, so you don't need a screenshot or an X server.
    ```
 
    ```
-   -rw-r--r-- 1 designer designers 420588 ... runs/v1/final/gds/elevator.gds
+   -rw-r--r-- 1 designer designers 406588 ... runs/v1/final/gds/elevator.gds
    ```
 
-You should see a rectangle 62.335 × 73.055 µm: rows of standard cells, magenta power straps
+You should see a rectangle 58.31 × 69.03 µm: rows of standard cells, magenta power straps
 running vertically, a thicket of routing, and pins on the edges. If you zoom in far enough you
 can make out the individual cells. A human hair is 60–80 µm across, so your entire elevator
 controller is narrower than one hair.
 
-The 411 KB GDS file is the deliverable. It holds the polygons, layer by layer, that a foundry
+The 397 KB GDS file is the deliverable. It holds the polygons, layer by layer, that a foundry
 would use to make masks. Everything else in `final/`
 (`def/ lef/ lib/ nl/ sdc/ sdf/ spef/ spice/ vh/`) is the paperwork that goes with it: the
 netlist someone else would simulate, the timing
@@ -595,15 +608,15 @@ Fill in this table from your own run, so that you have a record of it:
 |---|---|---|
 | `make sim` result | | `ALL CHECKS PASSED` |
 | `verilator --lint-only -Wall` exit code | | 0 |
-| cells / area from `make synth` | | 76 / 765.73 µm² |
-| flip-flops, and their share of the area | | 17 / 55.72 % |
-| die area | | 4553.88 µm² |
-| die size in µm | | 62.335 × 73.055 |
-| setup worst slack | | +11.66 ns |
-| hold worst slack | | +0.108 ns |
+| cells / area from `make synth` | | 80 / 766.99 µm² |
+| flip-flops, and their share of the area | | 17 / 55.63 % |
+| die area | | 4025.14 µm² |
+| die size in µm | | 58.31 × 69.03 |
+| setup worst slack | | +12.39 ns |
+| hold worst slack | | +0.128 ns |
 | DRC (magic), DRC (klayout), LVS, antenna | | 0, 0, 0, 0 |
-| wall-clock time for `make harden` | | 59 s |
-| `runs/<tag>/final/gds/elevator.gds` exists | | 420,588 bytes |
+| wall-clock time for `make harden` | | 2 min 15 s (2 CPUs) |
+| `runs/<tag>/final/gds/elevator.gds` exists | | 406,588 bytes |
 
 If your cells and area are within about 20 % of ours, you built the same kind of thing we did.
 Once all eight of your own checks pass, compare your design with the
@@ -644,20 +657,20 @@ Nothing to submit. Do keep two files from this lab, though: `elevator.sv` and
   Implement it, re-run `make sim` (the eight checks still pass, since SCAN is a superset), and see
   what it costs in cells.
 - Let the tool re-encode, or stop it. `synth -top elevator -nofsm` leaves your 3-bit state
-  register alone instead of making it one-hot, and gives 79 cells, 756.98 µm² and 15 flip-flops
-  against the default's 76 / 765.73 / 17. That is two fewer flops and five more gates, for a
-  design 1.1 % smaller. On this design the choice between binary and one-hot is worth almost
+  register alone instead of making it one-hot, and gives 80 cells, 754.47 µm² and 15 flip-flops
+  against the default's 80 / 766.99 / 17. That is two fewer flops and two more gates, for a
+  design 1.6 % smaller. On this design the choice between binary and one-hot is worth almost
   nothing, and that's more useful to know than either side of the argument.
 - Push the clock. Set `"CLOCK_PERIOD": 4.0` in `config.json` and harden again with a new tag.
-  You have 11.66 ns of slack to spend, so find out where it runs out, and read
+  You have 12.39 ns of slack to spend, so find out where it runs out, and read
   `runs/<tag>/56-openroad-stapostpnr/` for the path that failed first.
-- Grow it: add eight floors, a door-obstruction input, or an overload sensor. The flow handled 76
-  cells in 59 seconds, but detailed routing time grows steeply with design size, so keep it under
-  a few thousand cells and re-check the wall-clock time as you go.
+- Grow it: add eight floors, a door-obstruction input, or an overload sensor. The flow handled 80
+  cells in 2 min 15 s on 2 CPUs, but detailed routing time grows steeply with design size, so keep
+  it under a few thousand cells and re-check the wall-clock time as you go.
 - Compare with someone else. Two people who both passed all eight checks will still have different
   cell counts, die sizes and slack, so work out together which of your design decisions caused
   the biggest gap.
 
 Next on the [Course path](../index.md#course-path): this was the last row, and the end of DD103.
 [DD104: Pre-Silicon Verification](https://uoftasic.com/dd104/) opens by putting your numbers next to
-an 8-bit CPU's, a few thousand cells against your 76, and asking you to find the bugs in it.
+an 8-bit CPU's, a few thousand cells against your 80, and asking you to find the bugs in it.

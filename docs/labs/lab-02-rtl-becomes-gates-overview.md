@@ -199,8 +199,8 @@ You should see that the gate view grew 52× in canvas area going from one adder 
 the RTL view stayed readable.
 
 For the rest of the course, draw the gate view of one small block only, and the RTL view of
-anything bigger. The elevator FSM in [Lab 05](../labs/lab-05-elevator-overview.md) is 76 cells, and
-its gate view comes out 883 × 9018 pt, so you'll draw its RTL instead. Experience doesn't make
+anything bigger. The elevator FSM in [Lab 05](../labs/lab-05-elevator-overview.md) is 80 cells, and
+its gate view comes out 883 × 9455 pt, so you'll draw its RTL instead. Experience doesn't make
 this limit go away, and it's the reason professional flows show you numbers and layouts rather
 than gate schematics.
 
