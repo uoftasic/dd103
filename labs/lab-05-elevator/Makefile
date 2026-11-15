@@ -5,7 +5,7 @@
 #   make lint     verilator --lint-only -Wall            ~0.01 s
 #   make sim      iverilog + vvp, six checks             ~0.1 s
 #   make synth    yosys -> sky130 cells, read the receipt ~0.5 s
-#   make harden   librelane config.json -> GDSII         ~1 min
+#   make harden   librelane config.json -> GDSII         ~2 min
 #   make show     the RTL diagram (NOT the gate diagram — see the writeup)
 #   make view     open your layout in KLayout (noVNC desktop only)
 #   make clean    delete results/, keep runs/

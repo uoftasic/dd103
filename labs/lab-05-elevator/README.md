@@ -23,7 +23,7 @@ make sim
 | `make sim` | `iverilog` + `vvp`, six checks; the skeleton fails three of them on purpose |
 | `make synth` | Yosys → SKY130 cells, and the `stat` receipt |
 | `make show` | the RTL diagram, `results/elevator_rtl.svg` (not the gate diagram) |
-| `make harden TAG=v1` | `librelane config.json` → GDSII, about 1 min |
+| `make harden TAG=v1` | `librelane config.json` → GDSII, about 2 min |
 | `make metrics TAG=v1` | the numbers to write down, from `runs/<tag>/final/metrics.json` |
 | `make view` | open the last run in KLayout (noVNC desktop only) |
 | `make clean` | delete `results/`, keep `runs/` |
@@ -59,19 +59,20 @@ TODO(2) marks the state you add to hold the doors open while the timer runs.
 | `Makefile` | `lint` `sim` `synth` `show` `harden` `metrics` `view` `clean` `distclean` |
 | `solutions/elevator.sv` | A complete 5-state reference. Don't open it first. |
 | `results/` | Logs, VCD, netlist, SVG. Gitignored except `.gitkeep`. |
-| `runs/` | LibreLane run directories, about 65 MB each. Gitignored. |
+| `runs/` | LibreLane run directories, about 90 MB each. Gitignored. |
 
 ## Reference numbers
 
-These are from the reference implementation on `hpretl/iic-osic-tools:2026.08`, on a machine with
-6 cores and 7.5 GB:
+These are from the skeleton and the reference implementation, `solutions/elevator.sv`, on
+`hpretl/iic-osic-tools:2026.08`:
 
 | | Skeleton | Finished |
 |---|---|---|
-| `yosys` cells / area | 43 / 382.87 µm² | 76 / 765.73 µm² |
+| `yosys` cells / area | 43 / 382.87 µm² | 80 / 766.99 µm² |
 | flip-flops | 7 | 17 |
-| sequential share of area | 46.08 % | 55.72 % |
+| sequential share of area | 46.08 % | 55.63 % |
 
-The LibreLane `Classic` flow runs 80 stages in 59 s of wall-clock time, with a peak RSS of 525 MB.
-It produces a 62.335 × 73.055 µm die (4553.88 µm²) with +11.66 ns of setup slack on a 20 ns clock,
-and the DRC, LVS and antenna checks all report 0.
+The LibreLane `Classic` flow runs 80 stages. In a container limited to 2 CPUs and 3 GB it took
+2 min 15 s of wall-clock time, with a peak RSS of 652 MB. It produces a 58.31 × 69.03 µm die
+(4025.14 µm²) with +12.39 ns of setup slack and +0.128 ns of hold slack on a 20 ns clock, and the
+DRC, LVS and antenna checks all report 0.
