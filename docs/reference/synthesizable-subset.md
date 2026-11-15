@@ -195,7 +195,7 @@ Never put these in anything you will synthesize:
 ```systemverilog
 #5, wait, @(negedge clk) in a body      // vanishes silently
 $display, $monitor, $finish             // becomes a $print cell with no area
-initial                                 // becomes a comment, not a reset
+initial                                 // becomes an (* init *) attribute, not a reset
 real, time, string, class, fork/join    // hard error or nonsense
 unique without default:                 // disables the latch check
 always @*                               // no completeness check — use always_comb
