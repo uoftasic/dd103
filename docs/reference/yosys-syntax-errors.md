@@ -1,6 +1,7 @@
 # When Yosys says syntax error
 
-Use this page when Yosys reports `syntax error` on code that looks fine. Often the code is fine.
+Use this page when Yosys reports `syntax error` on code that looks fine to you. Quite often
+the code really is fine, and the problem is that Yosys can't parse it.
 
 ## Reading the message
 
@@ -12,7 +13,7 @@ The message has three parts:
 
 | Part | Means |
 |---|---|
-| `TOK_IMPORT` | the token Yosys was reading: the keyword it choked on |
+| `TOK_IMPORT` | the token Yosys was reading when it stopped, here the keyword it couldn't handle |
 | `expecting '#' or '(' or ';'` | what its grammar allowed there instead |
 | the line number | where the token is, which is not always where your mistake is |
 
@@ -22,23 +23,25 @@ identifier", which is what `return` looks like to a parser that has never heard 
 
 ## Why it happens
 
-Yosys has its own hand-written Verilog front end. It grew out of a Verilog-2005 parser, and
-SystemVerilog support was added to it one construct at a time. Some constructs were never added.
+Yosys has its own hand-written Verilog front end, which grew out of a Verilog-2005 parser.
+SystemVerilog support was added to it one construct at a time, and some constructs were never
+added.
 
 Two very different problems produce the same red text:
 
-- A physics limit. `#5` will never synthesize, in any tool, at any price, because there is no gate
-  whose function is "be late". No workaround helps, and none should.
-- A parser gap. `return` inside a function and `import pkg::*` inside a module are synthesizable
-  ideas, and commercial tools accept both. Yosys's built-in front end never learned the grammar.
-  This is fixable, and your container already has two fixes installed.
+- A physics limit: `#5` will never synthesize, in any tool, at any price, because there is no gate
+  whose function is "be late". No workaround helps with that, and none should.
+- A parser gap: `return` inside a function and `import pkg::*` inside a module are synthesizable
+  ideas, and commercial tools accept both, but Yosys's built-in front end never learned the
+  grammar for them. A parser gap is fixable, and your container already has two fixes installed.
 
-Telling the two apart is the skill. The next step settles it in three seconds.
+So the skill to learn is telling the two apart, and the next step does that in about three
+seconds.
 
 ## Step 1: ask Verilator
 
 Verilator is a complete SystemVerilog parser, and it is already in your image. If Verilator lints
-your file clean, your SystemVerilog is valid and the problem is Yosys's front end.
+your file without errors, your SystemVerilog is valid and the problem is in Yosys's front end.
 
 ```bash
 verilator --lint-only --top alu alu.sv
@@ -49,11 +52,12 @@ verilator --lint-only --top alu alu.sv
 - Verilator: Built from 0.031 MB sources in 3 modules, into 0.012 MB in 3 C++ files needing 0.000 MB
 ```
 
-No errors, so the file is legal. Yosys has the gap, and Step 2 applies.
+Verilator reports no errors, so the file is legal SystemVerilog. The gap is in Yosys, and Step 2
+is what you need.
 
-If Verilator errors too, fix your code: find the row in
+If Verilator reports errors too, your code needs fixing: find the construct's row in
 [The synthesizable subset](../reference/synthesizable-subset.md). This happens more often than
-students expect:
+students expect, as in this example:
 
 ```
 %Error: p_range.sv:2:20: First value of [a:b] isn't a constant, maybe you want +: or -:
@@ -61,14 +65,14 @@ students expect:
       |                    ^
 ```
 
-> Verilator is stricter than Yosys in both directions. It rejects things Yosys builds (that
-> variable range select) and accepts things Yosys refuses (`return`). Neither tool is the
-> language, but when they disagree, Verilator is the one following the standard.
+> Verilator and Yosys disagree in both directions. Verilator rejects some things Yosys builds
+> (that variable range select) and accepts some things Yosys refuses (`return`). Neither tool
+> defines the language, but when they disagree, Verilator is the one following the standard.
 
 ## Worked example
 
-Here is an ALU written the way a textbook writes one: an enum in a package, a function with
-`return`, and a header import.
+Here is an ALU written the way a textbook would write it, with an enum in a package, a function
+that uses `return`, and a package import in the module header.
 
 ```systemverilog
 package alu_pkg;
@@ -108,7 +112,7 @@ The full source ships as `src/alu.sv` in
 [Lab 02](https://github.com/uoftasic/dd103/tree/main/labs/lab-02-rtl-becomes-gates/src/alu.sv), so
 you can reproduce every line below.
 
-Verilator lints it clean. Yosys:
+Verilator lints it without errors. Here is what Yosys does with it:
 
 ```bash
 yosys -p "read_verilog -sv alu.sv; synth -top alu; stat"
@@ -119,13 +123,14 @@ Parsing SystemVerilog input from `alu.sv' to AST representation.
 alu.sv:7: ERROR: syntax error, unexpected TOK_IMPORT, expecting '#' or '(' or ';'
 ```
 
-It never reaches the `return` on line 19, because the parser stops at the first thing it doesn't
-know. Fixing one syntax error often reveals the next, so don't conclude your file has one problem
-because Yosys reported one.
+Yosys never reaches the `return` on line 19, because its parser stops at the first thing it
+doesn't know. Fixing one syntax error often just reveals the next one, so don't conclude that your
+file has only one problem because Yosys reported only one.
 
 ## Step 2, option one: `read_slang`
 
-The image ships a second, complete SystemVerilog front end for Yosys as a plugin. It is here:
+The image ships a second, complete SystemVerilog front end for Yosys as a plugin, which you can find
+here:
 
 ```bash
 ls -l /foss/tools/yosys/share/yosys/plugins/slang.so
@@ -159,14 +164,14 @@ Build succeeded: 0 errors, 0 warnings
         6   $_XOR_
 ```
 
-The file that could not get past line 7 is now 108 cells.
+So the same file that couldn't get past line 7 now synthesizes to 108 cells.
 
-Two notes on invocation:
+Two things are worth knowing about how you invoke it:
 
 - `-m slang` on the `yosys` command line and `plugin -i slang;` as the first command inside `-p`
-  do the same thing. Use whichever fits your script.
-- `--top NAME` is optional, but you want it. Slang elaborates the whole design at once, so naming
-  the top module stops it from elaborating modules you did not mean.
+  do the same thing, so use whichever fits your script.
+- `--top NAME` is optional, but you'll want it. Slang elaborates the whole design at once, so
+  naming the top module stops it from elaborating modules you didn't mean it to.
 
 ## Step 2, option two: `sv2v`
 
@@ -186,8 +191,8 @@ sv2v alu.sv > alu.v
 yosys -p "read_verilog alu.v; synth -top alu; stat"
 ```
 
-Note `read_verilog` with no `-sv` on the second line: `alu.v` is no longer SystemVerilog. Here is
-what `sv2v` produced:
+Notice that the second line uses `read_verilog` without `-sv`, because `alu.v` is no longer
+SystemVerilog. Here is the start of what `sv2v` produced:
 
 ```verilog
 module alu (
@@ -212,15 +217,15 @@ module alu (
 		begin
 ```
 
-The package is gone: `WIDTH` became a `localparam` named `alu_pkg_WIDTH`, flattened into the
-module. `logic` became `wire` and `reg`, and the enum became a plain `[1:0]`. The `_sv2v_jump`
-variable is how `sv2v` emulates `return` in a language that has no `return`. It is ugly and
-entirely mechanical, and it works.
+The package is gone, and `WIDTH` has become a `localparam` named `alu_pkg_WIDTH`, flattened into
+the module. `logic` has become `wire` and `reg`, and the enum is now a plain `[1:0]`. The
+`_sv2v_jump` variable is how `sv2v` emulates `return` in a language that has no `return`. The
+result is ugly and entirely mechanical, but it works.
 
 ## Hardware from each option
 
-This is the reason you can trust either one, so it is worth checking yourself. Map both through
-to SKY130:
+The reason you can trust either option is that both give you the same hardware, and it's worth
+checking that for yourself. Map both through to SKY130:
 
 ```bash
 LIB=/foss/pdks/sky130A/libs.ref/sky130_fd_sc_hd/lib/sky130_fd_sc_hd__tt_025C_1v80.lib
@@ -242,31 +247,31 @@ Both print:
    Chip area for module '\alu': 509.238400
 ```
 
-That is 79 cells and 509.2384 µm² from both paths, identical to four decimal places. The two front
-ends disagree about grammar and agree completely about hardware, which is what you want from a
+Both paths give 79 cells and 509.2384 µm², identical to four decimal places. The two front ends
+disagree about grammar but agree completely about the hardware, which is what you want from a
 front end.
 
 > `abc -liberty` prints roughly a hundred lines of
-> `Scl_LibertyReadGenlib() skipped sequential cell ...` before it does anything useful. That is
-> normal output and does not mean anything is wrong.
+> `Scl_LibertyReadGenlib() skipped sequential cell ...` before it does anything useful. That's
+> normal output, and it doesn't mean anything is wrong.
 
 ## Which option to use
 
 | | `read_slang` | `sv2v` |
 |---|---|---|
 | how it works | a real SV front end inside Yosys | rewrites your file to Verilog-2005 first |
-| SV coverage | broad; it is the `slang` compiler | broad, occasionally different corners |
-| debugging | the netlist maps to your source | you get a second file to read, which is sometimes useful |
+| SV coverage | broad, since it is the `slang` compiler | broad, though it occasionally handles corner cases differently |
+| debugging | the netlist maps back to your own source | you get a second file to read, which is sometimes useful |
 | extra artifact | none | a `.v` you have to keep in sync |
 | in LibreLane | one config line, see below | you must run `sv2v` yourself first |
 
-Use `read_slang` by default. Use `sv2v` when you want to see what your SystemVerilog means, which
-is useful the first time you meet an interface or a parameterized package.
+Use `read_slang` by default, and use `sv2v` when you want to see what your SystemVerilog means,
+which is useful the first time you meet an interface or a parameterized package.
 
 ## In the LibreLane flow
 
-Slang works in the LibreLane flow too. Older write-ups say otherwise, so it is worth checking for
-yourself. LibreLane 3.1.0.dev3 has a config variable for it:
+Slang works in the LibreLane flow too. Older write-ups say it doesn't, so it's worth checking for
+yourself: LibreLane 3.1.0.dev3 has a config variable for it.
 
 ```
 Variable(
@@ -279,14 +284,14 @@ Variable(
 ),
 ```
 
-Two things matter there. The default is `False`, so you get Yosys's built-in parser unless you ask.
-And `USE_SYNLIG`, the name older documentation tells you to set, is a deprecated alias for it.
-Synlig is not installed in this image; slang is.
+Two things in that definition matter. The default is `False`, so you get Yosys's built-in parser
+unless you ask for slang. And `USE_SYNLIG`, the name older documentation tells you to set, is a
+deprecated alias for `USE_SLANG`. Synlig itself isn't installed in this image, but slang is.
 
 Here is the same ALU with its output registered, run through the real flow. `alu_reg.sv` is a
-one-off wrapper made for this page (`src/alu.sv` with its outputs flopped), so it is not in the lab
-packages. Reproduce the flag on a SystemVerilog design of your own; the areas below belong to that
-wrapper. Without the flag:
+one-off wrapper we made for this page (`src/alu.sv` with its outputs flopped), so you won't find it
+in the lab packages. To reproduce the result, try the flag on a SystemVerilog design of your own,
+and keep in mind that the areas below belong to our wrapper. This is the run without the flag:
 
 ```json
 {
@@ -308,9 +313,10 @@ wrapper. Without the flag:
 [00:14:54] ERROR    Subprocess had a non-zero exit.
 ```
 
-Read those lines together. `Check for Lint errors clear.` is Verilator, the full SystemVerilog
-parser, accepting your file. One step later Yosys stops at line 7. That sequence is this whole page
-in four lines of log, and it is why "my code looks fine" is usually a correct observation.
+It's worth reading those lines together. `Check for Lint errors clear.` means Verilator, the
+full SystemVerilog parser, has accepted your file, and one step later Yosys stops at line 7. Those four
+lines of log show the whole problem this page is about, and they're why "my code looks fine" is
+usually a correct observation.
 
 Now change one value:
 
@@ -332,31 +338,32 @@ real	1m3.624s
 | total violations | 0 |
 | GDS | 435,700 bytes |
 
-That is a finished, clean chip layout from the file that could not get past line 7, in 64 seconds.
+With the flag on, the file that couldn't get past line 7 becomes a finished chip layout with no
+violations, in 64 seconds.
 
 ## Triage, in order
 
 1. Read the token. `TOK_IMPORT` means an `import` in the wrong place. `TOK_ID` after a `return`
-   means the function. `TOK_REAL` means delete the `real`.
-2. Run Verilator: `verilator --lint-only --top NAME f.sv`. Clean means the problem is the Yosys
-   parser; errors mean the problem is your code.
+   points at the function. `TOK_REAL` means you should delete the `real`.
+2. Run Verilator: `verilator --lint-only --top NAME f.sv`. If it's clean, the Yosys parser is at
+   fault, and if it reports errors, your code is.
 3. Look up the construct in [The synthesizable subset](../reference/synthesizable-subset.md). Some
    have a one-line fix worth taking, such as `pkg::NAME` instead of `import pkg::*`, or assigning
    to the function's own name instead of `return`.
-4. Otherwise, use `-m slang` with `read_slang`, or `sv2v f.sv > f.v`. Both are installed and both
+4. Otherwise, use `-m slang` with `read_slang`, or `sv2v f.sv > f.v`. Both are installed, and both
    produce the same gates.
 5. Set `"USE_SLANG": true` in your LibreLane `config.json` so the flow reads the file the same way
    your Yosys lab did.
 
 ## Physics limits and the workarounds
 
-Don't reach for slang or `sv2v` before you have read the token. They fix parser gaps and do
-nothing for physics limits. `read_slang` will happily parse `#5`, and Yosys will still throw it
-away without a word, because there is still no gate that waits.
+Don't reach for slang or `sv2v` before you've read the token, because they fix parser gaps and
+do nothing for physics limits. `read_slang` will happily parse `#5`, and Yosys will still throw the
+delay away without a word, because there is still no gate that waits.
 
 If the construct is in the "never in anything you will synthesize" list in
-[The synthesizable subset](../reference/synthesizable-subset.md), no front end will help. Move it to
-your testbench.
+[The synthesizable subset](../reference/synthesizable-subset.md), no front end will help, and the
+construct belongs in your testbench instead.
 
 ## Related
 
