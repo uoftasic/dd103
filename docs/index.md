@@ -89,5 +89,5 @@ write: how big is it, how fast is it, and how do you know?
 
 ## Next courses
 
-- [DD104](https://uoftasic.com/dd104/): Pre-Silicon Verification, where you find the bugs hiding in a real 8-bit core.
+- [DD104](https://uoftasic.com/dd104/): Pre-Silicon Verification, where you write tests that catch thirteen broken versions of an 8-bit processor.
 - DD201: HLS · DD202: Computer Architecture

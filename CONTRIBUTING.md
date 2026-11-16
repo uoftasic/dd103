@@ -19,7 +19,7 @@ Only these three are fillable:
 |-------|---------|
 | `dd103` | `dd103` |
 | `DD103 — RTL on FPGAs & ASICs` | `DD103 — RTL on FPGAs & ASICs` |
-| `SystemVerilog in depth, and how the same RTL lowers differently to FPGA and ASIC.` | `RTL synthesis intro with Yosys` |
+| `Run the same SystemVerilog through an FPGA flow and an ASIC flow, and take an elevator controller from its state table to a chip layout that passes DRC and LVS.` | `RTL synthesis intro with Yosys` |
 
 ## Conventions
 

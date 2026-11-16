@@ -1,6 +1,6 @@
 # DD103 — RTL on FPGAs & ASICs
 
-SystemVerilog in depth, and how the same RTL lowers differently to FPGA and ASIC.
+Run the same SystemVerilog through an FPGA flow and an ASIC flow, and take an elevator controller from its state table to a chip layout that passes DRC and LVS.
 
 The third course in the UofT ASIC Team digital track. The published docs live under `./docs` and
 are served by GitHub Pages; the runnable lab packages live in `labs/`.
