@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Replace course placeholders after creating a repo from the UofT ASIC template.
 
-Fills dd103, DD103 — RTL on FPGAs & ASICs, and SystemVerilog in depth, and how the same RTL lowers differently to FPGA and ASIC. only.
+Fills dd103, DD103 — RTL on FPGAs & ASICs, and Run the same SystemVerilog through an FPGA flow and an ASIC flow, and take an elevator controller from its state table to a chip layout that passes DRC and LVS. only.
 Does not scaffold or remove docs pages — keep the published site barebones.
 """
 

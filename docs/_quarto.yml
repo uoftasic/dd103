@@ -21,7 +21,7 @@ project:
 
 website:
   title: "DD103 — RTL on FPGAs & ASICs"
-  description: "SystemVerilog in depth, and how the same RTL lowers differently to FPGA and ASIC."
+  description: "Run the same SystemVerilog through an FPGA flow and an ASIC flow, and take an elevator controller from its state table to a chip layout that passes DRC and LVS."
   site-url: https://uoftasic.com/dd103/
   repo-url: https://github.com/uoftasic/dd103
   repo-subdir: docs
