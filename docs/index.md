@@ -1,8 +1,11 @@
 # DD103 — RTL on FPGAs & ASICs
 
-In Lab 01 you run a 4-bit adder through an FPGA flow and an ASIC flow and compare what each one
-builds. In Lab 05 you finish a four-floor elevator controller from its state table and take it to a
-chip layout that passes DRC and LVS.
+In this course you turn SystemVerilog into an FPGA bitstream and into a chip layout. In Lab 01 you
+run DD102's 4-bit adder through an FPGA flow and an ASIC flow and compare what each one builds.
+In Lab 02 you look at a full adder before and after Yosys maps it to SKY130 cells. In Lab 03 you
+find out when an incomplete `case` becomes a latch, and in Lab 04 you predict area and delay
+before Yosys and OpenSTA report them. In Lab 05 you finish a four-floor elevator controller from
+its state table and take it to a chip layout that passes DRC and LVS.
 
 DD103 is part of the UofT ASIC Team education materials, published at
 https://uoftasic.com/dd103/. The labs run in the workbench, which is the IIC-OSIC-TOOLS container
@@ -39,7 +42,7 @@ adder. Over the course you'll:
 2. See your RTL as a diagram, then see the same design as named standard cells from SKY130,
    SkyWater's 130 nm process
 3. Read the `stat` report that Yosys prints, which gives the number of cells, the area in square
-   micrometres, and what fraction of the design is flip-flops
+   micrometres, and how much of that area is flip-flops
 4. Measure how slow your adder is, in nanoseconds, and see why the carry chain sets that number
 5. Design a 4-floor elevator controller from a state table
 6. Take it all the way to a GDSII file, a chip layout that passes DRC (the shapes can be
