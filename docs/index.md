@@ -1,7 +1,8 @@
 # DD103 — RTL on FPGAs & ASICs
 
-In DD103 you write SystemVerilog, turn it into both an FPGA bitstream and a chip layout, and
-learn why those two results differ.
+In Lab 01 you run a 4-bit adder through an FPGA flow and an ASIC flow and compare what each one
+builds. In Lab 05 you finish a four-floor elevator controller from its state table and take it to a
+chip layout that passes DRC and LVS.
 
 DD103 is part of the UofT ASIC Team education materials, published at
 https://uoftasic.com/dd103/. The labs run in the workbench, which is the IIC-OSIC-TOOLS container
