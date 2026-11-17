@@ -1,11 +1,11 @@
 # DD103 — RTL on FPGAs & ASICs
 
-In this course you turn SystemVerilog into an FPGA bitstream and into a chip layout. In Lab 01 you
-run DD102's 4-bit adder through an FPGA flow and an ASIC flow and compare what each one builds.
-In Lab 02 you look at a full adder before and after Yosys maps it to SKY130 cells. In Lab 03 you
-find out when an incomplete `case` becomes a latch, and in Lab 04 you predict area and delay
-before Yosys and OpenSTA report them. In Lab 05 you finish a four-floor elevator controller from
-its state table and take it to a chip layout that passes DRC and LVS.
+In this course you turn SystemVerilog into an FPGA bitstream and into a chip layout. The first lab's
+package includes the 4-bit adder from DD102. You run it through an FPGA flow and an ASIC flow and
+compare what each one builds. Over the next three labs you see a full adder before and after Yosys
+maps it to SKY130 cells, find out when an incomplete `case` becomes a latch, and predict area and
+delay before Yosys and OpenSTA report them. The last lab has you finish a four-floor elevator
+controller from its state table and take it to a GDSII layout that passes DRC and LVS.
 
 DD103 is part of the UofT ASIC Team education materials, published at
 https://uoftasic.com/dd103/. The labs run in the workbench, which is the IIC-OSIC-TOOLS container
