@@ -8,7 +8,7 @@ Utilities for DD103 — RTL on FPGAs & ASICs under the UofT ASIC org (`uoftasic`
 |--------|---------|
 | `hello.py` | Smoke-check that Python runs in this clone |
 | `init-template.py` | Fill `dd103` / title / description after using the template |
-| `check_site.py` | After `quarto render docs`, list every local link, image and `#anchor` in `docs/_site` that doesn't resolve: `python3 scripts/check_site.py docs/_site`. It exits 1 when it finds any, so a broken link fails the CI run |
+| `check_site.py` | After `quarto render docs`, list every local link, image and `#anchor` in `docs/_site` that doesn't resolve, and every page without the navbar's link to https://edu.uoftasic.com/: `python3 scripts/check_site.py docs/_site`. It exits 1 when it finds any, so a broken link or a missing navbar link fails the CI run |
 
 ## Usage
 
